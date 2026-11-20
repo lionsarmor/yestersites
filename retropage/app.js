@@ -1364,6 +1364,11 @@
     o.h = Math.min(o.h, page().height);
     o.x = M.clamp(o.x + clipboardOffset, 0, page().width - o.w);
     o.y = M.clamp(o.y + clipboardOffset, 0, page().height - o.h);
+    if(o.widget==='flash-movie'){
+      const p=page(),candidate={...p,items:[...p.items,o]};
+      try{M.normalize(p===doc?candidate:{...doc,pages:doc.pages.map(child=>child===p?candidate:child)});}
+      catch(error){return status(error.message);}
+    }
     if(RetroMedia.isFrame(o)){
       try{RetroMedia.checkFrames(M.pages(doc).map(([key,p])=>[key,p===page()?{...p,items:[...p.items,o]}:p]));}catch(err){return status(err.message);}
     }
