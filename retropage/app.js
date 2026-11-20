@@ -1213,12 +1213,20 @@
     const id = active;
     dialog(
       'Delete page',
-      [{ note: 'Delete ' + page().title + ' and clear links to this page?' }],
+      [{ note: 'Delete ' + page().title + ' and clear links to it? Frames will keep any remaining menu destination.' }],
       () => {
         doc.pages = doc.pages.filter((p) => p.page_id !== id);
         if (!doc.pages.length) delete doc.pages;
         for (const [, p] of M.pages(doc))
-          for (const o of [...p.items,...p.bbsScreen || []]) if (o.href === 'page:' + id) o.href = '';
+          for (const o of [...p.items,...p.bbsScreen || []]) {
+            const removed='page:'+id;
+            if(RetroMedia.isFrame(o) && (o.href===removed || o.otherHref===removed)){
+              const remaining=[{href:o.href,text:o.text},{href:o.otherHref,text:o.otherLabel}].find(t=>t.href && t.href!==removed);
+              if(remaining)Object.assign(o,remaining,{widget:'inline-frame'});
+              else {delete o.widget;o.href='';}
+              delete o.otherHref;delete o.otherLabel;
+            }else if(o.href===removed)o.href='';
+          }
         switchPage('home');
         record('Deleted page. Undo restores it.');
       },
@@ -1234,6 +1242,9 @@
     o.h = Math.min(o.h, page().height);
     o.x = M.clamp(o.x + clipboardOffset, 0, page().width - o.w);
     o.y = M.clamp(o.y + clipboardOffset, 0, page().height - o.h);
+    if(RetroMedia.isFrame(o)){
+      try{RetroMedia.checkFrames(M.pages(doc).map(([key,p])=>[key,p===page()?{...p,items:[...p.items,o]}:p]));}catch(err){return status(err.message);}
+    }
     if (o.href.startsWith('page:') && !M.page(doc, o.href.slice(5))) o.href = '';
     if (RetroMedia.isPlayer(o)) {
       if(page().items.filter(RetroMedia.isPlayer).length>=4)return status('A page supports up to four players.');
