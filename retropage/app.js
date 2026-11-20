@@ -1154,6 +1154,10 @@
       const form=$('dialog-fields'),mode=form.querySelector('[name=cartSource]'),sample=form.querySelector('[name=sample]'),url=form.querySelector('[name=romUrl]'),title=form.querySelector('[name=text]');
       const drop=node('label','cartridge-drop','Drop a NES or Game Boy cartridge here, or choose a file (512 KiB maximum).');
       const file=node('input'),info=node('output'),pane=node('div','craft-preview'),test=node('button',null,'Test game');
+      pane.classList.add('cartridge-test');
+      if(!document.getElementById('cartridge-preview-styles')){
+        const style=node('style');style.id='cartridge-preview-styles';style.textContent=RetroCraft.css;document.head.append(style);
+      }
       file.type='file';file.accept='.nes,.gb,.gbc';test.type='button';info.setAttribute('aria-live','polite');drop.append(file);
       form.append(drop,info,test,pane);
       function refresh(){

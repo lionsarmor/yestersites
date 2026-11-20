@@ -972,3 +972,5 @@ dialog.site-preview[open]{display:flex;flex-direction:column}
 .compat-samples img{max-width:100%;height:auto}.compat-samples strong{font:700 11px Arial,sans-serif;color:#544937;border-bottom:1px dotted #8f8879;padding-bottom:2px}
 .compatibility details+details{border-top:1px solid #a49b88;margin-top:6px;padding-top:3px}
 @media(max-width:480px){.compat-comparison{grid-template-columns:minmax(0,1fr)}}
+
+.craft-preview.cartridge-test{height:clamp(290px,58vh,465px)}.cartridge-test:empty{display:none}

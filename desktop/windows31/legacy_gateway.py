@@ -10,6 +10,12 @@ from urllib.error import HTTPError
 from urllib.parse import urljoin, urlsplit, urlunsplit
 from urllib.request import Request, HTTPRedirectHandler, build_opener
 
+# Mosaic 1.0 understands the Latin alphabet but predates Unicode punctuation and HTML4 entities.
+CLASSIC_PUNCTUATION = str.maketrans({
+    "‘": "'", "’": "'", "‚": ",", "“": '"', "”": '"', "„": '"',
+    "–": "-", "—": "--", "…": "...", "·": "*", "•": "*", "\u00a0": " ",
+})
+
 DEFAULT_SITE = 'roddy-aircheck-1121'
 LIMIT = 8 * 1024 * 1024
 
@@ -64,13 +70,19 @@ class ClassicHTML(HTMLParser):
 
     def handle_data(self, data):
         if not self.script:
-            self.parts.append(data)
+            self.parts.append(data.translate(CLASSIC_PUNCTUATION))
 
     def handle_entityref(self, name):
-        self.handle_data('&' + name + ';')
+        self.classic_entity('&' + name + ';')
 
     def handle_charref(self, name):
-        self.handle_data('&#' + name + ';')
+        self.classic_entity('&#' + name + ';')
+
+    def classic_entity(self, original):
+        decoded = html.unescape(original)
+        replacement = decoded.translate(CLASSIC_PUNCTUATION)
+        # Preserve escapes that keep HTML text distinct from markup.
+        self.handle_data(replacement if replacement != decoded else original)
 
     def handle_decl(self, decl):
         self.handle_data('<!' + decl + '>')
