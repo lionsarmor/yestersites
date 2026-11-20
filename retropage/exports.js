@@ -90,7 +90,7 @@
       let html='<div class="board" style="max-width:'+page.width+'px;background:'+page.background+'"><div style="padding-top:'+100*page.height/page.width+'%"></div>';
       for(const [index,o] of page.items.entries()){
         const css=style(o)+'left:'+100*o.x/page.width+'%;top:'+100*o.y/page.height+'%;width:'+100*o.w/page.width+'%;height:'+100*o.h/page.height+'%;z-index:'+(index+1)+';background:'+(o.kind==='rule'?o.color:o.fill||'transparent')+';font-size:'+o.font_size+'px;font-size:min('+o.font_size+'px,'+100*o.font_size/page.width+'vw);'+(o.kind==='box'?'box-shadow:inset 0 0 0 1px '+o.color:'');
-        html+='<div class="object" style="'+escape(css)+'">'+link(o,content(o,'modern'))+'</div>';
+        html+='<div class="object" style="'+escape(css)+'">'+(RetroMedia.isPlayer(o)?RetroMedia.render(o,'modern'):link(o,content(o,'modern')))+'</div>';
       }return html+'</div>';
     }
     function flow(layout){
@@ -98,6 +98,7 @@
       for(const row of rows(page,backdrop)){
         const parts=[];
         for(const o of row){
+          if (RetroMedia.isPlayer(o)){parts.push([o,RetroMedia.render(o,layout)]);continue;}
           let body=content(o,layout);
           if(o.kind==='rule'){parts.push([o,'<hr>']);continue;}
           if(!body&&!o.href)continue;
@@ -121,15 +122,22 @@
     const layout=edition|| (page.profile==='text'?'text':'auto');
     const old=layout==='classic'||layout==='text';
     const choices=names===file?editions:['classic','text'];
-    const footer='<div class="editions"><hr><p>'+(page.byline?escape(page.byline)+' &middot; ':'')+choices.filter(e=>e!==edition).map(e=>'<a href="'+names(id,e)+'">'+labels[e]+'</a>').join(' | ')+'</p></div>';
+    const terminalLink = page.bbsScreen && names===file ? ' | <a href="'+(id==='home'?'terminal':'page-'+id+'-terminal')+'.txt">BBS screen</a>' : '';
+    const footer='<div class="editions"><hr><p>'+(page.byline?escape(page.byline)+' &middot; ':'')+choices.filter(e=>e!==edition).map(e=>'<a href="'+names(id,e)+'">'+labels[e]+'</a>').join(' | ')+terminalLink+'</p></div>';
     let css='',attrs='';
     if(layout==='classic')attrs=' bgcolor="'+page.background+'" text="'+ink+'" link="'+ink+'" vlink="'+ink+'"'+(backdrop?' background="'+media.get(backdrop.id)[1]+'"':'');
     if(!old){
       css='body{margin:0;background-color:'+page.background+';color:'+ink+';'+(backdrop?'background-image:url('+media.get(backdrop.id)[0]+');background-position:center top;background-size:'+page.width+'px '+page.height+'px':'')+'}.editions{box-sizing:border-box;margin:auto;max-width:'+page.width+'px;padding:.3em .75em;font:13px/1.5 Arial,sans-serif}.editions a{color:inherit}'+boardCss+phoneCss;
       if(layout==='auto')css+='.phone{display:none}@media(max-width:600px){.phone{display:block}.board{display:none}}';
     }
-    const body=layout==='auto'?board()+flow('phone'):layout==='modern'?board():flow(layout);
-    return '<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+escape(page.title)+'</title>'+(css?'<style>'+css+'</style>':'')+'</head><body'+attrs+'>'+body+footer+'</body></html>';
+    const sound = !page.soundtrack ? '' : old
+      ? '<p><a href="'+escape(page.soundtrack)+'">Listen to this page</a></p>'
+      : '<audio controls autoplay loop preload="none" aria-label="Page soundtrack" src="'+escape(page.soundtrack)+'"></audio>';
+    const hasPlayers=page.items.some(RetroMedia.isPlayer);
+    if(!old && hasPlayers)css+=RetroMedia.css;
+    if(layout==='auto' && hasPlayers)css+='@media(max-width:600px){.board{display:flex;flex-direction:column;gap:8px;padding:8px;box-sizing:border-box}.board>div:first-child{display:none}.board>.object{position:static;width:100%!important;height:auto!important;font-size:16px!important}.board .retro-player.video :is(video,iframe){min-height:220px}.board .object img{width:auto;max-width:100%;height:auto}}';
+    const body=layout==='auto'?(hasPlayers?board():board()+flow('phone')):layout==='modern'?board():flow(layout);
+    return '<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+escape(page.title)+'</title>'+(css?'<style>'+css+'</style>':'')+'</head><body'+attrs+'>'+body+sound+footer+'</body></html>';
   }
   function dosCopy(doc,bundle) {
     const ids=M.pages(doc).map(([id])=>id);
@@ -147,6 +155,18 @@
   async function download(raw) {
     const doc=M.normalize(raw),bundle=await mediaFor(doc,false);
     for(const [id,page] of M.pages(doc))for(const ed of ['',...editions])bundle.files.push({name:file(id,ed),data:encoder.encode(render(page,id,ed,bundle.paths.get(id)))});
+    if (M.pages(doc).some(([,p]) => p.bbsScreen || p.items.some(o => o.widget?.startsWith('bbs-')))) {
+      const screens = {};
+      for (const [id] of M.pages(doc)) {
+        const base = id === 'home' ? 'terminal' : 'page-'+id+'-terminal';
+        for (const width of [32,40,80]) {
+          const screen = M.terminal(doc,id,width);
+          bundle.files.push({name:base+(width===32?'':'-'+width)+'.txt',data:encoder.encode(screen.lines.join('\r\n')+'\r\n')});
+          screens[id] = {file:base+'.txt',links:screen.links};
+        }
+      }
+      bundle.files.push({name:'bbs-menu.json',data:encoder.encode(JSON.stringify(screens,null,2))});
+    }
     dosCopy(doc,bundle);
     const url=URL.createObjectURL(window.makeSiteZip(bundle.files)),anchor=document.createElement('a');
     anchor.href=url;anchor.download=(doc.slug||doc.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')||'retro-page')+'-site.zip';
@@ -160,7 +180,7 @@
     const doc=M.normalize(raw),bundle=await mediaFor(doc,true);
     const modes={modern:['Modern desktop','modern',0,0],phone:['Phone · 390 × 844','phone',390,844],authored:['Authored size','modern',0,0],classic640:['Classic · 640 × 480','classic',640,480],classic800:['Classic · 800 × 600','classic',800,600],text:['Text browser','text',0,0],bbs:['BBS terminal','bbs',0,0]};
     const dlg=document.createElement('dialog');dlg.className='site-preview';dlg.setAttribute('aria-label','Website preview');
-    dlg.innerHTML='<form method="dialog"><strong>Website preview</strong><button autofocus value="close">Close</button></form><div class="preview-controls"><label>Page <select data-control="page"></select></label><label>Display <select data-control="mode"></select></label><label data-option="fit">Scale <select data-control="scale"><option>Fit</option><option>100%</option></select></label><label data-option="bbs">Columns <select data-control="columns"><option>32</option><option>40</option><option>80</option></select></label><label data-option="bbs">Phosphor <select data-control="color"><option>Green</option><option>Amber</option><option>White</option></select></label><output></output></div><div class="preview-stage"><div class="preview-footprint"><iframe title="Published page preview" sandbox="allow-same-origin"></iframe></div><section class="preview-terminal" hidden><pre></pre><form><label>Select &gt; <input size="6" maxlength="5" autocomplete="off"></label> <button>Enter</button> <span role="status"></span></form><p>H Home · B Back · ? Help</p></section></div>';
+    dlg.innerHTML='<form method="dialog"><strong>Website preview</strong><button autofocus value="close">Close</button></form><div class="preview-controls"><label>Page <select data-control="page"></select></label><label>Display <select data-control="mode"></select></label><label data-option="fit">Scale <select data-control="scale"><option>Fit</option><option>100%</option></select></label><label data-option="bbs">Columns <select data-control="columns"><option>32</option><option>40</option><option>80</option></select></label><label data-option="bbs">Phosphor <select data-control="color"><option>Green</option><option>Amber</option><option>White</option></select></label><output></output></div><div class="preview-stage"><div class="preview-footprint"><iframe title="Published page preview" sandbox="allow-same-origin allow-scripts allow-presentation" allow="autoplay; fullscreen"></iframe></div><section class="preview-terminal" hidden><pre></pre><form><label>Select &gt; <input size="6" maxlength="5" autocomplete="off"></label> <button>Enter</button> <span role="status"></span></form><p>H Home · B Back · ? Help</p></section></div>';
     const find=s=>dlg.querySelector(s),control=name=>find('[data-control="'+name+'"]');
     const choose=control('mode'),pages=control('page'),frame=find('iframe'),stage=find('.preview-stage'),foot=find('.preview-footprint'),term=find('.preview-terminal');
     for(const [key,p] of M.pages(doc))pages.add(new Option(p.title||'Untitled',key));
@@ -184,6 +204,7 @@
       dlg.querySelectorAll('[data-option="bbs"]').forEach(el=>el.hidden=!bbs);
       find('[data-option="fit"]').hidden=bbs;
       if(bbs){
+        frame.removeAttribute('srcdoc');
         const cols=Number(control('columns').value);
         term.style.color={Green:'#69ed45',Amber:'#ffc05b',White:'#f3f1e7'}[control('color').value];
         find('pre').textContent=help?'TERMINAL HELP\n\n1, 2 ... Open a link\nH        Home\nB        Back\n?        Help':M.terminal(doc,key,cols).lines.join('\n');

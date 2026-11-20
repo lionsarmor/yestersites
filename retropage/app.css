@@ -882,3 +882,24 @@ dialog.site-preview[open]{display:flex;flex-direction:column}
 .art-pager button{min-width:26px}.stamp-search + .stamp-search{margin-top:3px}
 
 .gifcities-link { display: inline-block; margin: 3px 0 5px; font-size: 12px; }
+
+#toolbar .mode-switch { min-height:32px; font-weight:bold; white-space:nowrap; }
+.bbs-mode :is(#menus,#toolbar,#workspace,.mobile-panels) {display:none}
+#bbs-workbench:not([hidden]) {display:flex; flex:1; flex-direction:column; min-height:0; overflow:auto}
+.bbs-tools,.bbs-display {display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:7px;background:var(--face);border-bottom:2px groove var(--light)}
+.bbs-tools strong {margin-right:auto}
+.bbs-tools [data-action=publish] {background:var(--wine);color:white}
+.bbs-layout {display:grid;grid-template-columns:minmax(190px,260px) minmax(0,1fr);gap:6px;padding:6px;align-items:start}
+.bbs-layout h2 {font-size:15px;background:#cfccc2;padding:5px;margin:0 0 7px}
+.bbs-layout fieldset {min-width:0;margin:8px 0 0;border:2px groove var(--light);padding:8px}
+.bbs-layout label {display:block;margin:4px 0}
+.bbs-controls,.bbs-design {padding:7px}
+.bbs-controls select,.bbs-design textarea,.bbs-design #block-link {width:100%}
+.bbs-controls button {margin:2px 0}
+.bbs-layout [hidden] {display:none}
+.bbs-layout textarea,.crt pre {font:16px/1.28 'Courier New',monospace}
+.crt {background:#071109;border:3px inset var(--face);overflow:auto;padding:12px;min-height:150px;max-height:43dvh}
+.crt pre {margin:0 auto;white-space:pre;min-height:7em}
+@media(max-width:700px){.bbs-layout{grid-template-columns:1fr}.bbs-tools{position:sticky;top:0;z-index:2}.bbs-controls #block-list{height:58px}.bbs-layout .crt{max-height:45vh}.toolbar{overflow-x:auto}.toolbar>*{flex-shrink:0}}
+.player-face{display:flex;flex-direction:column;justify-content:space-between;height:100%;box-sizing:border-box;border:3px outset #dedbd3;background:#222930;color:#91e1a6;font:14px/1.1 monospace;text-decoration:none;text-align:center}
+.player-face strong,.player-face small{text-align:left;padding:4px;background:#253c52;color:#fcf5d9;font:600 13px Arial,sans-serif}.player-face span{font-size:24px}.player-face small{background:#babbb3;color:#202b34}

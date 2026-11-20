@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ring Surfer · YesterSites</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="surfer.css"><script defer src="../crawler/members.js"></script><script defer src="surfer.js"></script></head>
+<body>
+<header><a href="/" title="YesterSites homepage"><img src="/favicon.ico" alt="YesterSites" width="18" height="18"></a><strong>Ring Surfer</strong><span id="caption"></span><button id="hide" aria-controls="bar" aria-expanded="true">Hide bar</button></header>
+<main id="view" aria-label="Website"><noscript>Ring Surfer needs JavaScript. <a href="/text.html">Browse the text directory</a>.</noscript></main>
+<button id="restore" hidden>▴ Navigation</button>
+<nav id="bar" aria-label="Browser controls">
+<form id="address-form"><label for="address">Address</label><input id="address" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false"><button>Go</button></form>
+<div class="controls"><button id="prev" title="Previous page or site">◀ Back</button><button id="next" title="Go forward or discover another site">Next ▶</button><button id="stop">Stop</button><button id="sound" aria-pressed="false">Sound on</button><button id="mark" aria-pressed="false">☆ Bookmark</button><button id="bookmarks">Bookmarks</button><button id="share">Share</button></div>
+<div class="status"><span class="lamp"></span><output id="status" aria-live="polite"></output><span class="grip" aria-hidden="true"></span></div></nav>
+<dialog id="shelf"><form method="dialog"><strong>Bookmarks</strong><button aria-label="Close bookmarks">×</button></form><ul id="saved-list"></ul><p id="empty">No bookmarks yet.</p></dialog>
+<dialog id="share-box"><form method="dialog"><strong>Share this page</strong><button>Close</button></form><label>Copy this link <input id="share-url" readonly></label></dialog>
+<audio id="radio" preload="none" loop></audio>
+</body></html>

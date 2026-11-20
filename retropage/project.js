@@ -166,6 +166,16 @@
           typeof d.listed === 'boolean',
         'Invalid page size, color or format.',
       );
+      if (d.soundtrack !== undefined) check(typeof d.soundtrack === 'string' && (!d.soundtrack ||
+        (d.soundtrack.startsWith('https://') && linkOK(d.soundtrack))), 'Use a direct HTTPS audio or stream address.');
+      if ('bbsScreen' in d) {
+        check(Array.isArray(d.bbsScreen) && d.bbsScreen.length <= 64, 'A BBS screen supports up to 64 blocks.');
+        d.bbsScreen = d.bbsScreen.map(block => {
+          check(block && ['bbs-welcome','bbs-art','bbs-menu','bbs-bulletin','bbs-files'].includes(block.widget)
+            && string(block.text,8000) && linkOK(block.href), 'Check the BBS block text and destination.');
+          return {widget:block.widget, text:block.text, href:block.href};
+        });
+      }
       const ids = new Set();
       d.items = p.items.map((o) => {
         check(
@@ -198,11 +208,15 @@
         );
         if ('widget' in n) {
           check(typeof n.widget === 'string' && Object.hasOwn(window.retroObjects.presets, n.widget), 'Unknown object preset.');
+          if (RetroMedia.isPlayer(n)) RetroMedia.source(n.href,n.widget);
           if (n.widget === 'counter') check(/^[0-9]{1,12}$/.test(n.text), 'Enter 1–12 counter digits.');
         }
         if (n.kind === 'image' && n.src) imageType(n.src);
         return n;
       });
+      const players=d.items.filter(RetroMedia.isPlayer);
+      check(players.length<=4,'A page supports up to four players.');
+      check(players.filter(o=>o.autoplay).length+Number(!!d.soundtrack)<=1,'Choose one automatic soundtrack or player per page.');
       return d;
     }
     const doc = validatePage(input);
@@ -216,7 +230,7 @@
         return validatePage(p);
       });
     for (const [, p] of pages(doc))
-      for (const o of p.items)
+      for (const o of [...p.items,...p.bbsScreen || []])
         check(
           !o.href.startsWith('page:') || seen.has(o.href.slice(5)),
           'A link points to a missing page.',
@@ -352,8 +366,8 @@
         .replace(/[–—]/g, '-')
         .replace(/[^\x20-\x7e\n]/g, '');
     const ordered = [...p.items].sort((a,b)=>a.y-b.y||a.x-b.x);
-    const authored = ordered.filter(o => o.widget?.startsWith('bbs-'));
-    if (authored.length) {
+    const authored = p.bbsScreen || ordered.filter(o => o.widget?.startsWith('bbs-'));
+    if (p.bbsScreen || authored.length) {
       const lines = [];
       for (const o of authored) {
         let label = ascii(o.text.replace(/\t/g,'    '));

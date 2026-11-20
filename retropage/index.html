@@ -11,6 +11,7 @@
     <title>Retro Page · Site editor</title>
     <link rel="icon" href="./assets/paper-pencil.png" />
     <link rel="stylesheet" href="./app.css" />
+    <script defer src="./media.js"></script>
     <script defer src="./objects.js"></script>
     <script defer src="./palette.js"></script>
     <script defer src="./presets.js"></script>
@@ -19,6 +20,7 @@
     <script defer src="./zip.js"></script>
     <script defer src="./exports.js"></script>
     <script defer src="./gifcities.js"></script>
+    <script defer src="./bbs.js"></script>
     <script defer src="./app.js"></script>
   </head>
   <body>
@@ -48,6 +50,7 @@
         <div class="toolgroup">
           <button data-action="preview"><i class="toolicon" style="--i: 7"></i>Preview</button>
         </div>
+        <button class="mode-switch" data-action="author-bbs">Edit BBS</button>
         <button data-action="publish" class="publish">
           <i class="toolicon" style="--i: 8"></i>Publish
         </button>
@@ -158,6 +161,28 @@
         </section>
       </aside>
     </main>
+    <section id="bbs-workbench" hidden aria-label="BBS editor">
+      <div class="bbs-tools"><button data-action="return-html">◂ HTML editor</button><strong>BBS editor</strong>
+        <button data-action="save">Save project</button><button data-action="undo">Undo</button><button data-action="redo">Redo</button>
+        <button data-action="preview-bbs">Test terminal</button><button data-action="publish">Publish</button></div>
+      <div class="bbs-layout">
+        <section class="panel bbs-controls"><h2>Screen directory</h2>
+          <label>Page <select id="screen-page"></select></label><p id="screen-mode"></p><button id="screen-custom"></button>
+          <fieldset id="block-tools"><legend>Screen blocks</legend>
+            <select id="block-list" size="6" aria-label="Screen blocks"></select>
+            <div><button id="block-up">Move up</button> <button id="block-down">Down</button> <button id="block-remove">Remove</button></div>
+            <label>Add a block <select id="block-preset"></select></label><button id="block-add">Add block</button>
+          </fieldset>
+        </section>
+        <section class="panel bbs-design"><h2>Terminal screen</h2>
+          <div class="bbs-display"><label>Columns <select id="screen-width"><option>32</option><option>40</option><option>80</option></select></label>
+            <label>Phosphor <select id="screen-color"><option>Green</option><option>Amber</option><option>White</option></select></label></div>
+          <div class="crt"><pre id="screen-output"></pre></div>
+          <fieldset id="block-fields"><legend>Block properties</legend><label>Contents <textarea id="block-text" maxlength="8000" rows="5" spellcheck="false"></textarea></label>
+            <label id="block-link-label">Menu destination <select id="block-link"></select></label></fieldset>
+        </section>
+      </div>
+    </section>
     <footer>
       <strong id="page-status">Home</strong><span id="size-status">640 × 480</span
       ><button id="zoom-status" data-action="zoom" title="Zoom">100%</button

@@ -28,3 +28,12 @@ header h1 .desktop-logo { width: 235px; max-width: 100%; height: auto; margin-to
   .editor-launch img { width: 126px; height: auto; }
   .editor-download img { width: 20px; height: 20px; }
 }
+
+.launchpad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:13px 0 5px;text-align:left}
+.launchpad a{display:flex;align-items:center;gap:6px;min-width:0;padding:8px 5px;border:2px outset #fff4d8;background:#e4ddcb;text-decoration:none;color:#29203e;box-shadow:1px 1px #645e66}
+.launchpad .browse-launch{background:#4b3e68;color:#fff2cf;border-color:#ab96c0 #342448 #342448 #ab96c0}
+.launchpad a:hover{background:#fcf0c4;color:#3d2548}.launchpad a:active{border-style:inset}
+.launchpad img{width:32px;height:32px;object-fit:contain;image-rendering:pixelated}.launchpad img.grub-icon{width:36px;object-fit:cover;object-position:left}
+.launchpad span,.launchpad small{display:block}.launchpad strong{font:bold 15px Arial,sans-serif}.launchpad small{font:12px Georgia,serif;margin-top:3px}
+.index-formats{text-align:center;margin:3px 0 10px;font:13px Arial,sans-serif}
+@media(max-width:685px){.launchpad{grid-template-columns:repeat(2,minmax(0,1fr))}.launchpad a{padding:7px}}

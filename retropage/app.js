@@ -295,13 +295,15 @@
     for (const c of $('dialog-fields').querySelectorAll('[name]'))
       values[c.name] = c.type === 'checkbox' ? c.checked : c.value;
     const cb = dialogAccept;
+    if ($('dialog-submit').disabled) return;
+    $('dialog-submit').disabled=true;
     try {
       if (cb) await cb(values);
       if (dialogAccept === cb && $('dialog').open) $('dialog').close();
     } catch (e) {
       $('dialog-error').textContent = e.message;
       if (e.field) $('dialog-fields').querySelector('[name='+e.field+']')?.focus();
-    }
+    } finally { $('dialog-submit').disabled=false; }
   });
   function setDrawer(value) {
     if (drawer === 'GIFs') artScroll = $('drawer-content').scrollTop;
@@ -340,7 +342,9 @@
   let artGroup = artGroups[0], artPage = 0;
   let objectGroup = 'Basic shapes', artPanel, artScroll = 0;
   const palette = window.retroPalette;
-  const widgets = {...window.retroObjects.presets, ...palette.shapes, ...palette.web, ...palette.bbs};
+  const videoPresets=Object.fromEntries(['YouTube','Rumble','Internet Archive'].map(label=>[
+    'media-'+label.toLowerCase().replace(' ','-'),{...window.retroObjects.presets['video-player'],label:label+' video',saveAs:'video-player'}]));
+  const widgets = {...videoPresets, ...window.retroObjects.presets, ...palette.shapes, ...palette.web, ...palette.bbs};
   function renderDrawer() {
     if (!$('drawer-content')) return;
     $('drawer-title').textContent = drawer === 'GIFs' ? 'GIF Stamps' : drawer;
@@ -361,7 +365,7 @@
     } else if (drawer === 'Objects') {
       const groups = node('select', 'stamp-search');
       groups.setAttribute('aria-label', 'Object group');
-      for (const name of ['Basic shapes', 'Web objects', 'BBS objects']) groups.add(new Option(name));
+      for (const name of ['Basic shapes', 'Web objects']) groups.add(new Option(name));
       groups.value = objectGroup;
       groups.onchange=()=>{objectGroup=groups.value;renderDrawer();};
       root.append(groups);
@@ -376,7 +380,7 @@
           choices.append(b);
         }
       }
-      const builtin = Object.entries(window.retroObjects.presets).filter(([key]) =>
+      const builtin = Object.entries({...videoPresets,...window.retroObjects.presets}).filter(([key]) =>
         objectGroup !== 'Basic shapes' && key.startsWith('bbs-') === (objectGroup === 'BBS objects'));
       const extra = objectGroup === 'Basic shapes' ? palette.shapes : objectGroup === 'BBS objects' ? palette.bbs : palette.web;
       for (const [key,spec] of [...builtin, ...Object.entries(extra)]) {
@@ -567,7 +571,11 @@
       });
       if (o.kind === 'box') el.style.boxShadow = 'inset 0 0 0 1px ' + o.color;
       const src = M.appearance(o);
-      if (src) {
+      if (RetroMedia.isPlayer(o)) {
+        const deck=node('div','player-face');
+        deck.append(node('strong',null,(o.widget==='audio-player'?'Wave Deck':'Vision Deck')+' · '+o.text),node('span',null,o.widget==='audio-player'?'▂ ▄ ▆ ▃ ▇ ▅ ▂':'▶'),node('small',null,'▶   ▪   ━━━━━━'));
+        el.append(deck);
+      } else if (src) {
         const im = node('img');
         im.src = src;
         im.alt = o.text;
@@ -656,6 +664,7 @@
     renderLayers();
     renderProperties();
     renderBbs();
+    bbsEditor.refresh();
     for (const b of document.querySelectorAll('[data-action="undo"]')) b.disabled = at === 0;
     for (const b of document.querySelectorAll('[data-action="redo"]'))
       b.disabled = at === hist.length - 1;
@@ -787,7 +796,7 @@
   paper.addEventListener('dblclick', (e) => {
     const o = object();
     if (!o || !e.target.closest('[data-object]')) return;
-    ['image', 'rule', 'link'].includes(o.kind) ? properties() : editInline();
+    (RetroMedia.isPlayer(o) || ['image', 'rule', 'link'].includes(o.kind)) ? properties() : editInline();
   });
   function place(data) {
     armed = data;
@@ -813,6 +822,40 @@
     });
     return image.toDataURL('image/png');
   }
+  async function mediaLink(value,widget) {
+    let raw=value.trim(),u;
+    if(raw.startsWith('<iframe')) {
+      const match=raw.match(/^<iframe\s[^>]*?\bsrc=["'](https:\/\/rumble\.com\/embed\/v[a-z0-9]+\/?(?:\?[^"'<>]*)?)["']/i);
+      if(!match)throw Error('Paste a video URL or a Rumble iframe embed.');
+      raw=match[1].replace(/&amp;/g,'&');
+    }
+    try{u=new URL(raw);}catch{}
+    if(widget==='video-player' && u?.protocol==='https:' && ['rumble.com','www.rumble.com'].includes(u.hostname) && /^\/v[a-z0-9]+(?:[-.][^/]*)?$/i.test(u.pathname)){
+      try{
+        const r=await fetch('https://yestersites-webring.jamesmweeksjr.chatgpt.site/api/media/rumble?'+new URLSearchParams({url:raw}),{credentials:'omit',signal:AbortSignal.timeout(15000)});
+        if(!r.ok)throw Error();raw=(await r.json()).embed;
+      }catch{throw Error('Rumble could not resolve this video. Paste the iframe URL from Rumble’s Share / Embed menu.');}
+    }
+    return RetroMedia.source(raw,widget).url;
+  }
+  function playerDialog(o,isNew) {
+    const p=page();
+    dialog(widgets[o.widget].label,[
+      {name:'text',label:'Player title',value:o.text,required:true,maxLength:120},
+      {name:'media',label:o.widget==='video-player'?'YouTube, Rumble, Archive movie or HTTPS video file':'HTTPS audio file or live stream',value:o.href,required:true,maxLength:2048},
+      {name:'autoplay',label:'Start on arrival',type:'checkbox',value:o.autoplay},
+      {name:'loop',label:'Repeat clip',type:'checkbox',value:o.loop},
+      {url:'https://yestersites.com/screening-room/',label:'Try the Screening Room examples'},
+    ],async v=>{
+      const href=await mediaLink(v.media,o.widget);
+      if (!$('dialog').open || p!==page()) return;
+      const values={text:v.text,href,autoplay:v.autoplay,loop:v.loop};
+      if (!isNew) return applyObject(o,values);
+      const candidate={...o,...values}, trial={...p,items:[...p.items,candidate]};
+      M.normalize(p===doc?trial:{...doc,pages:doc.pages.map(child=>child===p?trial:child)});
+      p.items.push(candidate);selected=candidate.id;record('Placed '+widgets[o.widget].label+'.');
+    },isNew?'Insert':'Apply');
+  }
   function insertWidget(key,x,y) {
     const p=page(), spec=widgets[key], parts=spec.parts;
     const gw=Math.max(...parts.map(part=>(part.dx||0)+part.w));
@@ -830,6 +873,7 @@
       if (key==='wallpaper') Object.assign(o,{x:0,y:0,w:p.width,h:p.height});
       return o;
     });
+    if(RetroMedia.isPlayer(objects[0]))return playerDialog(objects[0],true);
     const prior=p.items[0],replace=key==='wallpaper'&&prior?.kind==='image'&&!prior.text.trim()&&!prior.href&&prior.x===0&&prior.y===0&&prior.w===p.width&&prior.h===p.height;
     if (p.items.length + objects.length - Number(!!replace)>64) throw Error('This page supports up to 64 objects.');
     if (key==='wallpaper') p.items.splice(0,replace?1:0,...objects);
@@ -913,6 +957,7 @@
   function properties() {
     const o = object();
     if (!o) return status('Select an object on the page.');
+    if (RetroMedia.isPlayer(o)) return playerDialog(o,false);
     const fields =
       o.kind === 'rule'
         ? []
@@ -1043,6 +1088,7 @@
         value: p.height,
         required: true,
       },
+      { name:'soundtrack', label:'Soundtrack or live stream (HTTPS audio URL)', value:p.soundtrack||'', maxLength:2048 },
       { name: 'background', label: 'Background color', type: 'color', value: p.background },
       {
         name: 'profile',
@@ -1051,7 +1097,7 @@
         options: [
           ['classic', '1990s graphical'],
           ['millennium', 'Early 2000s'],
-          ['text', 'Text / BBS'],
+          ['text', 'Text-first HTML'],
         ],
         value: p.profile,
       },
@@ -1070,6 +1116,7 @@
       'Page settings',
       fields,
       (v) => {
+        v.soundtrack=v.soundtrack.trim();
         v.width = Number(v.width);
         v.height = Number(v.height);
         const test =
@@ -1106,6 +1153,7 @@
       p = M.copy({ ...original, pages: undefined });
     delete p.pages;
     p.page_id = M.uid();
+    for (const block of p.bbsScreen || []) if (block.href === 'page:'+active) block.href='page:'+p.page_id;
     for (const o of p.items) {
       o.id = M.uid();
       if (o.href === 'page:' + active) o.href = 'page:' + p.page_id;
@@ -1125,7 +1173,7 @@
         doc.pages = doc.pages.filter((p) => p.page_id !== id);
         if (!doc.pages.length) delete doc.pages;
         for (const [, p] of M.pages(doc))
-          for (const o of p.items) if (o.href === 'page:' + id) o.href = '';
+          for (const o of [...p.items,...p.bbsScreen || []]) if (o.href === 'page:' + id) o.href = '';
         switchPage('home');
         record('Deleted page. Undo restores it.');
       },
@@ -1142,6 +1190,10 @@
     o.x = M.clamp(o.x + clipboardOffset, 0, page().width - o.w);
     o.y = M.clamp(o.y + clipboardOffset, 0, page().height - o.h);
     if (o.href.startsWith('page:') && !M.page(doc, o.href.slice(5))) o.href = '';
+    if (RetroMedia.isPlayer(o)) {
+      if(page().items.filter(RetroMedia.isPlayer).length>=4)return status('A page supports up to four players.');
+      if(o.autoplay && (page().soundtrack || page().items.some(i=>i.autoplay)))o.autoplay=false;
+    }
     page().items.push(o);
     selected = o.id;
     clipboardOffset += 8;
@@ -1170,8 +1222,8 @@
       ],
       (v) => {
         const d = M.normalize({ ...doc, slug: v.slug.trim(), listed: v.listed });
-        if (!d.title.trim() || !d.items.length)
-          throw Error('Add a page title and at least one object before publishing.');
+        if (!d.title.trim() || (!d.items.length && !d.bbsScreen?.length))
+          throw Error('Add a title and a page object or BBS block before publishing.');
         const bytes = new TextEncoder().encode(JSON.stringify(d));
         if(bytes.length>16*1024*1024)throw Error('Reduce this project below 16 MiB before publishing.');
         if(bytes.length>850000){
@@ -1393,11 +1445,12 @@
         );
         break;
       case 'author-bbs':
-        objectGroup='BBS objects';
-        setDrawer('Objects');
-        $('inspector').classList.remove('open');
-        $('drawer').classList.add('open');
-        status('Place BBS objects in reading order. These objects define this page’s terminal screen.');
+        armed = null;
+        bbsEditor.open();
+        break;
+      case 'return-html':
+        bbsEditor.close();
+        render();
         break;
       case 'bbs-options':
         dialog(
@@ -1616,7 +1669,11 @@
     }
   };
   document.addEventListener('keydown', (e) => {
-    if ($('dialog').open) return;
+    if (document.querySelector('dialog[open]')) return;
+    if (bbsEditor.isOpen()) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='s') {e.preventDefault();save();}
+      return;
+    }
     if (e.key === 'Escape') {
       if (editing) return;
       gestureEnd(true);
@@ -1659,6 +1716,11 @@
       o.y = M.clamp(o.y + dir[1] * step, 0, page().height - o.h);
       record('Moved object.');
     }
+  });
+  const bbsEditor = window.makeBbsEditor({
+    project:()=>doc, active:()=>active, switchPage, record, saveDraft, status,
+    options:()=>({width:bbsWidth,color:bbsColor}), setOptions:(width,color)=>{bbsWidth=width;bbsColor=color;prefs();},
+    reset:ok=>dialog('Use the original terminal screen?', [{note:'Remove the custom BBS blocks for this page? Undo restores them.'}],ok,'Use original'),
   });
   $('viewport').onscroll = drawRulers;
   new ResizeObserver(fit).observe($('viewport'));
