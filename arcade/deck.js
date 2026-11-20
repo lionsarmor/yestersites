@@ -115,7 +115,6 @@
     if(!padEnabled || !navigator.getGamepads)return;
     let pads;
     try{pads=navigator.getGamepads();}catch{padEnabled=false;return;}
-    if(!document.hasFocus())return;
     const p=Array.from(pads).find(p=>p && p.mapping==='standard');
     for(const [key,n] of Object.entries(padKeys)){
       const x=p?.axes[0]||0,y=p?.axes[1]||0;
@@ -216,7 +215,7 @@
     e.preventDefault();input(keys[e.code],e.code,true);
   });
   document.addEventListener('keyup',e=>input(keys[e.code],e.code,false));
-  window.addEventListener('blur',release);
+  window.addEventListener('blur',pause);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
   window.addEventListener('pagehide',e=>{
     if(e.persisted){pause();return;}
