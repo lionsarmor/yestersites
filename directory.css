@@ -37,3 +37,5 @@ header h1 .desktop-logo { width: 235px; max-width: 100%; height: auto; margin-to
 .launchpad span,.launchpad small{display:block}.launchpad strong{font:bold 15px Arial,sans-serif}.launchpad small{font:12px Georgia,serif;margin-top:3px}
 .index-formats{text-align:center;margin:3px 0 10px;font:13px Arial,sans-serif}
 @media(max-width:685px){.launchpad{grid-template-columns:repeat(2,minmax(0,1fr))}.launchpad a{padding:7px}}
+
+.club-link{font-family:Georgia,serif;margin:.75em 0}.club-link img{vertical-align:middle;border:0;margin-right:.65em}.club-link a{font-weight:bold}

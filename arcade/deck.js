@@ -166,7 +166,7 @@
   if(!sample){
     try{$('label').textContent=decodeURIComponent(cartridgeURL().pathname.split('/').pop()||'Game cartridge').slice(0,90);}
     catch{$('label').textContent='Game cartridge';}
-  }else $('help').textContent='Catch six fireflies. Arrows move · hold X or A to dash.';
+  }else $('help').textContent='Catch six fireflies. Arrows move · hold X or the A button to dash.';
   $('play').onclick=launch;
   $('pause').onclick=()=>state==='playing'?pause():resume();
   $('sound').onclick=async()=>{
@@ -193,6 +193,10 @@
   document.addEventListener('keyup',e=>input(keys[e.code],e.code,false));
   window.addEventListener('blur',release);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
-  window.addEventListener('pagehide',stopWorkers);
+  window.addEventListener('pagehide',e=>{
+    if(e.persisted){pause();return;}
+    stopWorkers();
+    if(audio)audio.close().catch(()=>{});
+  });
   showState('ready','Ready');
 })();

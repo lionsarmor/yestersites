@@ -9,3 +9,5 @@ header,.info,.pad,.actions,.switches>div{display:flex;align-items:center}header,
 @media(max-height:290px){.case{display:grid;grid-template-columns:minmax(100px,1fr) minmax(105px,35%);grid-template-rows:20px 1fr auto;padding:5px;gap:3px}header{grid-column:1/-1}.bezel{grid-column:1;grid-row:2}.info{grid-column:1;grid-row:3}.pad{grid-column:2;grid-row:2/4;flex-direction:column;justify-content:center;gap:5px}.cross{grid-template:repeat(3,18px)/repeat(3,19px)}#help{display:none}}
 @media(max-width:260px){.case{padding:4px}.cross{grid-template:repeat(3,19px)/repeat(3,19px)}.actions{gap:1px}.actions button{width:24px;height:26px}.switches button{font-size:10px;padding:2px 3px}}
 .paused #curtain{background:#14221a99}.cross button:disabled,.actions button:disabled{cursor:default}
+
+#pause::before{content:"Ⅱ "}.paused #pause::before{content:"▶ "}#sound::before{content:"◖× ";font-family:monospace}#sound[aria-pressed=true]::before{content:"◖)) "}

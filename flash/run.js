@@ -26,9 +26,9 @@
       await engine.load({data:bytes,parameters,forceScale:true,scale:movie.dataset.scale,backgroundColor:movie.dataset.matte,swfFileName:'movie.swf',...window.RufflePlayer.config});
       if(movie.dataset.transport==='true'){
         const bar=document.createElement('div'),pause=document.createElement('button'),restart=document.createElement('button'),info=document.createElement('small');
-        bar.id='transport';pause.textContent='Pause';restart.textContent='Restart';info.textContent='Flash stage';
-        pause.onclick=()=>{if(engine.suspended){engine.resume();pause.textContent='Pause';}else{engine.suspend();pause.textContent='Resume';}};
-        restart.onclick=async()=>{pause.disabled=restart.disabled=true;try{await engine.reload();engine.resume();pause.textContent='Pause';}catch{info.textContent='Restart failed';}finally{pause.disabled=restart.disabled=false;}};
+        bar.id='transport';pause.className='suspend';pause.textContent='Pause';pause.dataset.paused='false';restart.textContent='Restart';info.textContent='Flash stage';
+        pause.onclick=()=>{if(engine.suspended){engine.resume();pause.textContent='Pause';pause.dataset.paused='false';}else{engine.suspend();pause.textContent='Resume';pause.dataset.paused='true';}};
+        restart.onclick=async()=>{pause.disabled=restart.disabled=true;try{await engine.reload();engine.resume();pause.textContent='Pause';pause.dataset.paused='false';}catch{info.textContent='Restart failed';}finally{pause.disabled=restart.disabled=false;}};
         bar.append(pause,restart,info);screen.append(bar);
       }
     }catch{screen.className='';screen.replaceChildren(button,status);button.disabled=false;status.textContent='Playback failed. This movie needs a supported browser and a self-contained SWF.';}
