@@ -106,5 +106,19 @@ const RetroCraft = (() => {
     return '<iframe class="craft-window" sandbox="" title="'+title+'" srcdoc="'+escape(doc)+'"></iframe>';
   }
   const css='.craft-window{display:block;box-sizing:border-box;width:100%;height:100%;border:0;pointer-events:auto}.phone .craft-window{height:220px}@media(max-width:600px){.board .craft-window{min-height:160px}}';
-  return {isCraft,fields,render,markup,stylesheet,pageCSS,swfBytes,maxBytes,player,css};
+  function fallbackFields(o){
+    const text=checkedString(o.fallbackText??'',500,'Classic description').trim();
+    const url=checkedString(o.fallbackUrl??'',2048,'Classic link').trim();
+    if(url){
+      let parsed;
+      try{parsed=new URL(url);}catch{throw Error('Use a complete HTTP or HTTPS address for the classic link.');}
+      if(!['http:','https:'].includes(parsed.protocol)||parsed.username||parsed.password)throw Error('Use an HTTP or HTTPS link without credentials.');
+    }
+    return {fallbackText:text,fallbackUrl:url};
+  }
+  function fallback(o){
+    const {fallbackText:text,fallbackUrl:url}=fallbackFields(o);
+    return url?'<a href="'+escape(url)+'">'+escape(text||url)+'</a>':escape(text);
+  }
+  return {fallbackFields,fallback,isCraft,fields,render,markup,stylesheet,pageCSS,swfBytes,maxBytes,player,css};
 })();

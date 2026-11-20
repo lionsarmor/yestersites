@@ -100,6 +100,9 @@
       for(const row of rows(page,backdrop)){
         const parts=[];
         for(const o of row){
+          if((layout==='text'||layout==='classic') && (o.fallbackText || o.fallbackUrl)){
+            parts.push([o,RetroCraft.fallback(o)]);continue;
+          }
           if(o.widget==='html-block'||o.widget==='flash-movie'){parts.push([o,RetroCraft.render(o,layout)]);continue;}
           if (RetroMedia.isPanel(o)){const html=drawPanel(o,layout);if(html)parts.push([o,html]);continue;}
           if (RetroMedia.isPlayer(o)){parts.push([o,RetroMedia.render(o,layout)]);continue;}
@@ -170,7 +173,11 @@
         for (const width of [32,40,80]) {
           const screen = M.terminal(doc,id,width);
           bundle.files.push({name:base+(width===32?'':'-'+width)+'.txt',data:encoder.encode(screen.lines.join('\r\n')+'\r\n')});
-          screens[id] = {file:base+'.txt',links:screen.links,resources:screen.resources};
+          if(width===40){
+            for(const [mode,ext] of [['ansi','ans'],['petscii','pet']])bundle.files.push({name:base+'.'+ext,data:RetroBbs.bytes(screen,mode)});
+            for(const r of screen.resources)if(r.attachment)bundle.files.push({name:r.href,data:RetroBbs.bytesOf(r.attachment)});
+            screens[id]={file:base+'.txt',links:screen.links,linkKeys:screen.linkKeys,resources:screen.resources.map(({text,key,href})=>({text,key,href}))};
+          }
         }
       }
       bundle.files.push({name:'bbs-menu.json',data:encoder.encode(JSON.stringify(screens,null,2))});
@@ -233,7 +240,7 @@
         frame.removeAttribute('srcdoc');
         const cols=Number(control('columns').value);
         term.style.color={Green:'#69ed45',Amber:'#ffc05b',White:'#f3f1e7'}[control('color').value];
-        find('pre').textContent=help?'TERMINAL HELP\n\n1, 2 ... Open a link\nH        Home\nB        Back\n?        Help':M.terminal(doc,key,cols).lines.join('\n');
+        find('pre').innerHTML=help?'TERMINAL HELP\n\n1, 2 ... Open a link\nH        Home\nB        Back\n?        Help':RetroBbs.toHTML(M.terminal(doc,key,cols));
         term.style.setProperty('--columns',cols+'ch');find('output').textContent=cols+' columns';
         term.querySelector('[role=status]').textContent='';
       }else{frame.srcdoc=previewPage(key,ed);resize();}
@@ -253,12 +260,12 @@
     term.querySelector('form').onsubmit=event=>{
       event.preventDefault();const input=term.querySelector('input'),cmd=input.value.trim().toLowerCase();input.value='';
       const current=pages.value,screen=M.terminal(doc,current,Number(control('columns').value)),list=screen.links;
-      const file=/^f([1-9]\d*)$/.exec(cmd);
-      if(file && screen.resources[file[1]-1]){window.open(screen.resources[file[1]-1].href,'_blank','noopener,noreferrer');return;}
+      const dest=RetroBbs.command(screen,cmd.toUpperCase());
+      if(dest?.resource){RetroBbs.openResource(dest.resource);return;}
       if(cmd==='?')help=true;
       else if(cmd==='b'){if(help)help=false;else if(history.length)pages.value=history.pop();}
-      else if(cmd==='h'||(/^[1-9]\d*$/.test(cmd)&&Number(cmd)<=list.length)){
-        const key=cmd==='h'?'home':list[Number(cmd)-1];if(current!==key)history.push(current);pages.value=key;help=false;
+      else if(cmd==='h'||dest?.page){
+        const key=cmd==='h'?'home':dest.page;if(current!==key)history.push(current);pages.value=key;help=false;
       }else{term.querySelector('[role=status]').textContent='Enter a listed number or ? for help.';return;}
       display();input.focus();
     };

@@ -4,7 +4,7 @@
   const catalog=new Map(), localRows=window.GrubMembers;
   const tracks={nightshift:'station-id.wav',modem:'art/hold-music.wav',orbit:'horn.wav'};
   for (const row of localRows) {
-    const base=new URL('../members/'+row.slug+'/',location.href).href;
+    const base=host+'/members/'+row.slug+'/';
     catalog.set(base,{base,title:row.title,sound:tracks[row.slug]?base+tracks[row.slug]:''});
   }
   const theme=$('theme');
@@ -30,25 +30,26 @@
       }
       u.searchParams.delete('surfer');
       if(u.origin===location.origin && localRows.some(r=>u.pathname.startsWith('/'+r.slug+'/')))u.pathname='/members'+u.pathname;
-      if(u.origin===location.origin && /^\/members\/[a-z0-9-]+\//.test(u.pathname) && !localRows.some(r=>u.pathname.startsWith('/members/'+r.slug+'/')))return new URL(u.pathname+u.search+u.hash,host).href;
+      if(u.origin===location.origin && /^\/members\/[a-z0-9-]+\//.test(u.pathname))return new URL(u.pathname+u.search+u.hash,host).href;
       if(u.username || u.password || !['https:','http:'].includes(u.protocol))return null;
       if (![...catalog.keys()].some(base=>u.href.startsWith(base)) && !(u.origin===host && /^\/members\/[a-z0-9-]+\//.test(u.pathname)))return null;
       return u.href;
     }catch{return null;}
   }
+  function publicLink(url){
+    if(!url)return '';
+    const u=new URL(url),match=/^\/members\/([a-z0-9-]+)\/(.*)$/.exec(u.pathname);
+    return match?'https://'+match[1]+'.yestersites.com/'+match[2]+u.search+u.hash:url;
+  }
   function site(url){return [...catalog.values()].find(r=>url?.startsWith(r.base));}
   function setBar(show){$('bar').hidden=!show;$('restore').hidden=show;$('hide').setAttribute('aria-expanded',String(show));$('hide').textContent=show?'Hide bar':'Show bar';}
   function update(){
-    const url=current(), row=site(url),marked=saved.some(b=>b.url===url);
-    $('address').value=url?.startsWith(host+'/members/')?'https://yestersites.com'+new URL(url).pathname+(new URL(url).search):url||'';$('caption').textContent=row?.title||'Member site';$('prev').disabled=index<1;
+    const url=current(), row=site(url),marked=saved.some(b=>clean(b.url)===url);
+    $('address').value=publicLink(url);$('caption').textContent=row?.title||'Member site';$('prev').disabled=index<1;
     $('mark').textContent=marked?'★ Saved':'☆ Bookmark';$('mark').setAttribute('aria-pressed',String(marked));
     $('stop').textContent=loading?'Stop':'Reload';
     $('sound').textContent=soundEnabled?'Mute':'Sound on';$('sound').setAttribute('aria-pressed',String(soundEnabled));
-    if(window.memberLinksActive && url){
-      const u=new URL(url),m=/^\/members\/([a-z0-9-]+)\/(.*)$/.exec(u.pathname);
-      if(m)$('address').value='https://'+m[1]+'.yestersites.com/'+m[2]+u.search+u.hash;
-    }
-    history.replaceState(null,'',location.pathname+'?url='+encodeURIComponent(url));
+    history.replaceState(null,'',location.pathname+'?url='+encodeURIComponent(publicLink(url)));
   }
   window.addEventListener('member-domains-ready',update);
   const radio=$('radio');
@@ -70,7 +71,7 @@
   function swipe(doc){
     let start;
     doc.addEventListener('touchstart',e=>{
-      start=!e.target.closest?.('input,textarea,select,audio,video,[contenteditable=true]') && e.touches.length===1?[e.touches[0].clientX,e.touches[0].clientY]:null;
+      start=!e.target.closest?.('a,button,input,textarea,select,audio,video,.retro-player,.ref-deck,[role=button],[contenteditable=true]') && e.touches.length===1?[e.touches[0].clientX,e.touches[0].clientY]:null;
     },{passive:true});
     doc.addEventListener('touchcancel',()=>{start=null;});
     doc.addEventListener('touchend',e=>{
@@ -159,7 +160,7 @@
     const url=clean(d.url);
     if(!url || !url.startsWith(host+'/members/'))return;
     if(d.surfer==='link')navigate(url);
-    if(d.surfer==='ready'){push(url);frameSound();track(typeof d.sound==='string' && /^https:\/\//.test(d.sound)?d.sound:'');update();}
+    if(d.surfer==='ready'){push(url);frameSound();track(typeof d.sound==='string' && /^https:\/\//.test(d.sound)?d.sound:site(url)?.sound||'');update();}
   });
   $('next').onclick=forward;$('prev').onclick=back;
   $('stop').onclick=()=>{
@@ -193,14 +194,14 @@
   }
   $('mark').onclick=()=>{
     const url=current();
-    if(saved.some(b=>b.url===url))saved=saved.filter(b=>b.url!==url);
-    else saved.push({url,title:(site(url)?.title || 'Member site')+' · '+new URL(url).pathname.split('/').filter(Boolean).at(-1)});
+    if(saved.some(b=>clean(b.url)===url))saved=saved.filter(b=>clean(b.url)!==url);
+    else saved.push({url:publicLink(url),title:(site(url)?.title || 'Member site')+' · '+new URL(url).pathname.split('/').filter(Boolean).at(-1)});
     if(!store('ring-surfer.bookmarks',saved))msg('Bookmarks only available during this visit.');
     update();
   };
   $('bookmarks').onclick=()=>{showSaved();shelf.showModal();};
   $('share').onclick=async()=>{
-    const url=location.href;
+    const url=publicLink(current());
     try{if(navigator.share)return await navigator.share({url,title:site(current())?.title||'Ring Surfer'});
       await navigator.clipboard.writeText(url);msg('Page link copied.');}
     catch(error){if(error.name==='AbortError')return;$('share-url').value=url;$('share-box').showModal();$('share-url').select();}

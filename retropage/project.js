@@ -171,11 +171,8 @@
         (d.soundtrack.startsWith('https://') && linkOK(d.soundtrack))), 'Use a direct HTTPS audio or stream address.');
       if ('bbsScreen' in d) {
         check(Array.isArray(d.bbsScreen) && d.bbsScreen.length <= 64, 'A BBS screen supports up to 64 blocks.');
-        d.bbsScreen = d.bbsScreen.map(block => {
-          check(block && ['bbs-welcome','bbs-art','bbs-menu','bbs-bulletin','bbs-files'].includes(block.widget)
-            && string(block.text,8000) && linkOK(block.href), 'Check the BBS block text and destination.');
-          return {widget:block.widget, text:block.text, href:block.href};
-        });
+        d.bbsScreen=d.bbsScreen.map(block=>RetroBbs.normalize(block,linkOK));
+        RetroBbs.checkKeys(d.bbsScreen);
       }
       const ids = new Set();
       d.items = p.items.map((o) => {
@@ -209,6 +206,7 @@
         );
         if ('widget' in n) {
           check(typeof n.widget === 'string' && Object.hasOwn(window.retroObjects.presets, n.widget), 'Unknown object preset.');
+          if ('fallbackText' in n || 'fallbackUrl' in n)Object.assign(n,RetroCraft.fallbackFields(n));
           if (n.widget==='html-block'||n.widget==='flash-movie')RetroCraft.fields(n);
           if (RetroMedia.isPlayer(n)) RetroMedia.source(n.href,n.widget);
           if(RetroMedia.isFrame(n)){
@@ -378,27 +376,7 @@
         .replace(/[^\x20-\x7e\n]/g, '');
     const ordered = [...p.items].sort((a,b)=>a.y-b.y||a.x-b.x);
     const authored = p.bbsScreen || ordered.filter(o => o.widget?.startsWith('bbs-'));
-    if (p.bbsScreen || authored.length) {
-      const lines = [];
-      for (const o of authored) {
-        let label = ascii(o.text.replace(/\t/g,'    '));
-        if (['bbs-menu','bbs-files'].includes(o.widget) && o.href.startsWith('page:')) {
-          links.push(o.href.slice(5));
-          label = links.length + '  ' + (label || page(doc, links.at(-1)).title);
-        } else if (['bbs-menu','bbs-files'].includes(o.widget) && o.href) {
-          resources.push({text:label.split('\n')[0]||'Open resource',href:o.href});
-          label='F'+resources.length+'  '+label+'\n'+ascii(o.href);
-        }
-        for (const line of label.split('\n')) {
-          if (o.widget === 'bbs-art' || o.widget === 'bbs-files') {
-            if (!line.length) lines.push('');
-            for (let i=0; i<line.length; i+=columns) lines.push(line.slice(i,i+columns));
-          } else lines.push(...wrap(line, columns));
-        }
-        lines.push('');
-      }
-      return {lines,links,resources};
-    }
+    if(p.bbsScreen || authored.length)return RetroBbs.authored(authored,columns,key=>page(doc,key)?.title||key,id,wrap);
     const lines = [...wrap(ascii(p.title.toUpperCase()), columns), ''];
     for (const o of ordered) {
       const t = ascii(o.text.trim());

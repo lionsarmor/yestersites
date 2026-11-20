@@ -1,13 +1,16 @@
 /* Cache only the editor shell. Projects and unpublished image data stay in the page's local storage. */
 const base = new URL('./', self.location.href);
 const prefix = 'roddy-retro-page:' + base.pathname + ':';
-const version = prefix + '0.9.5-original-button-art';
+const version = prefix + 'creator-desk-0.9.5-original-button-art';
 const resources = [
+  './studio-drawer.js','./studio-drawer.css',
+  ...['dial-up','fan-club','late-night','moon-relay','personal-blog','player-two','radio-shack'].map(name=>'./assets/starters/'+name+'.webp'),
+  './assets/starters/moon-relay.json','./assets/starters/player-two.json',
   './index.html', './craft.js','./assets/instruments/flash-still.gif',
   ...['bbs','html','film','archive','youtube','rumble','music','radio','clip','audio','menu','art','files','welcome','bulletin'].flatMap(name=>['','-still'].map(suffix=>'./assets/instruments/'+name+suffix+'.gif')),
   './app.css',
   './app.js',
-  './bbs.js',
+  './bbs.js','./bbs-codec.js','./bbs-painter.js',
   './media.js',
   './gifcities.js',
   './art-library.js',

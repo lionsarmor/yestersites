@@ -22,14 +22,18 @@
     link.href = href;
     return link;
   }
+  var subject=$('subject');
+  var subjects={anime:/anime|manga|shrine/i,games:/game|nintendo|arcade|console/i,radio:/radio|broadcast|shortwave|station/i,bbs:/bbs|bulletin board|dial.up/i};
   function searchURL(raw, chosen) {
     var params = new URLSearchParams();
+    if(subject.value)params.set('subject',subject.value);
     if (raw) params.set('q', raw);
     if (chosen) params.set('profile', chosen);
     return 'index.html' + (params.toString() ? '?' + params.toString() : '');
   }
   function readQuery() {
     var params = new URLSearchParams(location.search);
+    subject.value=params.get('subject')||'';
     query.value = (params.get('q') || '').slice(0,160);
     var selected = params.get('profile');
     profile.value = Object.prototype.hasOwnProperty.call(profiles, selected) ? selected : '';
@@ -60,6 +64,8 @@
     var hits = [];
     records.forEach(function (r,i) {
       bySlug[(r.published?'member:':'original:')+r.slug]=r;
+      if(subject.value==='text' && !(r.published || r.profile==='text' || (r.pages||[]).some(p=>/text/i.test(p.url))))return;
+      if(subjects[subject.value] && !subjects[subject.value].test([r.title,r.excerpt,r.keywords,(r.pages||[]).map(p=>p.title+' '+p.body).join(' ')].join(' ')))return;
       if (kind && r.profile!==kind) return;
       var match = pageRank(tokens,r);
       if (match.score>=0) hits.push({r:r,m:match,n:i});
@@ -109,7 +115,7 @@
     try { parsed=new URL(raw.url,memberOrigin+'/'); } catch (e) {return null;}
     if(parsed.origin!==memberOrigin && parsed.href!=='https://'+raw.slug+'.yestersites.com/')return null;
     return {published:true,slug:raw.slug,title:raw.title,profile:raw.profile,byline:raw.byline || '',
-      url:parsed.origin===memberOrigin?'https://yestersites.com/members/'+raw.slug+'/':parsed.href,excerpt:raw.excerpt || raw.snippet || '',keywords:Array.isArray(raw.keywords)?raw.keywords.join(' '):raw.keywords || '',
+      url:parsed.href,excerpt:raw.excerpt || raw.snippet || '',keywords:Array.isArray(raw.keywords)?raw.keywords.join(' '):raw.keywords || '',
       links:Array.isArray(raw.links)?raw.links:[]};
   }
   readQuery(); draw(); $('lookup').hidden=false;
@@ -123,6 +129,7 @@
     }
     draw();
   }
+  subject.addEventListener('change',updateSearch);
   profile.addEventListener('change',updateSearch);
   window.addEventListener('popstate',function () { readQuery(); draw(); });
   if (!window.fetch || !/^https?:$/.test(location.protocol)) {

@@ -8,7 +8,7 @@ window.GifCities = (() => {
     if (label) node.textContent = label;
     return node;
   }
-  function panel(root, choose) {
+  function panel(root, choose, decorate) {
     let generation = 0, controller, results = [], offset = 0;
     const pageSize = 24;
     function clear() {
@@ -41,7 +41,7 @@ window.GifCities = (() => {
         tile.type='button'; tile.className='stamp'; tile.title=item.name;
         if (choose) image.crossOrigin='anonymous';
         image.src=item.url; image.alt=''; image.loading='lazy'; image.referrerPolicy='no-referrer';
-        tile.append(image,element('span',item.name)); grid.append(tile);
+        tile.append(image,element('span',item.name)); grid.append(decorate?decorate(tile,item):tile);
         image.draggable=false;
         if (choose) {
           tile.draggable=true;
@@ -64,7 +64,7 @@ window.GifCities = (() => {
       root.append(element('p','Searching GifCities…'));
       controller=new AbortController();
       const active=controller;
-      const timer=setTimeout(()=>active.abort(),30000);
+      const timer=setTimeout(()=>active.abort(),75000);
       try {
         let matches=cache.get(term);
         if (!matches) {
@@ -76,7 +76,7 @@ window.GifCities = (() => {
             const id=row.checksum;
             if (!/^[A-Z2-7]{32}$/.test(id) || seen.has(id)) continue;
             seen.add(id);
-            matches.push({id,url:base+id+'.gif',name:(String(row.gif||'').split('/').pop() || row.url_text || term).slice(0,90)});
+            matches.push({id,url:base+id+'.gif',width:Number(row.width)||0,height:Number(row.height)||0,name:(String(row.gif||'').split('/').pop() || row.url_text || term).slice(0,90)});
           }
           if(cache.size>=6) cache.delete(cache.keys().next().value);
           cache.set(term,matches);

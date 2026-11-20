@@ -5,7 +5,7 @@
     for(const r of sites){
       if(!/^[a-z0-9-]{1,40}$/.test(r.slug))continue;
       const li=document.createElement('li'),link=document.createElement('a'),credit=document.createElement('small');
-      link.href=window.memberLinksActive?'https://'+r.slug+'.yestersites.com/':'/members/'+r.slug+'/';link.textContent=r.title;
+      link.href='https://'+r.slug+'.yestersites.com/';link.textContent=r.title;
       credit.textContent=' · '+(r.byline||r.slug);
       li.append(link,credit,document.createElement('br'),r.snippet||r.excerpt||'');fragment.append(li);
     }

@@ -2,11 +2,15 @@
 window.makeBbsEditor=function(app){
   const M=window.RetroModel,$=id=>document.getElementById(id),panel=$('bbs-workbench');
   const presets=Object.fromEntries(Object.entries({...retroObjects.presets,...retroPalette.bbs}).filter(([key])=>key.startsWith('bbs-')));
-  const types={'bbs-welcome':['Welcome','welcome'],'bbs-menu':['Menu entries','menu'],'bbs-art':['ASCII art','art'],'bbs-bulletin':['Bulletins','bulletin'],'bbs-files':['File areas','files']};
+  const types={'bbs-paint':['ASCII art','art'],'bbs-wall':['Messages','bulletin'],'bbs-door':['Doors','menu'],'bbs-welcome':['Welcome','welcome'],'bbs-menu':['Menu entries','menu'],'bbs-art':['ASCII art','art'],'bbs-bulletin':['Bulletins','bulletin'],'bbs-files':['File areas','files']};
   const colors={Green:'#9bed93',Amber:'#ffce7b',White:'#e6eded'};
   const page=()=>M.page(app.project(),app.active()),blocks=()=>page().bbsScreen;
   let index=0,displayPage='',editingPage='',back=[];
   const selected=()=>blocks()?.[index];
+  const painter=makeScreenPainter($('bbs-painter'),()=>{editMonitor();app.record('Painted BBS screen.');});
+  const inkNames=['Black','Blue','Green','Cyan','Red','Magenta','Brown','Light gray','Dark gray','Light blue','Bright green','Bright cyan','Light red','Pink','Yellow','White'];
+  $('block-ink').replaceChildren(new Option('Monitor default',''),...inkNames.map((n,i)=>new Option(n,i.toString(16)+'0')));
+
   const kind=(key,spec)=>spec.saveAs||key;
   function automaticBlocks(){
     const p=page(),items=[...p.items].sort((a,b)=>a.y-b.y||a.x-b.x);
@@ -25,7 +29,7 @@ window.makeBbsEditor=function(app){
     if(!M.page(app.project(),displayPage))displayPage=app.active();
     const {width,color}=app.options(),out=$('screen-output');
     const screen=M.terminal(app.project(),displayPage,width);
-    out.textContent=screen.lines.join('\n');out.style.color=colors[color];out.style.width=width+'ch';
+    out.innerHTML=RetroBbs.toHTML(screen);out.style.color=colors[color];out.style.width=width+'ch';
     $('monitor-title').textContent=M.page(app.project(),displayPage).title;
     $('monitor-size').textContent=width+' COL · '+screen.lines.length+' LINES';
     return screen;
@@ -43,8 +47,8 @@ window.makeBbsEditor=function(app){
       if(!additions.length)return app.status('Add a second screen to build a linked menu.');
     }else{
       const next=M.pages(app.project()).find(([id])=>id!==app.active());
-      const href=key==='bbs-sysop-page'?'':widget==='bbs-menu' && key!=='bbs-lobby'?(next?'page:'+next[0]:''):(spec.parts[0].href||'');
-      additions=[{widget,text,href}];
+      const href=key==='bbs-lobby'?'page:home':key==='bbs-sysop-page'?'':widget==='bbs-menu' && key!=='bbs-lobby'?(next?'page:'+next[0]:''):(spec.parts[0].href||'');
+      additions=[{widget,text,href,...(widget==='bbs-paint'?{paint:RetroBbs.fresh()}:{})}];
     }
     if(items.length+additions.length>64)return app.status('A screen supports 64 blocks.');
     page().bbsScreen=items;index=items.length;items.push(...additions);
@@ -76,9 +80,16 @@ window.makeBbsEditor=function(app){
     $('screen-custom').textContent=items?'Restore automatic screen…':'Customize this screen';
     index=Math.max(0,Math.min(index,shown.length-1));
     $('block-list').replaceChildren(...shown.map((b,i)=>new Option((i+1)+'. '+(b.text.split('\n').find(s=>s.trim())||presets[b.widget]?.label||'Block').slice(0,45),i,false,i===index)));
-    const b=selected(),linked=['bbs-menu','bbs-files'].includes(b?.widget),external=linked && b.href && !b.href.startsWith('page:');
+    const b=selected(),linked=['bbs-menu','bbs-files','bbs-door'].includes(b?.widget),external=linked && b.href && !b.href.startsWith('page:');
     $('block-fields').disabled=!b;$('block-caption').textContent=b?presets[b.widget]?.label||'Block properties':'Block properties';
-    $('block-text').value=b?.text||'';
+    $('block-text').value=b?.text||'';$('block-text-label').hidden=b?.widget==='bbs-paint';
+    painter.set(b?.widget==='bbs-paint'?b:null);
+    $('block-key-label').hidden=!linked;$('block-key').value=b?.hotkey||'';
+    $('block-ink-label').hidden=!linked;$('block-ink').value=b?.ink||'';
+    $('block-attachment-label').hidden=b?.widget!=='bbs-files';
+    $('block-filename').textContent=b?.attachment?.name||'';$('block-detach').hidden=!b?.attachment;
+    $('block-attachment').value='';
+
     $('block-link-label').hidden=!linked;$('block-url-label').hidden=!external;
     $('block-link').replaceChildren(new Option('No link',''),...pages.map(([id,p])=>new Option(p.title,'page:'+id)),new Option('Web or file address…','external'));
     $('block-link').value=external?'external':b?.href||'';$('block-url').value=external?b.href:'';
@@ -96,20 +107,37 @@ window.makeBbsEditor=function(app){
     const items=blocks(),[b]=items.splice(index,1);index+=step;items.splice(index,0,b);editMonitor();app.record('Moved block.');
   };
   $('block-remove').onclick=()=>{blocks().splice(index,1);editMonitor();app.record('Removed block.');};
-  $('block-copy').onclick=()=>{blocks().splice(index+1,0,{...selected()});index++;editMonitor();app.record('Copied block.');};
+  $('block-copy').onclick=()=>{blocks().splice(index+1,0,structuredClone(selected()));index++;editMonitor();app.record('Copied block.');};
+  $('block-key').onchange=e=>{
+    const b=selected(),key=e.target.value.trim().toUpperCase(),candidate={...b,hotkey:key};
+    try{
+      RetroBbs.normalize(candidate,()=>true);RetroBbs.checkKeys(blocks().map(o=>o===b?candidate:o));
+      if(key)b.hotkey=key;else delete b.hotkey;editMonitor();app.record('Changed menu hotkey.');
+    }catch(err){e.target.value=b.hotkey||'';app.status(err.message);}
+  };
+  $('block-ink').onchange=e=>{const b=selected();if(e.target.value)b.ink=e.target.value;else delete b.ink;editMonitor();app.record('Changed menu ink.');};
+  $('block-attachment').onchange=async e=>{
+    const b=selected(),f=e.target.files[0];if(!f||!b)return;
+    if(!f.size||f.size>49152){e.target.value='';app.status('Choose a nonempty file up to 48 KiB.');return;}
+    try{
+      const bytes=new Uint8Array(await f.arrayBuffer());if(b!==selected())return;
+      const name=f.name.replace(/[^a-z0-9._-]/gi,'_').replace(/^[^a-z0-9]+/i,'').slice(0,64)||'DOWNLOAD.BIN';
+      b.attachment={name,data:btoa(Array.from(bytes,c=>String.fromCharCode(c)).join(''))};b.href='';editMonitor();app.record('Attached '+name+'.');
+    }catch{app.status('Could not read the selected file.');}
+  };
+  $('block-detach').onclick=()=>{delete selected().attachment;editMonitor();app.record('Removed file attachment.');};
   $('block-text').oninput=e=>{selected().text=e.target.value;editMonitor();app.saveDraft();};
   $('block-text').onchange=()=>app.record('Edited block.');
   $('block-link').onchange=e=>{
     if(e.target.value==='external'){$('block-url-label').hidden=false;$('block-url').focus();return;}
-    selected().href=e.target.value;editMonitor();app.record('Updated destination.');
+    selected().href=e.target.value;if(e.target.value)delete selected().attachment;editMonitor();app.record('Updated destination.');
   };
-  $('block-url').onchange=e=>{try{const href=M.webAddress(e.target.value);selected().href=href;editMonitor();app.record('Updated destination.');}catch(err){app.status(err.message);}};
+  $('block-url').onchange=e=>{try{const href=M.webAddress(e.target.value);selected().href=href;if(href)delete selected().attachment;editMonitor();app.record('Updated destination.');}catch(err){app.status(err.message);}};
   for(const id of ['screen-width','screen-color'])$(id).onchange=()=>{app.setOptions(Number($('screen-width').value),$('screen-color').value);preview();};
   $('monitor-command').onsubmit=e=>{
     e.preventDefault();const screen=preview(),input=$('monitor-input'),cmd=input.value.trim().toUpperCase();input.value='';
-    const file=/^F([1-9]\d*)$/.exec(cmd);
-    if(file && screen.resources[file[1]-1]){window.open(screen.resources[file[1]-1].href,'_blank','noopener,noreferrer');return;}
-    const target=cmd==='H'?'home':cmd==='B'?back.pop():/^[1-9]\d*$/.test(cmd)?screen.links[Number(cmd)-1]:null;
+    const dest=RetroBbs.command(screen,cmd);if(dest?.resource){RetroBbs.openResource(dest.resource);return;}
+    const target=cmd==='H'?'home':cmd==='B'?back.pop():dest?.page;
     if(!target){app.status('Enter a listed menu number, H for home or B to go back.');return;}
     if(cmd!=='B' && target!==displayPage)back.push(displayPage);
     displayPage=target;preview();input.focus();

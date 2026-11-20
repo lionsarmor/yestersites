@@ -69,11 +69,12 @@
     bbsWidth = 32,
     bbsColor = 'Green',
     stickyError = '';
+  let firstVisit=true;
   try {
     const recovery = localStorage.getItem(storageKey);
     if (recovery) {
       const state = JSON.parse(recovery);
-      doc = M.normalize(state.doc);
+      doc = M.normalize(state.doc);firstVisit=false;
       if (M.page(doc, state.active)) active = state.active;
     }
     const prefs = JSON.parse(localStorage.getItem(storageKey + '.terminal') || 'null');
@@ -110,6 +111,7 @@
     }
     saveDraft();
     if (message) status(stickyError || message);
+    if(drawer==='GIFs')refreshShelf();
     render();
   }
   function undo(delta) {
@@ -190,6 +192,10 @@
       ['Zoom…', 'zoom'],
       ['Show grid', 'grid'],
       ['Snap to 8 px', 'snap'],
+    ],
+    Options: [
+      ['HTML / CSS editor…', 'code-editor'],
+      ['Page stylesheet & generated HTML…', 'source'],
     ],
     Help: [
       ['Using Retro Page', 'help'],
@@ -310,13 +316,28 @@
   });
   function setDrawer(value) {
     if (drawer === 'GIFs') artScroll = $('drawer-content').scrollTop;
+    if(drawer==='Objects' && value!=='Objects')vaultPanel?.stopPreview();
     drawer = value;
     renderDrawer();
   }
   const stamps = [...presets.stamps];
+  const shelf=RetroStudioDrawer.artShelf();
+  const shelfGroups=['Favorites','Recently used','Used on this site'];
+  let refreshShelf=()=>{}, vaultPanel;
+  function projectArtwork(){
+    const result=new Map(),library=new Map(stamps.map(st=>[st.src,st]));
+    for(const [,p] of M.pages(doc))for(const o of p.items){
+      if(o.kind!=='image'||!o.src)continue;
+      const ref=o.artRef,st=ref?.group?stamps.find(a=>a.group===ref.group&&a.label===ref.label):library.get(o.src);
+      const row=st || (ref?.archive?{archive:ref.archive,src:o.src,label:ref.label||o.text}:{used:o.id,src:o.src,label:o.text||'Page image'});
+      const id=st||ref?.archive?shelf.token(row):o.src;
+      if(!result.has(id))result.set(id,row);
+    }
+    return [...result.values()];
+  }
   const animatedBuiltins = new Set();
   let artOrder = [...presets.stamps], artLoading, browsedLocalArt = false;
-  const artGroups = ['All artwork','Animated GIFs', ...new Set(presets.stamps.map(st => st.group))];
+  const artGroups = ['All artwork','Animated GIFs',...shelfGroups, ...new Set(presets.stamps.map(st => st.group))];
   function loadArtwork() {
     if(artLoading)return artLoading;
     artLoading=new Promise((resolve,reject)=>{
@@ -391,10 +412,22 @@
     } else if (drawer === 'Objects') {
       const groups = node('select', 'stamp-search');
       groups.setAttribute('aria-label', 'Object group');
-      for (const name of ['Basic shapes', 'Web objects', 'Media players']) groups.add(new Option(name));
+      for (const name of ['Basic shapes', 'Web objects', 'Media players','Video Vault']) groups.add(new Option(name));
       groups.value = objectGroup;
-      groups.onchange=()=>{objectGroup=groups.value;renderDrawer();};
+      groups.onchange=()=>{vaultPanel?.stopPreview();objectGroup=groups.value;renderDrawer();};
       root.append(groups);
+      if(objectGroup==='Video Vault'){
+        vaultPanel ||= RetroStudioDrawer.videoVault((kind,item)=>{
+          const key=kind==='archive'?'media-internet-archive':'media-youtube';
+          const offset=18*(page().items.filter(RetroMedia.isPlayer).length%4);
+          insertWidget(key,24+offset,48+offset,{href:item.url,text:item.title.slice(0,120)});
+        },'https://yestersites-webring.jamesmweeksjr.chatgpt.site');
+        root.append(vaultPanel);return;
+      }
+      if(objectGroup==='Media players'){
+        const vault=node('button','media-shelf-link','Search Video Vault ▸');
+        vault.type='button';vault.onclick=()=>{objectGroup='Video Vault';renderDrawer();};root.append(vault);
+      }
       const choices=node('div','object-grid');
       root.append(choices);
       if (objectGroup === 'Basic shapes') {
@@ -431,7 +464,7 @@
         shelf.onclick=()=>{objectGroup='Media players';renderDrawer();};root.append(shelf);
       }
     } else {
-      if (artPanel) { root.append(artPanel); root.scrollTop=artScroll; return; }
+      if (artPanel) { root.append(artPanel);refreshShelf();root.scrollTop=artScroll;return; }
       artPanel = node('div', 'art-library');
       const collection = node('select', 'stamp-search');
       collection.setAttribute('aria-label', 'Artwork collection');
@@ -446,7 +479,8 @@
       const archiveButton=node('button', 'gifcities-link', 'Search GifCities');
       archiveButton.type='button';
       const remote=node('div'), lookup=GifCities.panel(remote, item =>
-        place({kind:'image', archive:item.id, label:item.name}));
+        place({kind:'image', archive:item.id, label:item.name,width:item.width,height:item.height}),
+        (tile,item)=>shelf.decorate(tile,{archive:item.id,label:item.name,width:item.width,height:item.height},()=>{}));
       function searchArchive(){
         content.hidden=true;
         remote.hidden=false;
@@ -462,10 +496,19 @@
       function fill() {
         content.replaceChildren();
         const query = filter.trim().toLowerCase();
-        const matching = artOrder.filter(st =>
-          (artGroup === artGroups[0] || st.group === artGroup ||
+        const libraryFilter=shelfGroups.includes(artGroup);
+        let available=artOrder;
+        if(artGroup==='Used on this site')available=projectArtwork();
+        else if(libraryFilter){
+          const used=projectArtwork();
+          available=shelf.items(artGroup).map(ref=>ref.archive?
+            used.find(st=>st.archive===ref.archive)||ref:
+            stamps.find(st=>st.group===ref.group&&st.label===ref.label)).filter(Boolean);
+        }
+        const matching = available.filter(st =>
+          (libraryFilter || artGroup === artGroups[0] || st.group === artGroup ||
             (artGroup === 'Animated GIFs' && (st.animated || animatedBuiltins.has(st.label)))) &&
-          (st.label+' '+st.group+' '+(st.alt || '')).toLowerCase().includes(query));
+          (st.label+' '+(st.group||'')+' '+(st.alt || '')).toLowerCase().includes(query));
         const count = 24;
         const last = Math.max(0, Math.ceil(matching.length/count)-1);
         artPage = Math.min(artPage, last);
@@ -481,14 +524,18 @@
           content.append(pager,grid);
           for (const st of matching.slice(artPage*count,(artPage+1)*count)) {
             const b = node('button','stamp'), im = node('img');
-            b.draggable = true; b.dataset.stamp = stamps.indexOf(st);
+            b.type='button';b.draggable = true;
+            if(st.archive){b.dataset.archive=st.archive;b.onclick=()=>place({kind:'image',...st});}
+            else if(st.used){b.dataset.used=st.used;b.onclick=()=>place({kind:'image',...st});}
+            else b.dataset.stamp = stamps.indexOf(st);
             b.title = (st.wallpaper?'Apply as page wallpaper. ':'')+(st.alt || st.label);
-            im.src = st.src; im.alt = ''; im.draggable = false;
-            b.append(im,node('span',null,st.label));grid.append(b);
+            im.src = st.src || 'https://blob.gifcities.org/gifcities/'+st.archive+'.gif'; im.alt = ''; im.draggable = false;
+            b.append(im,node('span',null,st.label));grid.append(shelf.decorate(b,st,()=>{if(artGroup==='Favorites')fill();}));
           }
         }
         content.append(button('Artwork credits','credits','stamp-credits'));
       }
+      refreshShelf=()=>{if(content.hidden||!shelfGroups.includes(artGroup))return;const top=root.scrollTop;fill();root.scrollTop=top;};
       collection.onchange = () => {showLocal();artGroup=collection.value;artPage=0;fill();};
       s.oninput = () => {showLocal();filter=s.value;artPage=0;fill();};
       content.addEventListener('pointerdown', () => { browsedLocalArt = true; });
@@ -570,6 +617,7 @@
       c.value = o ? o[k] : '';
       c.disabled = !o || (k === 'text' && o.kind === 'rule');
     }
+    $('properties').querySelector('[data-action=fallback]').hidden=!(RetroCraft.isCraft(o)||RetroMedia.isPlayer(o)||RetroMedia.isFrame(o));
     $('prop-caption').textContent = media?'Player title':o?.widget === 'counter' ? 'Counter digits' : o?.kind === 'image' ? 'Alt text' : 'Text';
     for (const c of $('properties').querySelectorAll('button')) c.disabled = !o;
   }
@@ -577,9 +625,9 @@
     if (!M.page(doc, pageBbs)) pageBbs = active;
     $('bbs-width').value = String(bbsWidth);
     $('terminal').style.setProperty('--phosphor', phosphors[bbsColor]);
-    $('bbs-lines').textContent = bbsHelp
+    $('bbs-lines').innerHTML = bbsHelp
       ? 'TERMINAL HELP\n\n1…9  Follow a link\nH    Go Home\nB    Go back\n?    Help\n\nB returns to your page.'
-      : M.terminal(doc, pageBbs, bbsWidth).lines.join('\n');
+      : RetroBbs.toHTML(M.terminal(doc,pageBbs,bbsWidth));
   }
   function geometry(el, o) {
     for (const k of ['x', 'y', 'w', 'h'])
@@ -955,25 +1003,33 @@
     form.addEventListener('change',audition);audition();
     $('dialog').addEventListener('close',()=>{form.removeEventListener('change',audition);silence();pane.replaceChildren();},{once:true});
   }
-  function craftDialog(o){
+  function craftDialog(o,insertOnApply=false){
     const isFlash=o.widget==='flash-movie',label=widgets[o.widget].label;
     const fields=[{name:'text',label:isFlash?'Movie title and classic-browser description':'Block title',value:o.text,required:true,maxLength:120}];
     if(isFlash)fields.push({note:'Import a self-contained SWF. Each page holds up to 768 KiB. Visitors choose when to play.'});
     else fields.push({name:'markup',label:'HTML fragment',type:'textarea',maxLength:8192,value:o.markup},
       {name:'styles',label:'CSS for this block',type:'textarea',maxLength:4096,value:o.styles});
     let swf=o.swf,reading=false,fileError='',sequence=0;
-    dialog(label+' properties',fields,v=>{
+    dialog(isFlash ? label+' properties' : 'HTML / CSS editor',fields,v=>{
       if(reading)throw Error('Wait for the selected file to finish loading.');
       if(fileError)throw Error(fileError);
       const values=isFlash?{swf,text:v.text}:{text:v.text,markup:v.markup,styles:v.styles};
-      RetroCraft.fields({...o,...values});applyObject(o,values);
-    },'Apply');
+      RetroCraft.fields({...o,...values});
+      if(insertOnApply){
+        const p=page(), item={...o,...values};
+        const candidate={...p,items:[...p.items,item]};
+        M.normalize(p===doc?candidate:{...doc,pages:doc.pages.map(child=>child===p?candidate:child)});
+        p.items.push(item);
+        selected=item.id;
+        record('Added HTML / CSS block.');
+      }else applyObject(o,values);
+    },insertOnApply?'Insert on page':'Apply');
     const root=$('dialog-fields'),preview=node('div','craft-preview'),feedback=node('small');
     feedback.setAttribute('role','status');
     const refresh=()=>{
       const v={...o,text:root.querySelector('[name=text]').value,swf};
       if(!isFlash){v.markup=root.querySelector('[name=markup]').value;v.styles=root.querySelector('[name=styles]').value;}
-      try{preview.innerHTML=RetroCraft.render(v,'modern');feedback.textContent='';}catch(error){feedback.textContent=error.message;}
+      try{preview.innerHTML=RetroCraft.render(v,'modern');feedback.textContent='';}catch(error){preview.replaceChildren();feedback.textContent=error.message;}
     };
     if(isFlash){
       const label=node('label',null,'SWF file'),input=node('input'),info=node('output');
@@ -1015,7 +1071,7 @@
       p.items.push(candidate);selected=o.id;record('Placed '+widgets[o.widget].label+'.');
     },isNew?'Insert':'Apply');
   }
-  function insertWidget(key,x,y) {
+  function insertWidget(key,x,y,values={}) {
     const p=page(), spec=widgets[key], parts=spec.parts;
     const gw=Math.max(...parts.map(part=>(part.dx||0)+part.w));
     const gh=Math.max(...parts.map(part=>(part.dy||0)+part.h));
@@ -1023,7 +1079,7 @@
     x=M.clamp(x,0,p.width-Math.floor(gw*scale));
     y=M.clamp(y,0,p.height-Math.floor(gh*scale));
     const objects=parts.map(({dx=0,dy=0,...part})=>{
-      const o={...M.item(part.kind,0,0,p),...part,
+      const o={...M.item(part.kind,0,0,p),...part,...values,
         x:x+Math.floor(scale*dx),y:y+Math.floor(scale*dy),w:Math.max(1,Math.floor(scale*part.w)),h:Math.max(1,Math.floor(scale*part.h))};
       const storedWidget = Object.hasOwn(spec,'saveAs') ? spec.saveAs : key;
       if (storedWidget) o.widget = storedWidget;
@@ -1068,9 +1124,10 @@
       Object.assign(o,{x:0,y:0,w:p.width,h:p.height,src,text:'',widget:'wallpaper'});
       const first=p.items[0];
       const replace=first && first.kind==='image' && !first.text.trim() && !first.href && !first.x && !first.y && first.w===p.width && first.h===p.height;
+      if(data.group)o.artRef=shelf.describe(data);shelf.remember(data);
       p.items.splice(0,replace?1:0,o);selected=o.id;record('Applied '+data.label+' as page wallpaper.');return;
     }
-    if (data.archive) {
+    if (data.archive && !data.src) {
       status('Loading ' + data.label + ' from GifCities…');
       data = {...data, src:await GifCities.imageData(data.archive)};
     }
@@ -1102,6 +1159,7 @@
       return;
     }
     if (p.items.length >= 64) throw Error('A page supports up to 64 objects.');
+    if(data.src && (data.group||data.archive)){o.artRef=shelf.describe(data);shelf.remember(data);}
     p.items.push(o);
     selected = o.id;
     record('Placed ' + M.kinds[o.kind] + '.');
@@ -1423,7 +1481,7 @@
           const response=await fetch(service+'/api/address?slug='+encodeURIComponent(slug),{credentials:'omit'});
           if(!response.ok)throw Error();
           const data=await response.json();
-          if(field.isConnected && field.value.trim().toLowerCase()===slug)notice.textContent=address+' · '+(data.state==='available'?'Available':'Claimed. Only its owner can update it.');
+          if(field.isConnected && field.value.trim().toLowerCase()===slug)notice.textContent=address+' · '+(data.state==='available'?'Available':'Registered. Sign in at Publish to check ownership.');
         }catch{if(field.value.trim().toLowerCase()===slug)notice.textContent=address+' · Will check at publish time.';}
       },220);
     }
@@ -1443,10 +1501,10 @@
       pageBbs = 'home';
       bbsHelp = false;
     } else {
-      const screen=M.terminal(doc,pageBbs,bbsWidth),file=/^F([1-9]\d*)$/.exec(c);
-      if(file && screen.resources[file[1]-1]){window.open(screen.resources[file[1]-1].href,'_blank','noopener,noreferrer');return;}
-      const target=screen.links[Number(c)-1];
-      if (!/^\d+$/.test(c) || !target)
+      const dest=RetroBbs.command(M.terminal(doc,pageBbs,bbsWidth),c);
+      if(dest?.resource){RetroBbs.openResource(dest.resource);return;}
+      const target=dest?.page;
+      if(!target)
         return status('Enter a link number, H for Home, B for Back, or ? for help.');
       bbsBack.push(pageBbs);
       pageBbs = target;
@@ -1487,15 +1545,7 @@
         $('dialog').close();
         return;
       case 'template':
-        dialog(
-          'New from template',
-          [
-            { name: 'starter', label: 'Starter site', type: 'select', options: Object.keys(window.RetroTemplates) },
-            { note: 'Create an editable copy. Save your current project first to keep it.' },
-          ],
-          ({ starter }) => load({...M.copy(window.RetroTemplates[starter]),listed:true}, 'Created a new project from ' + starter + '.'),
-          'Create site',
-        );
+        RetroStudioDrawer.chooseStarter(load,false);
         break;
       case 'new':
       case 'sample':
@@ -1669,11 +1719,53 @@
         await RetroExport.download(doc);
         status('Exported your website ZIP.');
         break;
-      case 'craft-html':
+      case 'code-editor':
+      case 'craft-html':{
+        const existing=object();
+        if(existing?.widget==='html-block'){craftDialog(existing);break;}
+        const p=page(), part=widgets['html-block'].parts[0];
+        const w=Math.min(part.w,p.width),h=Math.min(part.h,p.height);
+        const draft={...M.item(part.kind,0,0,p),...part,widget:'html-block',w,h,
+          x:Math.min(24,p.width-w),y:Math.min(32,p.height-h)};
+        craftDialog(draft,true);break;
+      }
       case 'craft-flash':{
-        const kind=key==='craft-html'?'html-block':'flash-movie';
+        const kind='flash-movie';
         if(object()?.widget!==kind)insertWidget(kind,24,32);
         craftDialog(object());break;
+      }
+      case 'fallback':{
+        if(!o)break;
+        const target=page(),id=active;
+        dialog('Classic / text fallback',[
+          {name:'fallbackText',label:'Description or link label',value:o.fallbackText||'',maxLength:500},
+          {name:'fallbackUrl',label:'Link for older browsers (optional)',value:o.fallbackUrl||'',maxLength:2048},
+          {note:'Leave both fields empty to use the automatic fallback.'}
+        ],values=>applyObject(o,RetroCraft.fallbackFields(values)),'Save fallback');
+        const form=$('dialog-fields'),samples=node('div','edition-samples'),feedback=node('p');
+        feedback.setAttribute('role','status');
+        const previews=['modern','phone','classic','text'].map(mode=>{
+          const box=node('div'),frame=node('iframe');frame.setAttribute('sandbox','');
+          frame.title=mode+' edition';box.append(node('strong',null,mode),frame);samples.append(box);
+          return [mode,frame];
+        });
+        form.append(feedback,samples);
+        let version=0,timer;
+        async function refresh(){
+          const current=++version;
+          try{
+            const fields=RetroCraft.fallbackFields(Object.fromEntries([...form.querySelectorAll('input')].map(input=>[input.name,input.value])));
+            const edited={...target,items:target.items.map(item=>item===o?{...item,...fields}:item)};
+            const draft=target===doc?edited:{...doc,pages:doc.pages.map(p=>p===target?edited:p)};
+            const pages=await Promise.all(previews.map(([mode])=>RetroExport.source(draft,id,mode)));
+            if(current!==version || !samples.isConnected)return;
+            previews.forEach(([,frame],i)=>{frame.srcdoc=pages[i];});feedback.textContent='';
+          }catch(error){if(current===version)feedback.textContent=error.message;}
+        }
+        const schedule=()=>{clearTimeout(timer);timer=setTimeout(refresh,300);};
+        form.addEventListener('input',schedule);refresh();
+        $('dialog').addEventListener('close',()=>{version++;clearTimeout(timer);form.removeEventListener('input',schedule);samples.remove();},{once:true});
+        break;
       }
       case 'source':{
         const target=page();
@@ -1788,12 +1880,12 @@
     if (e.target.closest('[data-layer]')) properties();
   });
   $('drawer-content').addEventListener('dragstart', (e) => {
-    const b = e.target.closest('[data-stamp],[data-drag-type],[data-widget],[data-archive]');
+    const b = e.target.closest('[data-stamp],[data-drag-type],[data-widget],[data-archive],[data-used]');
     if (b)
       e.dataTransfer.setData(
         'application/x-retro-page-tool',
         JSON.stringify(
-          b.dataset.archive ? {kind:'image', archive:b.dataset.archive, label:b.title} : b.dataset.widget ? {widget:b.dataset.widget} : b.dataset.stamp !== undefined
+          b.dataset.used ? {kind:'image',used:b.dataset.used} : b.dataset.archive ? {kind:'image', archive:b.dataset.archive, label:b.title} : b.dataset.widget ? {widget:b.dataset.widget} : b.dataset.stamp !== undefined
             ? { kind: 'image', stamp: Number(b.dataset.stamp) }
             : { kind: b.dataset.dragType },
         ),
@@ -1818,7 +1910,9 @@
           armed=null; insertWidget(data.widget,x,y);return;
         }
         if (!Object.hasOwn(M.kinds, data.kind)) return;
-        if (data.archive) {
+        if(data.used){
+          const row=projectArtwork().find(st=>st.used===data.used);if(!row)return;data={kind:'image',...row};
+        }else if (data.archive) {
           data = {kind:'image', archive:data.archive, label:String(data.label || 'Archive GIF').slice(0,90)};
         } else if ('stamp' in data) {
           if (!Number.isInteger(data.stamp) || !stamps[data.stamp]) return;
@@ -1914,9 +2008,24 @@
     options:()=>({width:bbsWidth,color:bbsColor}), setOptions:(width,color)=>{bbsWidth=width;bbsColor=color;prefs();},
     reset:ok=>dialog('Use the original terminal screen?', [{note:'Remove the custom BBS blocks for this page? Undo restores them.'}],ok,'Use original'),
   });
+  if(location.hash==='#account-edit' && parent!==window){
+    const service='https://yestersites-webring.jamesmweeksjr.chatgpt.site';
+    const receive=event=>{
+      if(event.source!==parent || event.origin!==service || event.data?.type!=='retropage-open')return;
+      try{
+        load(event.data.project,'Opened your published project.');
+        window.removeEventListener('message',receive);
+        parent.postMessage({type:'retropage-opened'},service);
+        if(event.data.publish)publish();
+      }catch(error){status(error.message);}
+    };
+    window.addEventListener('message',receive);
+    parent.postMessage({type:'retropage-ready'},service);
+  }
   $('viewport').onscroll = drawRulers;
   new ResizeObserver(fit).observe($('viewport'));
   record(stickyError || 'Drag an object. Double-click text to edit.');
+  if(firstVisit && location.hash!=='#account-edit' && drawer!=='GIFs')RetroStudioDrawer.chooseStarter(load,true);
 })();
 
 if ('serviceWorker' in navigator && ['https:', 'http:'].includes(location.protocol)) {
