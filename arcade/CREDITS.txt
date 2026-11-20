@@ -1,0 +1,7 @@
+Cartridge Club
+
+The pinned browser emulator is JSNES 2.1.0 by Ben Firshman and contributors, distributed under the Apache License 2.0. The original distribution is in jsnes-2.1.0/jsnes.min.js and the license is in jsnes-2.1.0/LICENSE.
+https://github.com/bfirsh/jsnes/releases/tag/v2.1.0
+https://registry.npmjs.org/jsnes/-/jsnes-2.1.0.tgz
+
+Lantern Run is an original YesterSites NROM homebrew game about Pip the moth. Its ROM, art, font, audio and source in the source/ directory may be copied, hosted, modified, and redistributed, including commercially. This permission applies to Lantern Run. Other cartridges have their own authors and permissions.

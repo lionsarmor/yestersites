@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://yestersites.com/arcade/; style-src 'self' https://yestersites.com/arcade/; img-src 'self' https://yestersites.com/arcade/; connect-src 'self' https:; worker-src blob:; base-uri 'none'; form-action 'none'">
+<title>Cartridge Club</title><link rel="stylesheet" href="deck.css"><script defer src="deck.js"></script></head>
+<body><main class="case">
+<header><strong>Cartridge Club</strong><span id="power" title="Power off" aria-hidden="true"></span></header>
+<div class="bezel"><div id="display">
+<canvas id="screen" width="256" height="240" tabindex="0" aria-label="Game screen. Arrow keys move. X and Z press A and B. Enter starts, Shift selects."></canvas>
+<div id="curtain"><img id="poster" src="lantern-run.png" alt="" hidden><div id="cart" hidden aria-hidden="true"><i></i></div><button type="button" id="play">Play cartridge</button></div>
+</div></div>
+<div class="info"><strong id="label"></strong><span id="status" role="status">Ready</span></div>
+<div class="pad">
+<div class="cross" aria-label="Direction pad"><button data-key="UP" aria-label="Up">▲</button><button data-key="LEFT" aria-label="Left">◀</button><i></i><button data-key="RIGHT" aria-label="Right">▶</button><button data-key="DOWN" aria-label="Down">▼</button></div>
+<div class="switches"><div><button data-key="SELECT">Select</button><button data-key="START">Start</button></div><div><button id="pause" disabled>Pause</button><button id="sound" aria-pressed="false">Sound off</button></div></div>
+<div class="actions"><button data-key="B">B</button><button data-key="A">A</button></div>
+</div><p id="help">Move with arrows · X / Z for A / B · Enter to start</p></main></body></html>
