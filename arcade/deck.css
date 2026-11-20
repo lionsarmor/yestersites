@@ -24,3 +24,35 @@ header,.info,.pad,.actions,.switches>div{display:flex;align-items:center}header,
 body[data-hand=left] .pad{flex-direction:row-reverse}body[data-button-size=large] .cross{grid-template:repeat(3,33px)/repeat(3,34px)}body[data-button-size=large] .actions button{width:45px;height:45px}
 #options{width:min(380px,97vw);max-height:95vh;overflow:auto;padding:0;border:2px outset #e5ebd0;background:#d1dcbf;color:#203429;font:13px/1.25 Verdana,sans-serif}#options::backdrop{background:#12261f99}.dialog-heading{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:center;padding:4px 7px;background:#304d43;color:white}.dialog-heading strong{font:bold italic 17px Georgia,serif}#options section{padding:8px}.controller-line{background:#edf0dc;padding:4px;border:1px inset #849783}.controller-line span{overflow-wrap:anywhere}.layout-options{margin:6px 0;flex-wrap:wrap}#options table{width:100%;border-collapse:collapse}#options th{text-align:left}#options tbody th{font-weight:normal}#options td{width:35%;padding:2px}#options td button{width:100%}#binding-hint,#transfer p{font-size:12px;line-height:1.25}#transfer{margin-top:6px}#transfer textarea{width:100%;resize:vertical}#pad-presence{font:10px/1 monospace;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}#display.gb{height:min(100cqh,90cqw);width:min(100cqw,111.11cqh)}
 @media(max-height:290px){.session-actions{grid-row:1;grid-column:2;align-self:start}.session-actions button{font-size:9px;padding:2px}#pad-presence{display:none}body[data-hand=left] .pad{flex-direction:column-reverse}body[data-button-size=large] .cross{grid-template:repeat(3,21px)/repeat(3,24px)}}
+
+/* Keep two thumbs on the pad when the browser bar leaves a shallow game area. */
+@media (orientation:landscape) and (min-width:550px) and (max-height:540px){
+  .case,:fullscreen .case{display:grid;grid-template-columns:minmax(120px,1fr) minmax(366px,48%);grid-template-rows:auto minmax(0,1fr) auto;gap:4px;padding:5px 7px}
+  .case header,:fullscreen .case header{grid-area:1/1;min-width:0}
+  header strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #full{flex:none;white-space:nowrap}
+  .session-actions{grid-area:1/2;align-self:center}
+  .session-actions button{font-size:12px;padding:3px 6px}
+  .case .bezel,:fullscreen .case .bezel{grid-area:2/1;min-height:0}
+  .case .info,:fullscreen .case .info{grid-area:3/1;min-width:0}
+  .case .pad,:fullscreen .case .pad{grid-area:2/2/4/3;flex-direction:row;flex-wrap:nowrap;justify-content:space-evenly;gap:4px}
+  body[data-hand=left] .case .pad{flex-direction:row-reverse}
+  .cross{grid-template:repeat(3,40px)/repeat(3,40px)}
+  .actions button{width:40px;height:40px}
+  .switches>div{flex-direction:column;margin:0;gap:2px}
+  .switches{display:grid;grid-template-columns:auto auto;gap:3px}
+  .switches button{min-height:32px;padding:3px 5px}
+  .case #help,:fullscreen .case #help{display:none}
+  #pad-presence{grid-area:3/2;justify-self:center;align-self:end;max-width:96%}
+}
+@media (min-width:310px) and (min-height:291px), (min-width:550px) and (min-height:160px){
+  body[data-button-size=large] .cross{grid-template:repeat(3,46px)/repeat(3,46px)}
+  body[data-button-size=large] .actions button{width:50px;height:50px}
+}
+@media (min-width:310px) and (max-width:365px) and (min-height:291px){
+  body[data-button-size=large] .pad{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'directions buttons' 'switches switches'}
+  body[data-button-size=large][data-hand=left] .pad{grid-template-areas:'buttons directions' 'switches switches'}
+  body[data-button-size=large] .cross{grid-area:directions;justify-self:center}
+  body[data-button-size=large] .actions{grid-area:buttons;justify-self:center}
+  body[data-button-size=large] .switches{grid-area:switches;display:flex;justify-content:center;gap:5px}
+}
