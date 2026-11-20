@@ -11,7 +11,9 @@
     <title>Retro Page · Site editor</title>
     <link rel="icon" href="./assets/paper-pencil.png" />
     <link rel="stylesheet" href="./app.css" />
+    <script defer src="./objects.js"></script>
     <script defer src="./presets.js"></script>
+    <script defer src="./templates.js"></script>
     <script defer src="./project.js"></script>
     <script defer src="./zip.js"></script>
     <script defer src="./exports.js"></script>
@@ -124,6 +126,7 @@
           <div class="panel-head">
             <h2>BBS Preview</h2>
             <div class="panel-controls">
+              <button type="button" data-action="author-bbs" title="Author this BBS screen">Edit</button>
               <select id="bbs-width" aria-label="Terminal columns">
                 <option value="32">32 col</option>
                 <option value="40">40 col</option>

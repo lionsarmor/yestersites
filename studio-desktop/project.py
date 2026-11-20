@@ -19,6 +19,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 from PIL import Image, ImageOps, UnidentifiedImageError
 from lettering import SIGNAL_FONT, item_lettering
+from widgets import PRESETS
 
 
 FONTS = {
@@ -268,6 +269,15 @@ def validate_project(doc, *, publishing=False, internal=False):
             color=_color(obj.get("color", item["color"])),
             fill=_color(obj.get("fill", ""), True),
         )
+        if "widget" in obj:
+            widget = obj["widget"]
+            if not isinstance(widget, str) or widget not in PRESETS:
+                raise ValueError("Unknown object preset.")
+            item["widget"] = widget
+            if widget == "counter" and not re.fullmatch("[0-9]{1,12}", item["text"]):
+                raise ValueError("Enter 1–12 counter digits.")
+            if widget == "webring" and obj.get("ringRole") in ("previous", "directory", "next"):
+                item["ringRole"] = obj["ringRole"]
         for key, valid in (
             ("font_family", FONTS),
             ("align", ("left", "right", "center")),
@@ -378,10 +388,28 @@ def terminal_lines(page, site, page_id="home", columns=32):
         "home": "Home",
         **{p["page_id"]: p["title"] for p in site.get("pages", [])},
     }
+    ordered = sorted(page["items"], key=lambda obj: (obj["y"], obj["x"]))
+    authored = [item for item in ordered if item.get("widget", "").startswith("bbs-")]
+    if authored:
+        lines, links = [], []
+        for item in authored:
+            label = ascii_text(item["text"].expandtabs(4))
+            if item["widget"] in ("bbs-menu", "bbs-files") and item["href"].startswith("page:"):
+                links.append(item["href"][5:])
+                label = f"{len(links)}  " + (label or names.get(links[-1], "Home"))
+            elif item["widget"] in ("bbs-menu", "bbs-files") and item["href"]:
+                label += "\n" + ascii_text(item["href"])
+            for line in label.split("\n"):
+                if item["widget"] in ("bbs-art", "bbs-files"):
+                    lines.extend([line[i:i+columns] for i in range(0, len(line), columns)] or [""])
+                else:
+                    lines.extend(textwrap.wrap(line, width=columns) or [""])
+            lines.append("")
+        return lines, links
     lines = textwrap.wrap(ascii_text(page["title"].upper()), width=columns) + [""]
     links = []
     body = []
-    for item in sorted(page["items"], key=lambda obj: (obj["y"], obj["x"])):
+    for item in ordered:
         label = item["text"].strip()
         href = item["href"]
         if href.startswith("page:"):
@@ -572,6 +600,8 @@ def _contrast_color(hex_color):
 
 def _object_content(obj, paths, edition):
     text = escape(obj["text"]).replace("\n", "<br>")
+    if obj.get("widget") in ("bbs-art", "bbs-files"):
+        return "<tt>" + text.replace(" ", "&nbsp;") + "</tt>"
     if edition == "text":
         if obj["kind"] == "image":
             return f"[Image: {text}]" if text else ""

@@ -80,6 +80,7 @@
     }
     function content(o,layout) {
       const text=escape(o.text).replace(/\r?\n/g,'<br>');
+      if(o.widget==='bbs-art'||o.widget==='bbs-files')return '<tt>'+text.replace(/ /g,'&nbsp;')+'</tt>';
       if(layout==='text'&&o.kind==='image')return text?'[Image: '+text+']':'';
       if(layout!=='text'&&hasMedia(o))return '<img src="'+media.get(o.id)[Number(layout==='classic')]+'" width="'+o.w+'" height="'+o.h+'" border="0" alt="'+escape(o.text)+'">';
       return text;

@@ -99,6 +99,16 @@
       results.appendChild(art);
     });
   }
+  var memberOrigin='https://yestersites-webring.jamesmweeksjr.chatgpt.site';
+  function published(raw) {
+    if (!raw || typeof raw.slug!=='string'|| typeof raw.title!=='string' || typeof raw.url!=='string') return null;
+    var parsed;
+    try { parsed=new URL(raw.url,memberOrigin+'/'); } catch (e) {return null;}
+    if (parsed.origin!==memberOrigin || !/^https?:$/.test(parsed.protocol)) return null;
+    return {published:true,slug:raw.slug,title:raw.title,profile:raw.profile,byline:raw.byline || '',
+      url:parsed.href,excerpt:raw.excerpt || raw.snippet || '',keywords:Array.isArray(raw.keywords)?raw.keywords.join(' '):raw.keywords || '',
+      links:Array.isArray(raw.links)?raw.links:[]};
+  }
   readQuery(); draw(); $('lookup').hidden=false;
   $('lookup').addEventListener('submit',function (event) {
     event.preventDefault(); updateSearch();
@@ -112,5 +122,31 @@
   }
   profile.addEventListener('change',updateSearch);
   window.addEventListener('popstate',function () { readQuery(); draw(); });
-  $('network').textContent='Public neighborhood index · five original homepages.';
+  if (!window.fetch || !/^https?:$/.test(location.protocol)) {
+    $('network').textContent='Offline card file · the five original member sites.'; return;
+  }
+  var seenCursors=Object.create(null),loaded=Object.create(null),loadedCount=0;
+  function readDirectory(cursor) {
+    var path=memberOrigin+'/api/directory'+(cursor?'?cursor='+encodeURIComponent(cursor):'');
+    return fetch(path,{headers:{Accept:'application/json'}}).then(function (res) {
+      if (!res.ok) throw new Error('directory');
+      return res.json();
+    }).then(function (data) {
+      if (!Array.isArray(data.sites)) throw new Error('directory');
+      data.sites.forEach(function (row) {
+        var member=published(row);
+        if (!member || loaded[member.url]) return;
+        loaded[member.url]=true;loadedCount++;records.push(member);
+      });
+      draw();
+      if (data.nextCursor && !seenCursors[data.nextCursor]) {
+        seenCursors[data.nextCursor]=true;
+        return readDirectory(data.nextCursor);
+      }
+      $('network').textContent=loadedCount ? loadedCount+' published member '+(loadedCount===1?'site':'sites')+' in the file.' : '';
+    });
+  }
+  readDirectory('').catch(function () {
+    $('network').textContent=loadedCount?'The member index stopped partway through. Showing the cards received.':'The member index is unavailable. Searching the five original sites.';
+  });
 }());

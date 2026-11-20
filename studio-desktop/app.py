@@ -1,6 +1,7 @@
 """Retro Page — native, offline-first desktop page compositor."""
 
 import base64
+from io import BytesIO
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -11,6 +12,7 @@ import webbrowser
 import tkinter as tk
 from tkinter import ttk, colorchooser, filedialog, messagebox, simpledialog
 from PIL import Image, ImageTk
+from widgets import PRESETS, counter_source, place_widget, set_wallpaper
 from classic_chrome import (
     Artwork,
     FACE,
@@ -37,12 +39,13 @@ from project import (
     terminal_lines,
     html_source,
     validate_project,
+    validate_site,
 )
 
 BASE = Path(__file__).resolve().parent
 ASSETS = BASE / "assets"
 NAME = "Retro Page"
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 PROFILE_NAMES = {
     "classic": "1990s graphical",
     "millennium": "Early 2000s",
@@ -407,18 +410,37 @@ class Studio:
         self.page_list.bind("<<TreeviewSelect>>", self.choose_page)
         self.page_list.bind("<Double-Button-1>", lambda e: self.rename_page())
         basics = self.drawers["Objects"]
-        for kind, label in OBJECT_NAMES.items():
-            button = ttk.Label(
-                basics,
-                text=label,
-                image=self.art.type_icons[kind],
-                compound="left",
-                relief="raised",
-                padding=(6, 5),
-                cursor="hand2",
-            )
-            button.pack(fill="x", pady=1)
-            self.palette(button, kind)
+        self.object_group = tk.StringVar(value="Web objects")
+        pick = ttk.Combobox(basics, textvariable=self.object_group, state="readonly",
+                            values=("Web objects", "BBS objects", "Basic shapes"), width=14)
+        pick.pack(fill="x", pady=(1, 4))
+        choices = ttk.Frame(basics)
+        choices.pack(fill="both", expand=True)
+        self.object_icons = {}
+        for key, preset in PRESETS.items():
+            part = preset["parts"][0]
+            uri = counter_source(part["text"]) if key == "counter" else part.get("src")
+            if uri:
+                with Image.open(BytesIO(base64.b64decode(uri.split(",", 1)[1]))) as source:
+                    image = source.convert("RGBA")
+                image.thumbnail((29, 18), Image.Resampling.NEAREST)
+                self.object_icons[key] = ImageTk.PhotoImage(image)
+        def populate(_event=None):
+            for child in choices.winfo_children():
+                child.destroy()
+            group = self.object_group.get()
+            entries = OBJECT_NAMES.items() if group == "Basic shapes" else (
+                (key, spec["label"]) for key, spec in PRESETS.items()
+                if key.startswith("bbs-") == (group == "BBS objects"))
+            for key, label in entries:
+                kind = PRESETS[key]["parts"][0]["kind"] if key in PRESETS else key
+                button = ttk.Label(choices, text=label, image=self.object_icons.get(key, self.art.type_icons[kind]),
+                                   compound="left", relief="raised", padding=(3, 3), cursor="hand2")
+                button.pack(fill="x", pady=1)
+                self.palette(button, key)
+        self.refresh_objects = populate
+        pick.bind("<<ComboboxSelected>>", populate)
+        populate()
         gallery = self.drawers["GIFs"]
         self.stamp_packs = {"Retro Page": ART}
         self.stamp_defaults = {}
@@ -574,6 +596,13 @@ class Studio:
             for value in choices:
                 submenu.add_radiobutton(label=str(value), value=value, variable=variable, command=self.refresh_terminal)
         menu.add_separator()
+        def author_screen():
+            self.object_group.set("BBS objects")
+            self.refresh_objects()
+            self.drawer.set("Objects")
+            self.show_drawer()
+            self.status.set("Place BBS objects in reading order. These objects define the terminal screen for this page.")
+        menu.add_command(label="Author this BBS screen…", command=author_screen)
         menu.add_command(label="Expand in browser…", command=lambda: self.preview(terminal=True))
         menu.add_command(label="Back    B", command=lambda: self.bbs_command(command="b"))
         menu.add_command(label="Help    ?", command=lambda: self.bbs_command(command="?"))
@@ -664,6 +693,7 @@ class Studio:
             "File",
             [
                 ("New blank page", self.new, "Ctrl+N"),
+                ("New from template…", self.new_from_template, ""),
                 ("Open project…", self.open, "Ctrl+O"),
                 ("Open sample page", self.sample, ""),
                 ("Save", self.save, "Ctrl+S"),
@@ -802,13 +832,28 @@ class Studio:
                 return
         self.status.set(
             "Click on the page to place "
-            + OBJECT_NAMES[kind].lower()
+            + (PRESETS[kind]["label"] if kind in PRESETS else OBJECT_NAMES[kind]).lower()
             + ". Esc cancels."
         )
         self.canvas.set_placement(lambda x, y: self.insert(kind, x, y, path))
 
     def insert(self, kind, x, y, path=None):
         self.switch_view("design")
+        if kind in PRESETS:
+            available = next((ident for ident, _ in self.page_entries() if ident != self.active_page), "home")
+            group = place_widget(kind, self.doc, x, y, new_item, available)
+            items = list(self.doc["items"])
+            if kind == "wallpaper":
+                set_wallpaper(items, group[0])
+            else:
+                items.extend(group)
+            if len(items) > 64:
+                return self.error("This page supports up to 64 objects.")
+            self.doc["items"] = items
+            self.draw(group[0]["id"])
+            self.commit()
+            self.status.set("Placed " + PRESETS[kind]["label"] + ". Double-click to edit.")
+            return
         if kind == "image" and not path:
             path = filedialog.askopenfilename(
                 parent=self.root, filetypes=[("Web images", "*.jpg *.jpeg *.gif *.png")]
@@ -1101,6 +1146,8 @@ class Studio:
             self.error(exc)
 
     def apply_object(self, obj, values):
+        if obj.get("widget") == "counter" and "text" in values:
+            values = {**values, "src": counter_source(values["text"])}
         updated = {**obj, **values}
         validate_project(
             {
@@ -1121,7 +1168,7 @@ class Studio:
             else "Properties"
         )
         self.text_label.configure(
-            text="Alt text" if item and item["kind"] == "image" else "Text"
+            text="Counter digits" if item and item.get("widget") == "counter" else "Alt text" if item and item["kind"] == "image" else "Text"
         )
         self.apply_button.state(["!disabled" if item else "disabled"])
         for key, value in self.fields.items():
@@ -1242,6 +1289,20 @@ class Studio:
     def new(self):
         if self.discard():
             self.reset(new_project())
+
+    def new_from_template(self):
+        choices = {path.stem: path for path in sorted((ASSETS / "templates").glob("*.yst"))}
+        if not choices:
+            return self.error("The starter templates could not be found.")
+
+        def create(values):
+            starter = read_project(choices[values["template"]])
+            if self.discard():
+                self.reset(starter)
+                self.status.set("Created a new project from " + values["template"] + ".")
+
+        self._form("New from template", [("template", "Starter site", tuple(choices))],
+                   {"template": next(iter(choices))}, create)
 
     def sample(self):
         if self.discard():
@@ -1489,7 +1550,7 @@ class Studio:
         ]
         if obj["kind"] in ("image", "text", "link"):
             fields.append(
-                ("text", "Alt text" if obj["kind"] == "image" else "Text", "long")
+                ("text", "Counter digits" if obj.get("widget") == "counter" else "Alt text" if obj["kind"] == "image" else "Text", "long")
             )
         if obj["kind"] in ("link", "text", "image", "box"):
             fields.append(("href", "Web address", None))
@@ -1596,18 +1657,12 @@ class Studio:
     def publish(self):
         if self.finish_edit:
             self.finish_edit()
-        if self.site.get("pages"):
-            if messagebox.askyesno(
-                NAME,
-                "YesterSites publishing currently accepts one page. Export this whole site as an HTML ZIP?",
-                parent=self.root,
-            ):
-                self.export()
-            return
-        if not self.doc["slug"] and not self.settings():
-            return
+        if not self.site["slug"]:
+            self.switch_page("home")
+            if not self.settings():
+                return
         try:
-            d = validate_project(self.doc, publishing=True)
+            d = validate_site(self.site)
         except ValueError as e:
             return self.error(e)
         if not self.path or self.site != self.saved:
@@ -1622,7 +1677,7 @@ class Studio:
             .decode()
             .rstrip("=")
         )
-        dest = PUBLISH + "#draft=" + encoded
+        dest = PUBLISH + ("#draft=" + encoded if len(encoded) <= 1150000 else "")
         bridge = Path(self.tmp.name) / "publish.html"
         bridge.write_text(
             '<!doctype html><meta charset="utf-8"><title>Open YesterSites</title><p>Opening YesterSites publishing desk…</p><script>location.replace('

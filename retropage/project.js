@@ -188,6 +188,10 @@
             typeof n.italic === 'boolean',
           'Invalid object text or link.',
         );
+        if ('widget' in n) {
+          check(typeof n.widget === 'string' && Object.hasOwn(window.retroObjects.presets, n.widget), 'Unknown object preset.');
+          if (n.widget === 'counter') check(/^[0-9]{1,12}$/.test(n.text), 'Enter 1–12 counter digits.');
+        }
         if (n.kind === 'image' && n.src) imageType(n.src);
         return n;
       });
@@ -339,8 +343,28 @@
         .replace(/[’‘]/g, "'")
         .replace(/[–—]/g, '-')
         .replace(/[^\x20-\x7e\n]/g, '');
+    const ordered = [...p.items].sort((a,b)=>a.y-b.y||a.x-b.x);
+    const authored = ordered.filter(o => o.widget?.startsWith('bbs-'));
+    if (authored.length) {
+      const lines = [];
+      for (const o of authored) {
+        let label = ascii(o.text.replace(/\t/g,'    '));
+        if (['bbs-menu','bbs-files'].includes(o.widget) && o.href.startsWith('page:')) {
+          links.push(o.href.slice(5));
+          label = links.length + '  ' + (label || page(doc, links.at(-1)).title);
+        } else if (['bbs-menu','bbs-files'].includes(o.widget) && o.href) label += '\n' + ascii(o.href);
+        for (const line of label.split('\n')) {
+          if (o.widget === 'bbs-art' || o.widget === 'bbs-files') {
+            if (!line.length) lines.push('');
+            for (let i=0; i<line.length; i+=columns) lines.push(line.slice(i,i+columns));
+          } else lines.push(...wrap(line, columns));
+        }
+        lines.push('');
+      }
+      return {lines,links};
+    }
     const lines = [...wrap(ascii(p.title.toUpperCase()), columns), ''];
-    for (const o of [...p.items].sort((a, b) => a.y - b.y || a.x - b.x)) {
+    for (const o of ordered) {
       const t = ascii(o.text.trim());
       if (o.href.startsWith('page:')) {
         const target = o.href.slice(5);

@@ -142,6 +142,7 @@
   const menus = {
     File: [
       ['New blank project', 'new', 'Ctrl+N'],
+      ['New from template…', 'template'],
       ['Open project…', 'open', 'Ctrl+O'],
       ['Open sample', 'sample'],
       null,
@@ -289,6 +290,7 @@
     drawer = value;
     renderDrawer();
   }
+  let objectGroup = 'Web objects';
   function renderDrawer() {
     if (!$('drawer-content')) return;
     $('drawer-title').textContent = drawer === 'GIFs' ? 'GIF Stamps' : drawer;
@@ -306,12 +308,33 @@
         root.append(b);
       }
     } else if (drawer === 'Objects') {
-      for (const [kind, name] of Object.entries(M.kinds)) {
-        const b = button('', 'add-' + kind, 'object-choice');
-        b.append(glyph(kind), document.createTextNode(name));
-        b.draggable = true;
-        b.dataset.dragType = kind;
-        root.append(b);
+      const groups = node('select', 'stamp-search');
+      groups.setAttribute('aria-label', 'Object group');
+      for (const name of ['Web objects', 'BBS objects', 'Basic shapes']) groups.add(new Option(name));
+      groups.value = objectGroup;
+      groups.onchange=()=>{objectGroup=groups.value;renderDrawer();};
+      root.append(groups);
+      if (objectGroup === 'Basic shapes') {
+        for (const [kind, name] of Object.entries(M.kinds)) {
+          const b = button('', 'add-' + kind, 'object-choice');
+          b.append(glyph(kind), document.createTextNode(name));
+          b.draggable = true;
+          b.dataset.dragType = kind;
+          root.append(b);
+        }
+      } else {
+        for (const [key,spec] of Object.entries(window.retroObjects.presets)) {
+          if (key.startsWith('bbs-') !== (objectGroup === 'BBS objects')) continue;
+          const b=node('button','object-choice');
+          const part=spec.parts[0], src=key==='counter'?counterSource(part.text):part.src;
+          let icon=glyph(part.kind);
+          if(src){
+            icon=node('img','object-art');
+            icon.alt='';icon.src=src;icon.draggable=false;
+          }
+          b.append(icon,document.createTextNode(spec.label));
+          b.draggable=true; b.dataset.widget=key; root.append(b);
+        }
       }
     } else {
       const s = node('input', 'stamp-search');
@@ -420,7 +443,7 @@
       c.value = o ? o[k] : '';
       c.disabled = !o || (k === 'text' && o.kind === 'rule');
     }
-    $('prop-caption').textContent = o?.kind === 'image' ? 'Alt text' : 'Text';
+    $('prop-caption').textContent = o?.widget === 'counter' ? 'Counter digits' : o?.kind === 'image' ? 'Alt text' : 'Text';
     for (const c of $('properties').querySelectorAll('button')) c.disabled = !o;
   }
   function renderBbs() {
@@ -689,7 +712,46 @@
     for (const b of $('toolbar').querySelectorAll('[data-action^="add-"]'))
       b.setAttribute('aria-pressed', String(b.dataset.action === 'add-' + data.kind));
   }
+  function counterSource(digits) {
+    if (!/^[0-9]{1,12}$/.test(digits)) throw Error('Enter 1–12 counter digits, including any leading zeroes.');
+    const image=document.createElement('canvas');
+    image.width=digits.length*12+4; image.height=20;
+    const ctx=image.getContext('2d');
+    const rect=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h);};
+    rect(0,0,image.width,20,'#889298');rect(1,1,image.width-2,18,'#171d22');
+    [...digits].forEach((ch,i)=>{
+      const x=2+12*i;
+      rect(x,2,11,16,'#283239');rect(x,10,11,1,'#161d22');
+      [...window.retroObjects.digits[ch]].forEach((bit,j)=>{
+        if (bit==='1') rect(x+2+2*(j%3),4+2*Math.floor(j/3),2,2,'#ffda86');
+      });
+    });
+    return image.toDataURL('image/png');
+  }
+  function insertWidget(key,x,y) {
+    const p=page(), spec=window.retroObjects.presets[key], parts=spec.parts;
+    const gw=Math.max(...parts.map(part=>(part.dx||0)+part.w));
+    const gh=Math.max(...parts.map(part=>(part.dy||0)+part.h));
+    const scale=Math.min(1,p.width/gw,p.height/gh);
+    x=M.clamp(x,0,p.width-Math.floor(gw*scale));
+    y=M.clamp(y,0,p.height-Math.floor(gh*scale));
+    const objects=parts.map(({dx=0,dy=0,...part})=>{
+      const o={...M.item(part.kind,0,0,p),...part,widget:key,
+        x:x+Math.floor(scale*dx),y:y+Math.floor(scale*dy),w:Math.max(1,Math.floor(scale*part.w)),h:Math.max(1,Math.floor(scale*part.h))};
+      if (key==='counter') o.src=counterSource(o.text);
+      if (key==='bbs-menu') o.href='page:'+(M.pages(doc).find(([id])=>id!==active)?.[0]||'home');
+      if (key==='wallpaper') Object.assign(o,{x:0,y:0,w:p.width,h:p.height});
+      return o;
+    });
+    const prior=p.items[0],replace=key==='wallpaper'&&prior?.kind==='image'&&!prior.text.trim()&&!prior.href&&prior.x===0&&prior.y===0&&prior.w===p.width&&prior.h===p.height;
+    if (p.items.length + objects.length - Number(!!replace)>64) throw Error('This page supports up to 64 objects.');
+    if (key==='wallpaper') p.items.splice(0,replace?1:0,...objects);
+    else p.items.push(...objects);
+    selected=objects[0].id;
+    record('Placed '+spec.label+'. Double-click to edit.');
+  }
   async function insert(data, x, y) {
+    if (data.widget) return insertWidget(data.widget,x,y);
     if (page().items.length >= 64) throw Error('A page supports up to 64 objects.');
     const p = page(),
       id = active,
@@ -726,7 +788,7 @@
         : [
             {
               name: 'text',
-              label: o.kind === 'image' ? 'Alt text' : 'Text',
+              label: o.widget === 'counter' ? 'Counter digits' : o.kind === 'image' ? 'Alt text' : 'Text',
               type: 'textarea',
               value: o.text,
               maxLength: 8000,
@@ -813,6 +875,7 @@
     );
   }
   function applyObject(o, values) {
+    if(o.widget==='counter' && 'text' in values) values={...values,src:counterSource(values.text)};
     const candidate = { ...o, ...values };
     const p = page();
     const test = {
@@ -975,22 +1038,6 @@
     status('Saved an editable .yst project.');
   }
   function publish() {
-    if (doc.pages?.length) {
-      dialog(
-        'Publish to YesterSites',
-        [
-          {
-            note:
-              'Member publishing currently supports one page. Export this entire site as a ZIP to keep all ' +
-              M.pages(doc).length +
-              ' pages.',
-          },
-        ],
-        () => window.RetroExport.download(doc),
-        'Export ZIP',
-      );
-      return;
-    }
     dialog(
       'Publish to YesterSites',
       [
@@ -1001,33 +1048,19 @@
           type: 'checkbox',
           value: doc.listed,
         },
-        { note: 'Continue to the YesterSites publishing desk to sign in and review this page.' },
+        { note: 'Review all '+M.pages(doc).length+' pages together at the YesterSites publishing desk.' },
       ],
       (v) => {
         const d = M.normalize({ ...doc, slug: v.slug.trim(), listed: v.listed });
         if (!d.title.trim() || !d.items.length)
           throw Error('Add a page title and at least one object before publishing.');
-        let images = 0;
-        for (const o of d.items) {
-          if (o.kind === 'text' && o.font_family === 'Lightning Display') {
-            o.src = M.lettering(o);
-            o.kind = 'image';
-            o.font_family = 'Arial';
-          }
-          if (o.kind === 'image') {
-            images++;
-            M.imageType(o.src);
-          }
-          if ((o.kind === 'link' && !o.href) || o.href.startsWith('page:'))
-            throw Error('Set a web address on each link before publishing this single page.');
-        }
-        if (images > 3)
-          throw Error(
-            'Published pages currently support up to three pictures. Use Export ZIP for larger sites.',
-          );
         const bytes = new TextEncoder().encode(JSON.stringify(d));
-        if (bytes.length > 512 * 1024)
-          throw Error('Publishing currently supports up to 512 KiB. Export this site as a ZIP.');
+        if(bytes.length>16*1024*1024)throw Error('Reduce this project below 16 MiB before publishing.');
+        if(bytes.length>850000){
+          doc.slug=d.slug;doc.listed=d.listed;save();
+          const a=node('a');a.href='https://yestersites.com/desktop/publish/';a.target='_blank';a.rel='noopener';a.click();
+          status('Choose the downloaded .yst in the publishing desk.');return;
+        }
         const chars = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
         const target =
           'https://yestersites.com/desktop/publish/#draft=' +
@@ -1099,6 +1132,17 @@
       case 'dialog-close':
         $('dialog').close();
         return;
+      case 'template':
+        dialog(
+          'New from template',
+          [
+            { name: 'starter', label: 'Starter site', type: 'select', options: Object.keys(window.RetroTemplates) },
+            { note: 'Create an editable copy. Save your current project first to keep it.' },
+          ],
+          ({ starter }) => load(M.copy(window.RetroTemplates[starter]), 'Created a new project from ' + starter + '.'),
+          'Create site',
+        );
+        break;
       case 'new':
       case 'sample':
         dialog(
@@ -1230,6 +1274,13 @@
           'Apply',
         );
         break;
+      case 'author-bbs':
+        objectGroup='BBS objects';
+        setDrawer('Objects');
+        $('inspector').classList.remove('open');
+        $('drawer').classList.add('open');
+        status('Place BBS objects in reading order. These objects define this page’s terminal screen.');
+        break;
       case 'bbs-options':
         dialog(
           'BBS display',
@@ -1345,6 +1396,8 @@
       switchPage(p.dataset.page);
       return;
     }
+    const widget=e.target.closest('[data-widget]');
+    if(widget){const key=widget.dataset.widget;place({widget:key,label:window.retroObjects.presets[key].label});return;}
     const st = e.target.closest('[data-stamp]');
     if (st) {
       place({ kind: 'image', ...presets.stamps[Number(st.dataset.stamp)] });
@@ -1369,12 +1422,12 @@
     if (e.target.closest('[data-layer]')) properties();
   });
   $('drawer-content').addEventListener('dragstart', (e) => {
-    const b = e.target.closest('[data-stamp],[data-drag-type]');
+    const b = e.target.closest('[data-stamp],[data-drag-type],[data-widget]');
     if (b)
       e.dataTransfer.setData(
         'application/x-retro-page-tool',
         JSON.stringify(
-          b.dataset.stamp !== undefined
+          b.dataset.widget ? {widget:b.dataset.widget} : b.dataset.stamp !== undefined
             ? { kind: 'image', stamp: Number(b.dataset.stamp) }
             : { kind: b.dataset.dragType },
         ),
@@ -1395,6 +1448,9 @@
         const raw = e.dataTransfer.getData('application/x-retro-page-tool');
         if (!raw) return;
         data = JSON.parse(raw);
+        if (data.widget && Object.hasOwn(window.retroObjects.presets, data.widget)) {
+          armed=null; insertWidget(data.widget,x,y);return;
+        }
         if (!Object.hasOwn(M.kinds, data.kind)) return;
         if ('stamp' in data) Object.assign(data, presets.stamps[data.stamp]);
         else if (data.kind === 'image') {
