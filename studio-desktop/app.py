@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
+from urllib.parse import urlencode
 from uuid import uuid4
 import webbrowser
 import tkinter as tk
@@ -45,7 +46,7 @@ from project import (
 BASE = Path(__file__).resolve().parent
 ASSETS = BASE / "assets"
 NAME = "Retro Page"
-VERSION = "0.4.1"
+VERSION = "0.4.2"
 PROFILE_NAMES = {
     "classic": "1990s graphical",
     "millennium": "Early 2000s",
@@ -473,6 +474,7 @@ class Studio:
         ttk.Label(search_row, text="Find", style="Paper.TLabel").pack(side="left")
         ttk.Entry(search_row, textvariable=self.stamp_search, width=9).pack(side="left", fill="x", expand=True)
         self.stamp_search.trace_add("write", lambda *_: self.show_stamps(0))
+        ttk.Button(gallery, text="Search GifCities", command=self.open_gifcities).pack(fill="x", pady=(0, 3))
         self.stamp_grid = ttk.Frame(gallery, style="Paper.TFrame")
         self.stamp_grid.pack(fill="x")
         for column in range(2):
@@ -489,6 +491,14 @@ class Studio:
         self.stamp_position.pack(fill="x", expand=True)
         self.show_stamps(0)
         self.show_drawer()
+
+    def open_gifcities(self):
+        query = self.stamp_search.get().strip()
+        url = "https://gifcities.org/"
+        if query:
+            url += "search?" + urlencode({"q": query})
+        if not webbrowser.open(url):
+            self.status.set("Open in your browser: " + url)
 
     def show_stamps(self, page):
         group = self.stamp_collection.get()

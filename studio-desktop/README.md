@@ -1,4 +1,4 @@
-# Retro Page 0.4.1
+# Retro Page 0.4.2
 
 Arrange text, links, pictures, boxes and rules on a desktop canvas. Your local `.yst` file holds the editable page and its pictures. You can build, preview and export a page offline.
 
@@ -7,7 +7,7 @@ Arrange text, links, pictures, boxes and rules on a desktop canvas. Your local `
 From the folder containing the download, run the following command. Apt also installs Tk and Pillow.
 
 ```sh
-sudo apt install ./Retro-Page-0.4.1-all.deb
+sudo apt install ./Retro-Page-0.4.2-all.deb
 ```
 
 Open **Retro Page** from the applications menu or run `retro-page`. Double-click a `.yst` project to reopen it. Projects saved by YesterSites Studio 0.1.0 also open in Retro Page.

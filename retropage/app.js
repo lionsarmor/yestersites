@@ -365,6 +365,15 @@
         }
       }
     } else {
+      const archiveLink = node('a', 'gifcities-link', 'Search GifCities');
+      archiveLink.target = '_blank';
+      archiveLink.rel = 'noopener noreferrer';
+      function updateArchiveLink() {
+        const query = filter.trim();
+        archiveLink.href = query ? 'https://gifcities.org/search?' + new URLSearchParams({q: query}) : 'https://gifcities.org/';
+      }
+      updateArchiveLink();
+      root.append(archiveLink);
       if(!artReady){
         const message=node('p',null,'Opening the artwork library…');root.append(message);
         loadArtwork().then(()=>{if(drawer==='GIFs')renderDrawer();}).catch(error=>{
@@ -383,7 +392,7 @@
       s.setAttribute('aria-label', 'Find a stamp');
       s.value = filter;
       const content = node('div');
-      root.append(collection, s, content);
+      root.append(collection, s, archiveLink, content);
       function fill() {
         content.replaceChildren();
         const query = filter.trim().toLowerCase();
@@ -415,7 +424,7 @@
         content.append(button('Artwork credits','credits','stamp-credits'));
       }
       collection.onchange = () => {artGroup=collection.value;artPage=0;fill();};
-      s.oninput = () => {filter=s.value;artPage=0;fill();};
+      s.oninput = () => {filter=s.value;updateArchiveLink();artPage=0;fill();};
       fill();
     }
   }

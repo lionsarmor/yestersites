@@ -843,3 +843,5 @@ dialog.site-preview[open]{display:flex;flex-direction:column}
 
 .art-pager{display:flex;justify-content:space-between;align-items:center;gap:3px;margin:4px 0;font-size:12px}
 .art-pager button{min-width:26px}.stamp-search + .stamp-search{margin-top:3px}
+
+.gifcities-link { display: inline-block; margin: 3px 0 5px; font-size: 12px; }
