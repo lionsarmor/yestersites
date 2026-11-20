@@ -362,7 +362,12 @@
   }
   const mediaPresets=Object.fromEntries(Object.entries(mediaLibrary).map(([key,m])=>{
     const widget=m.voice?'audio-player':'video-player';
-    return [key,{label:m.label,saveAs:widget,parts:[{kind:'box',w:368,h:m.voice?134:274,text:m.title,href:m.url,fill:'transparent',playerSkin:'hardware',...(m.voice?{audioMode:m.voice}:{})}]}];
+    const [w,h]=({radio:[444,132],clip:[436,140],music:[371,147],'video-player':[354,269]})[m.voice||key]||[368,274];
+    const part={kind:'box',w,h,text:m.title,href:m.url,fill:'transparent',playerSkin:m.voice||key==='video-player'?'original':'hardware'};
+    if(m.voice)part.audioMode=m.voice;
+    if(m.voice==='music')Object.assign(part,{secondTitle:'Busy Signal',secondSrc:'https://yestersites.com/members/modem/art/hold-music.wav'});
+    if(m.voice==='radio')Object.assign(part,{secondTitle:'Night Shift',secondSrc:'https://yestersites.com/members/nightshift/station-id.wav'});
+    return [key,{label:m.label,saveAs:widget,parts:[part]}];
   }));
   const widgets={...window.retroObjects.presets,...mediaPresets,...palette.shapes,...palette.web,...palette.bbs};
   const cabinetStyle=document.createElement('style');cabinetStyle.textContent=RetroMedia.css;document.head.append(cabinetStyle);
@@ -619,7 +624,7 @@
         if(o.widget==='split-frame'){const rail=node('div','editor-frame-menu');rail.append(node('strong',null,'INDEX'),node('span',null,o.text),node('span',null,o.otherLabel));pane.append(rail);}
         pane.append(node('span','editor-frame-content',o.text+'  ▧'));el.append(pane);
       } else if (RetroMedia.isPlayer(o)) {
-        if(o.widget==='video-player' || o.playerSkin==='hardware'){
+        if(o.widget==='video-player' || o.playerSkin==='hardware' || o.playerSkin==='original'){
           const face=node('div','instrument-poster');face.inert=true;face.innerHTML=RetroMedia.poster(o);el.append(face);
         }else{
         const deck=node('div','player-face');
@@ -911,7 +916,7 @@
     if(key==='video-player' || m.voice)fields.push({name:'alternateSrc',label:key==='video-player'?'Alternate movie encoding (optional)':'Backup audio source (optional)',value:o.alternateSrc||'',maxLength:2048,section});
     if(arrival)fields.push({name:'autoplay',label:arrival,type:'checkbox',value:o.autoplay,section:'Playback'});
     if(loopLabel)fields.push({name:'loop',label:loopLabel,type:'checkbox',value:o.loop,section:'Playback'});
-    fields.push({name:'playerSkin',label:'Window style',type:'select',options:Object.entries(o.widget==='video-player'?RetroMedia.movieStyles:RetroMedia.skins),value:o.playerSkin||(o.widget==='video-player'?'hardware':'deck'),section:'Appearance'});
+    fields.push({name:'playerSkin',label:'Window style',type:'select',options:Object.entries(o.widget==='video-player'?RetroMedia.movieStyles:RetroMedia.skins).filter(([style])=>style!=='original'||!key.startsWith('media-')),value:o.playerSkin||(o.widget==='video-player'?'hardware':'deck'),section:'Appearance'});
     const apply=async v=>{
       const entered=key==='media-internet-archive' && /^[a-zA-Z0-9._-]+$/.test(v.media.trim())?'https://archive.org/details/'+v.media.trim():v.media;
       let href=await mediaLink(entered,o.widget);

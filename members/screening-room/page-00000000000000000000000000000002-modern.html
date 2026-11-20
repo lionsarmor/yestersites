@@ -108,7 +108,119 @@
 .cinema-streamline .transport input::-moz-range-thumb{width:7px;height:12px;border:2px outset #ebedf0;border-radius:0;background:#c3c6c8}
 .cinema-streamline .transport input::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:15px;border:2px outset #ebedf0;border-radius:0;background:#c3c6c8}
 @container(max-width:275px){.movie-cap small,.movie-vents,.cinema .transport input.volume{display:none}.cinema .transport{gap:1px;margin-inline:2px}.cinema .transport button{padding-inline:2px}}
-</style><script defer src="/assets/member-visit.js"></script></head><body><div class="board" style="max-width:640px;background:#101b24"><div style="padding-top:81.25%"></div><div class="object rp-box" style="text-align:center;font-family:Courier New,Courier,monospace;color:#162e30;font-weight:bold;font-style:normal;left:2.5%;top:2.6923076923076925%;width:95%;height:5.384615384615385%;z-index:1;background:#acaf92;font-size:16px;font-size:min(16px,2.5vw);box-shadow:inset 0 0 0 1px #162e30">Y S   /   F I L M   S O C I E T Y</div><div class="object rp-text" style="text-align:left;font-family:Georgia,serif;color:#f6c663;font-weight:bold;font-style:normal;left:4.0625%;top:10%;width:89.0625%;height:8.076923076923077%;z-index:2;background:transparent;font-size:30px;font-size:min(30px,4.6875vw);">Rumble / Projection booth</div><div class="object rp-box" style="text-align:left;font-family:Courier New,Courier,monospace;color:#e6dab3;font-weight:normal;font-style:normal;left:4.375%;top:19.23076923076923%;width:87.5%;height:50%;z-index:3;background:#c3c0db;font-size:16px;font-size:min(16px,2.5vw);box-shadow:inset 0 0 0 1px #e6dab3"><span class="retro-player video cinema cinema-studio" data-model="studio"><span class="movie-cap"><i class="movie-emblem" aria-hidden="true"></i><strong>Vision Deck</strong><small>Preview monitor</small><i class="movie-vents" aria-hidden="true"></i></span><span class="movie-gate"><span class="movie-screen"><template><iframe title="How to embed a Rumble video" src="https://rumble.com/embed/v17zczn/" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></template><span class="movie-card card-bars" aria-hidden="true"><i>▥</i></span><button type="button" class="movie-load">Load Rumble player</button></span></span><span class="movie-console"><span class="movie-source">Rumble</span><span class="movie-title" title="How to embed a Rumble video">How to embed a Rumble video</span><a class="movie-open" href="https://rumble.com/embed/v17zczn/" target="_blank" rel="noopener" aria-label="Open How to embed a Rumble video in a new tab">Open ↗</a></span></span></div><div class="object rp-text" style="text-align:left;font-family:Courier New,Courier,monospace;color:#e6dab3;font-weight:normal;font-style:normal;left:4.375%;top:75.38461538461539%;width:86.5625%;height:9.615384615384615%;z-index:4;background:transparent;font-size:16px;font-size:min(16px,2.5vw);">On loan from the Rumble help desk.</div><div class="object rp-link" style="text-align:left;font-family:Courier New,Courier,monospace;color:#98f5cf;font-weight:normal;font-style:normal;left:4.375%;top:87.11538461538461%;width:70.3125%;height:5%;z-index:5;background:transparent;font-size:16px;font-size:min(16px,2.5vw);"><a href="modern.html">◂ Back to the film schedule</a></div></div><div class="editions"><hr><p><a href="page-00000000000000000000000000000002-phone.html">Phone</a> | <a href="page-00000000000000000000000000000002-classic.html">Classic</a> | <a href="page-00000000000000000000000000000002-text.html">Text only</a></p></div><script>(function installAudioPanels(root=document){
+
+.ref-wrap{display:grid;place-items:center;width:100%;height:100%;min-width:0;min-height:0;container-type:size;pointer-events:auto;text-decoration:none}
+.ref-deck{display:block;position:relative;isolation:isolate;width:min(100cqw,calc(100cqh * var(--rw) / var(--rh)));max-width:100%;aspect-ratio:var(--rw)/var(--rh);background-size:100% 100%;background-repeat:no-repeat;container-type:inline-size;color:#121212;font:12px Arial,sans-serif;text-align:left;letter-spacing:normal;line-height:1;overflow:clip;text-decoration:none}
+.ref-deck>*{box-sizing:border-box}.ref-deck :is(.ref-field,.ref-key,.ref-seek){position:absolute;margin:0}
+.ref-deck .ref-field{display:flex;align-items:center;overflow:hidden;white-space:pre;text-align:left}
+.ref-deck>audio{display:none}.ref-deck .ref-key{cursor:pointer;min-width:0;min-height:0;padding:0;border:0;border-radius:0;background:transparent;color:inherit;box-shadow:none}
+.ref-key:hover{outline:1px solid #fffa;outline-offset:-2px}.ref-deck button:focus-visible,.ref-deck input:focus-visible{outline:2px solid #ffda62;outline-offset:-2px}
+.ref-key:active,.ref-deck[data-muted=true] [data-key=mute]{background:#1a203a40;box-shadow:inset 1px 2px 2px #131622aa}
+.ref-deck[data-muted=true] [data-key=mute]:after{content:'';position:absolute;left:16%;top:46%;width:68%;height:2px;background:#a52328;transform:rotate(-45deg)}
+.ref-deck .ref-seek{appearance:none;border:0;border-radius:0;min-width:0;min-height:0;max-width:none;padding:0;box-shadow:none;background:transparent;cursor:pointer;accent-color:#696b71}
+.ref-seek::-moz-range-track{background:#282b2c;border-top:1px solid #555;border-bottom:1px solid #f6efd5;height:.75cqw}
+.ref-seek::-webkit-slider-runnable-track{background:#292d32;border:1px inset #e3dece;height:.9cqw}
+.ref-seek::-moz-range-thumb{width:2.35cqw;height:3.65cqw;border:1px outset #e2e1d3;border-radius:0;background:linear-gradient(90deg,#dfdecd,#908d80);box-shadow:1px 1px #212123}
+.ref-seek::-webkit-slider-thumb{-webkit-appearance:none;width:2.45cqw;height:3.8cqw;margin-top:-1.6cqw;border:1px outset #dfddce;border-radius:0;background:#bcbab0}
+.ref-radio-name{background:#211e1d;color:#efdfc7;font:bold 3.6cqw/1 Georgia,serif;text-transform:uppercase;letter-spacing:.08em}
+.ref-radio-status{background:#17110e;color:#e8d9c5;font:bold 3cqw/1 monospace;padding-left:1cqw}
+.ref-paper{background:#e9dabe;color:#28221d;font:italic 4.25cqw/1 Georgia,serif;justify-content:center}
+.ref-side{background:#e8dbc2;justify-content:center;font:2.9cqw Arial,sans-serif}
+.ref-tape-status,.ref-music .ref-clock{background:#a7c9c4;color:#172e2d;font:3cqw/1 monospace}
+.ref-music .ref-clock{justify-content:center}.ref-file,.ref-clip .ref-clock{background:#c4c2be;color:#111;font:bold 3.1cqw/1 Arial,sans-serif}
+.ref-clip .ref-clock{justify-content:center}.ref-wave{background:black}.ref-wave canvas{display:block;width:100%;height:100%}.ref-wave i{position:absolute;inset:0 auto 0 0;width:1px;background:#bde8bb}
+.ref-film-title{background:#242645;color:#fafaff;font:3.75cqw/1 Arial,sans-serif}.ref-deck .ref-picture{display:block;background:#0c0d11}
+.ref-picture video{position:absolute;inset:0;width:100%;height:100%;min-height:0!important;max-width:100%;display:block;object-fit:contain;background:#08090b}
+.ref-movie .ref-clock,.ref-film-status{background:#252947;color:#fff;font:2.85cqw/1 Arial,sans-serif}.ref-film-status{font-size:2.75cqw}
+.ref-movie .ref-key[data-key=toggle]:after,.ref-clip[data-playing=true] .ref-key[data-key=toggle]:after{content:'▶';display:grid;place-items:center;position:absolute;inset:19%;color:#10131a;background:#bfccd6;font:bold 4cqw/1 Arial,sans-serif}
+.ref-movie[data-playing=true] [data-key=toggle]:after{content:'Ⅱ'}.ref-clip[data-playing=true] .ref-key[data-key=toggle]:after{content:'Ⅱ';background:#ccc9c2}
+.ref-radio[data-playing=true] [data-key=toggle]:after{content:'Pause';position:absolute;inset:17% 9%;display:grid;place-items:center;background:#d4c1a4;color:#171313;font:bold 3.8cqw/1 Arial,sans-serif}
+.ref-deck .ref-reopen{display:none}.ref-deck[data-collapsed]{background:#252b37!important;aspect-ratio:auto;height:30px}
+.ref-deck[data-collapsed]>*{visibility:hidden}.ref-deck[data-collapsed] .ref-reopen{position:absolute;inset:1px;width:calc(100% - 2px);height:28px;visibility:visible;display:block;background:#d6d2c9;border:2px outset #eee;color:#111;font:bold 12px Arial;cursor:pointer}
+.ref-deck:fullscreen,.ref-deck.ref-large{position:fixed;inset:0;margin:auto;width:min(100vw,calc(100vh * var(--rw) / var(--rh)));height:auto;max-height:100vh;z-index:9999}
+.ref-deck:fullscreen::backdrop{background:#08090c}
+.ref-deck .ref-fallback,.object .ref-deck .ref-fallback,.phone .ref-deck .ref-fallback{position:absolute;bottom:0;left:0;width:auto;height:auto;max-width:100%;font:12px Arial;color:#fff;background:#182030;padding:3px;text-decoration:underline}
+.ref-deck[data-bound] .ref-fallback:not(:focus-visible),.instrument-poster .ref-fallback{clip-path:inset(50%);width:1px;height:1px;padding:0}
+.phone .ref-wrap{container-type:inline-size;height:auto;aspect-ratio:var(--rw)/var(--rh)}.phone .ref-deck{width:100%}
+@media(max-width:600px){.board .object .ref-wrap{container-type:inline-size;height:auto;aspect-ratio:var(--rw)/var(--rh)}.board .ref-wrap>.ref-deck{width:100%}}
+</style><script defer src="/assets/member-visit.js"></script></head><body><div class="board" style="max-width:640px;background:#101b24"><div style="padding-top:81.25%"></div><div class="object rp-box" style="text-align:center;font-family:Courier New,Courier,monospace;color:#162e30;font-weight:bold;font-style:normal;left:2.5%;top:2.6923076923076925%;width:95%;height:5.384615384615385%;z-index:1;background:#acaf92;font-size:16px;font-size:min(16px,2.5vw);box-shadow:inset 0 0 0 1px #162e30">Y S   /   F I L M   S O C I E T Y</div><div class="object rp-text" style="text-align:left;font-family:Georgia,serif;color:#f6c663;font-weight:bold;font-style:normal;left:4.0625%;top:10%;width:89.0625%;height:8.076923076923077%;z-index:2;background:transparent;font-size:30px;font-size:min(30px,4.6875vw);">Rumble / Projection booth</div><div class="object rp-box" style="text-align:left;font-family:Courier New,Courier,monospace;color:#e6dab3;font-weight:normal;font-style:normal;left:4.375%;top:19.23076923076923%;width:87.5%;height:50%;z-index:3;background:#c3c0db;font-size:16px;font-size:min(16px,2.5vw);box-shadow:inset 0 0 0 1px #e6dab3"><span class="retro-player video cinema cinema-studio" data-model="studio"><span class="movie-cap"><i class="movie-emblem" aria-hidden="true"></i><strong>Vision Deck</strong><small>Preview monitor</small><i class="movie-vents" aria-hidden="true"></i></span><span class="movie-gate"><span class="movie-screen"><template><iframe title="How to embed a Rumble video" src="https://rumble.com/embed/v17zczn/" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></template><span class="movie-card card-bars" aria-hidden="true"><i>▥</i></span><button type="button" class="movie-load">Load Rumble player</button></span></span><span class="movie-console"><span class="movie-source">Rumble</span><span class="movie-title" title="How to embed a Rumble video">How to embed a Rumble video</span><a class="movie-open" href="https://rumble.com/embed/v17zczn/" target="_blank" rel="noopener" aria-label="Open How to embed a Rumble video in a new tab">Open ↗</a></span></span></div><div class="object rp-text" style="text-align:left;font-family:Courier New,Courier,monospace;color:#e6dab3;font-weight:normal;font-style:normal;left:4.375%;top:75.38461538461539%;width:86.5625%;height:9.615384615384615%;z-index:4;background:transparent;font-size:16px;font-size:min(16px,2.5vw);">On loan from the Rumble help desk.</div><div class="object rp-link" style="text-align:left;font-family:Courier New,Courier,monospace;color:#98f5cf;font-weight:normal;font-style:normal;left:4.375%;top:87.11538461538461%;width:70.3125%;height:5%;z-index:5;background:transparent;font-size:16px;font-size:min(16px,2.5vw);"><a href="modern.html">◂ Back to the film schedule</a></div></div><div class="editions"><hr><p><a href="page-00000000000000000000000000000002-phone.html">Phone</a> | <a href="page-00000000000000000000000000000002-classic.html">Classic</a> | <a href="page-00000000000000000000000000000002-text.html">Text only</a></p></div><script>(()=>{function mountReferencePlayers(root=document){
+    const stamp=t=>{t=Number.isFinite(t)?Math.floor(t):0;return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
+    for(const deck of root.querySelectorAll('.ref-deck')){
+      const media=deck.querySelector('audio,video');
+      if(!media || deck.dataset.bound)continue;
+      deck.dataset.bound='true';
+      const mode=deck.dataset.reference,seek=deck.querySelector('.ref-seek'),clock=deck.querySelector('.ref-clock');
+      const text=(selector,value)=>{const el=deck.querySelector(selector);if(el)el.textContent=value;};
+      const first=media.querySelector('source').src,link=deck.querySelector('.ref-fallback'),reopen=deck.querySelector('.ref-reopen');
+      let sideB=false,loadFailed=false;
+      function sync(){
+        const finite=Number.isFinite(media.duration) && media.duration>0;
+        const pct=finite?media.currentTime/media.duration:0;
+        if(seek){seek.value=Math.round(pct*1000);seek.disabled=!finite;}
+        if(clock)clock.textContent=stamp(media.currentTime)+(mode==='clip'?' / '+(finite?stamp(media.duration):'--:--'):'');
+        const name=sideB?(deck.dataset.secondTitle||(mode==='music'?'Side B':'Station 2')):deck.dataset.title;
+        const state=media.error||loadFailed?'Unavailable':media.ended?'End':media.paused?(media.currentTime?'Paused':'Ready'):'Playing';
+        text('.ref-film-status',state);text('.ref-radio-status',state==='Playing'?'On air':state);
+        text('.ref-radio-name',name);text('.ref-paper',name);text('.ref-side',sideB?'SIDE B':'SIDE A');
+        text('.ref-tape-status',(media.paused?'■':'▶')+'　'+(sideB?'SIDE B':'SIDE A')+'　'+name);
+        const marker=deck.querySelector('.ref-wave i');if(marker)marker.style.left=(pct*100)+'%';
+        deck.dataset.playing=String(!media.paused);deck.dataset.muted=String(media.muted);
+        const mute=deck.querySelector('[data-key=mute]');mute.setAttribute('aria-pressed',String(media.muted));
+      }
+      function play(){loadFailed=false;media.play().catch(()=>{loadFailed=true;sync();});}
+      function stop(){media.pause();if(Number.isFinite(media.duration))media.currentTime=0;else media.load();}
+      if(seek)seek.oninput=()=>{if(Number.isFinite(media.duration))media.currentTime=media.duration*Number(seek.value)/1000;};
+      for(const button of deck.querySelectorAll('[data-key]'))button.onclick=()=>{
+        switch(button.dataset.key){
+          case 'toggle':if(media.paused)play();else media.pause();break;
+          case 'play':play();break;
+          case 'pause':media.pause();break;
+          case 'stop':stop();break;
+          case 'mute':media.muted=!media.muted;break;
+          case 'fwd':case 'rew':if(Number.isFinite(media.duration))media.currentTime=Math.max(0,Math.min(media.duration,media.currentTime+(button.dataset.key==='fwd'?5:-5)));break;
+          case 'side':{
+            const resume=!media.paused;sideB=!sideB;media.src=sideB?deck.dataset.second:first;link.href=media.src;media.load();if(resume)play();break;
+          }
+          case 'max':{
+            if(document.fullscreenElement===deck)document.exitFullscreen().catch(()=>{});
+            else if(deck.requestFullscreen && document.fullscreenEnabled)deck.requestFullscreen().catch(()=>deck.classList.toggle('ref-large'));
+            else deck.classList.toggle('ref-large');break;
+          }
+          case 'close':case 'min':
+            if(button.dataset.key==='close')stop();
+            deck.dataset.collapsed=button.dataset.key;reopen.hidden=false;reopen.textContent=(button.dataset.key==='min'?'Restore ':'Reopen ')+deck.dataset.title;reopen.focus();break;
+        }
+        sync();
+      };
+      reopen.onclick=()=>{delete deck.dataset.collapsed;reopen.hidden=true;deck.querySelector('[data-key=toggle],[data-key=play]')?.focus();};
+      for(const event of ['durationchange','loadedmetadata','timeupdate','play','pause','ended','volumechange','error','emptied'])media.addEventListener(event,sync);
+      media.controls=false;sync();
+      const canvas=deck.querySelector('.ref-wave canvas');
+      if(canvas){
+        const draw=peaks=>{
+          canvas.width=420;canvas.height=38;const c=canvas.getContext('2d');c.fillStyle='#36fa18';c.fillRect(0,18,420,1);
+          peaks.forEach((p,i)=>c.fillRect(i*420/peaks.length,19-17*p,Math.ceil(420/peaks.length),Math.max(1,34*p)));
+        };
+        draw([]);
+        if(first==='https://yestersites.com/assets/screening/station-id.mp3')draw([0.5,0.31,0.19,0.12,0.56,0.5,0.25,0.12,0.06,0.62,0.44,0.19,0.12,0.06,0.0,0.12,0.5,0.81,0.62,0.44,0.31,0.88,0.81,0.44,0.69,0.38,0.44,0.31,0.69,0.56,0.19,0.44,0.56,0.38,0.5,0.5,0.31,0.06,0.69,0.56,0.56,0.69,0.12,0.81,0.81,0.62,0.56,0.69,0.62,0.75,0.75,0.56,0.56,0.31,0.31,0.12,0.94,0.44,0.31,0.06,0.06,0.75,0.75,0.5,0.62,0.56,0.69,0.44,0.31,0.38,0.0,0.38,0.5,0.12,0.56,0.75,0.12,0.5,0.5,0.38,0.81,0.88,0.56,0.56,0.19,0.62,0.69,0.44,0.62,0.19,0.75,0.44,0.62,0.38,0.38,0.06,0.31,0.69,0.44,0.44,0.62,0.12,0.62,0.75,0.69,0.38,0.12,0.44,0.88,0.62,0.56,0.5,0.81,0.62,0.12,0.12,0.0,0.0,0.0,0.0]);
+        else media.addEventListener('play',async()=>{
+          // Inspect small, readable clips without routing playback through a cross-origin audio graph.
+          let reader;
+          try{
+            const response=await fetch(first,{credentials:'omit',signal:AbortSignal.timeout(8000)});
+            if(!response.ok || Number(response.headers.get('Content-Length'))>4e6){await response.body?.cancel();return;}
+            reader=response.body.getReader();const chunks=[];let len=0;
+            while(true){const next=await reader.read();if(next.done)break;len+=next.value.length;if(len>4e6){await reader.cancel();return;}chunks.push(next.value);}
+            const ctx=new OfflineAudioContext(1,1,11025),buffer=await ctx.decodeAudioData(await new Blob(chunks).arrayBuffer());
+            const samples=buffer.getChannelData(0),peaks=[];
+            for(let i=0;i<210;i++){let peak=0;const start=Math.floor(i*samples.length/210),end=Math.floor((i+1)*samples.length/210);for(let j=start;j<end;j+=4)peak=Math.max(peak,Math.abs(samples[j]));peaks.push(peak);}
+            const max=Math.max(...peaks,0.01);draw(peaks.map(p=>p/max));
+          }catch{}finally{reader?.releaseLock();}
+        },{once:true});
+      }
+    }
+  };(function installAudioPanels(root=document){
+    mountReferencePlayers(root);
     for(const deck of root.querySelectorAll('.cinema')){
       if(deck.dataset.cinemaReady)continue;
       deck.dataset.cinemaReady='true';
@@ -199,4 +311,4 @@
       for(const event of ['loadedmetadata','durationchange','timeupdate','play','pause','ended','volumechange','error','emptied'])audio.addEventListener(event,sync);
       if(movie)deck.querySelector('.movie-gate').after(state,controls);else audio.after(state,controls);audio.controls=false;audio.hidden=audio.tagName==='AUDIO';sync();
     }
-  })()</script></body></html>
+  })()})()</script></body></html>
