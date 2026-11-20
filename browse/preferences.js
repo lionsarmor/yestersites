@@ -9,9 +9,12 @@
     ['bubble', 'Bubble Comet', 'Translucent jelly console'],
     ['atlas', 'Field Atlas', 'Canvas and brass compass'],
     ['cinema', 'Bijou Box', 'Velvet cinema marquee'],
-    ['pocket', 'Pocket Relay', 'Handheld dot-matrix deck']
+    ['pocket', 'Pocket Relay', 'Handheld dot-matrix deck'],
+    ['teletext', 'Ceefaux 404', 'Teletext news receiver'],
+    ['synth', 'MidiVidi 64', 'Violet synthesizer console'],
+    ['ledger', 'Dot Martix', 'Green-bar tractor-feed paper']
   ];
-  const defaults = {launch:'random',edition:'original',gestures:true,fold:false,quiet:false,log:true};
+  const defaults = {launch:'random',edition:'original',gestures:true,fold:false,idle:true,quiet:false,log:true};
   function read(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
   }

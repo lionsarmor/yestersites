@@ -109,8 +109,23 @@
     const sound=audio.createBufferSource();sound.buffer=buffer;sound.connect(volume);
     nextSound=Math.max(now+.015,nextSound);sound.start(nextSound);nextSound+=buffer.duration;
   }
+  let padEnabled=true;
+  const padKeys={A:0,B:1,SELECT:8,START:9,UP:12,DOWN:13,LEFT:14,RIGHT:15};
+  function readPad(){
+    if(!padEnabled || !navigator.getGamepads)return;
+    let pads;
+    try{pads=navigator.getGamepads();}catch{padEnabled=false;return;}
+    if(!document.hasFocus())return;
+    const p=Array.from(pads).find(p=>p && p.mapping==='standard');
+    for(const [key,n] of Object.entries(padKeys)){
+      const x=p?.axes[0]||0,y=p?.axes[1]||0;
+      const stick={LEFT:x<-.45,RIGHT:x>.45,UP:y<-.45,DOWN:y>.45};
+      input(key,'gamepad',Boolean(p?.buttons[n]?.pressed || stick[key]));
+    }
+  }
   function animate(now){
     if(state!=='playing')return;
+    readPad();
     if(!pending){
       const count=Math.min(2,Math.floor((now-clock)*60/1000));
       if(count>0){
@@ -167,6 +182,16 @@
     try{$('label').textContent=decodeURIComponent(cartridgeURL().pathname.split('/').pop()||'Game cartridge').slice(0,90);}
     catch{$('label').textContent='Game cartridge';}
   }else $('help').textContent='Catch six fireflies. Arrows move · hold X or the A button to dash.';
+  $('full').onclick=async()=>{
+    try{
+      if(document.fullscreenElement)await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    }catch{
+      $('status').textContent='Open the full player from the game link for a larger screen.';
+    }
+  };
+  document.addEventListener('fullscreenchange',()=>{$('full').textContent=document.fullscreenElement?'Exit full screen':'Full screen';});
+  $('help').textContent+=' Gamepad: press any button, then use the D-pad or left stick.';
   $('play').onclick=launch;
   $('pause').onclick=()=>state==='playing'?pause():resume();
   $('sound').onclick=async()=>{

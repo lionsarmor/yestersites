@@ -47,6 +47,21 @@
     el.title=title;el.setAttribute('aria-label',title);
   }
   function setBar(show){$('bar').hidden=!show;$('restore').hidden=show;$('hide').setAttribute('aria-expanded',String(show));if(!show && $('bar').contains(document.activeElement))$('restore').focus();}
+  let idleTimer, idleHidden=false;
+  function activity(){
+    clearTimeout(idleTimer);
+    if(idleHidden){idleHidden=false;setBar(true);}
+    if(!prefs.idle)return;
+    idleTimer=setTimeout(()=>{
+      if($('bar').hidden || document.querySelector('dialog[open]') || $('address')===document.activeElement || $('bar').querySelector(':focus-visible'))return;
+      setBar(false);idleHidden=true;
+    },6000);
+  }
+  for(const event of ['pointermove','pointerdown','keydown','focusout'])document.addEventListener(event,activity,{passive:true});
+  document.addEventListener('close',activity,true);
+  window.addEventListener('ring-preference',activity);
+  window.addEventListener('message',e=>{if(e.source===frame?.contentWindow && e.data?.surfer==='activity')activity();});
+  activity();
   function update(){
     const url=current(), row=site(url),marked=saved.some(b=>clean(b.url)===url);
     for(const id of ['stop','mark','share'])$(id).disabled=!url;
@@ -118,7 +133,7 @@
     const next=document.createElement('iframe'),u=new URL(url);
     next.title=site(url)?.title||'Member site';
     next.setAttribute('sandbox','allow-same-origin allow-scripts allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox');
-    next.setAttribute('allow','autoplay; fullscreen; picture-in-picture');
+    next.setAttribute('allow','autoplay; fullscreen *; gamepad *; picture-in-picture');
     const hosted=u.origin===host;
     if(hosted)u.searchParams.set('surfer','1');
     frame=next;update();msg('Opening '+next.title+'…');

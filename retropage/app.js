@@ -1045,7 +1045,7 @@
       dialog('Game cartridge properties',[
         {name:'text',label:'Game title',value:o.text,required:true,maxLength:120},
         {name:'romUrl',label:'ROM file URL',value:o.romUrl,required:true,maxLength:2048},
-        {note:'Link a direct HTTPS iNES (.nes) file that allows cross-origin downloads. Visitors press Play and use a keyboard or the on-screen pad.'},
+        {note:'Lantern Run is ready to play. Keep it or paste a direct HTTPS .nes link from a host that allows cross-origin downloads. Use touch, keyboard or a standard gamepad.'},
         {name:'fallbackText',label:'Classic / text description',value:o.fallbackText||'',maxLength:500},
         {name:'fallbackUrl',label:'Classic / text link (optional)',value:o.fallbackUrl||'',maxLength:2048}
       ],v=>applyObject(o,{text:v.text,...RetroCraft.fields({...o,romUrl:v.romUrl}),...RetroCraft.fallbackFields(v)}),'Apply');

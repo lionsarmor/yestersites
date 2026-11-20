@@ -119,7 +119,7 @@ const RetroCraft = (() => {
     if(o.widget==='game-cartridge'){
       const src=arcade+'#rom='+encodeURIComponent(cartridgeURL(o.romUrl));
       if(old)return '[Game cartridge] '+title+' · <a href="'+escape(src)+'">Open game player</a>';
-      return '<iframe class="craft-window cartridge-window" title="'+title+'" sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" src="'+escape(src)+'"></iframe>';
+      return '<span style="display:flex;flex-direction:column;height:100%;width:100%"><a style="flex:none;background:#243c32;color:#fff4d8;text-align:center;font: bold 14px/24px Arial" href="'+escape(src)+'" target="_blank" rel="noopener">Open full game player ↗</a><iframe style="flex:1;min-height:0" allow="fullscreen *; gamepad *" class="craft-window cartridge-window" title="'+title+'" sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" src="'+escape(src)+'"></iframe></span>';
     }
     if(o.widget==='flash-movie'||o.widget==='flash-book'){
       if(old)return o.widget==='flash-book'?fields(o).scenes.map(s=>'<p><b>'+escape(s.title)+'</b><br>'+escape(s.body).replace(/\n/g,'<br>')+'</p>').join(''):'[Flash movie] '+title;

@@ -160,3 +160,13 @@ dialog::backdrop{background:#15172866}
   [data-theme="pocket"] #hide{min-width:18px;padding:0}[data-theme="pocket"] #address-form,[data-theme="pocket"] .status{margin:0}
 }
 [data-theme="pocket"] .toolset .glyph{background-color:#baca87;box-shadow:inset 1px 1px #88986b,inset -1px -1px #d0dd9c;border-radius:3px}
+
+[data-theme=teletext],[data-skin=teletext]{--emblem:3;--frame-ink:#09132c;--frame-surface:#273956;--sample-edge:#14c8d4}
+[data-theme=teletext] #bar,[data-skin=teletext] .frame-sample{background:linear-gradient(90deg,#e54e52 25%,#f8c849 25% 50%,#46bb79 50% 75%,#548ae3 75%) top/100% 5px no-repeat,#141f32;padding-top:8px;color:#eff4e3;font-family:monospace}
+[data-theme=teletext] .toolset button{background:#263e58;color:white;border-bottom:3px solid #58dade}
+[data-theme=synth],[data-skin=synth]{--emblem:2;--frame-ink:#351947;--frame-surface:#ad96bc;--sample-edge:#cb72ae}
+[data-theme=synth] #bar,[data-skin=synth] .frame-sample{background:repeating-linear-gradient(90deg,transparent 0 5px,#38274255 5px 7px) right top/32% 7px no-repeat,linear-gradient(#b69cbf,#88798f);border-top:3px ridge #e4c8df}
+[data-theme=synth] .toolset button{border-radius:3px 3px 7px 7px;background:#f1e8df;color:#382943;border-bottom:5px solid #544059}
+[data-theme=ledger],[data-skin=ledger]{--emblem:5;--frame-ink:#264536;--frame-surface:#cfe0c7;--sample-edge:#739178}
+[data-theme=ledger] #bar,[data-skin=ledger] .frame-sample{background:radial-gradient(circle,#666952 2px,transparent 3px) left top/13px 15px repeat-y,repeating-linear-gradient(#f5f1d6 0 12px,#dce8cd 12px 24px);padding-left:17px;color:#22352b;font-family:monospace}
+[data-theme=ledger] .toolset button{background:#f9f6dd;border:1px dashed #516b50;color:#263e25;font-family:monospace}
