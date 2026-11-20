@@ -838,23 +838,41 @@
     }
     return RetroMedia.source(raw,widget).url;
   }
-  function playerDialog(o,isNew) {
+  function playerDialog(o,isNew,preset=o.widget) {
     const p=page();
-    dialog(widgets[o.widget].label,[
+    const hints={
+      'media-youtube':'Paste a YouTube watch, Shorts or share URL.',
+      'media-rumble':'On Rumble, open Share → Embed and copy the iframe or its URL.',
+      'media-internet-archive':'Paste the Archive movie item URL for its original player, or a direct MP4 download for Vision Deck.',
+    };
+    const formTitle=widgets[preset].label;
+    const action=async v=>{
+
+      const href=await mediaLink(v.media,o.widget);
+      if (!$('dialog').open || dialogAccept!==action || p!==page()) return;
+      const hosted=!!RetroMedia.source(href,o.widget).embed;
+      const values={text:v.text,href,autoplay:!hosted && !!v.autoplay,loop:!hosted && !!v.loop};
+      if (!isNew) return applyObject(o,values);
+      const candidate={...o,...values}, trial={...p,items:[...p.items,candidate]};
+      M.normalize(p===doc?trial:{...doc,pages:doc.pages.map(child=>child===p?trial:child)});
+      p.items.push(candidate);selected=candidate.id;record('Placed '+widgets[o.widget].label+'.');
+    };
+    dialog(formTitle,[
+      ...(hints[preset]?[{note:hints[preset]}]:[]),
       {name:'text',label:'Player title',value:o.text,required:true,maxLength:120},
       {name:'media',label:o.widget==='video-player'?'YouTube, Rumble, Archive movie or HTTPS video file':'HTTPS audio file or live stream',value:o.href,required:true,maxLength:2048},
       {name:'autoplay',label:'Start on arrival',type:'checkbox',value:o.autoplay},
       {name:'loop',label:'Repeat clip',type:'checkbox',value:o.loop},
       {url:'https://yestersites.com/screening-room/',label:'Try the Screening Room examples'},
-    ],async v=>{
-      const href=await mediaLink(v.media,o.widget);
-      if (!$('dialog').open || p!==page()) return;
-      const values={text:v.text,href,autoplay:v.autoplay,loop:v.loop};
-      if (!isNew) return applyObject(o,values);
-      const candidate={...o,...values}, trial={...p,items:[...p.items,candidate]};
-      M.normalize(p===doc?trial:{...doc,pages:doc.pages.map(child=>child===p?trial:child)});
-      p.items.push(candidate);selected=candidate.id;record('Placed '+widgets[o.widget].label+'.');
-    },isNew?'Insert':'Apply');
+    ],action,isNew?'Insert':'Apply');
+    const field=$('dialog-fields').querySelector('[name=media]');
+    const options=['autoplay','loop'].map(name=>$('dialog-fields').querySelector('[name='+name+']'));
+    const adjust=()=>{
+      const provider=/(?:https:\/\/(?:www\.)?rumble\.com\/|https:\/\/(?:www\.)?archive\.org\/(?:details|embed)\/)/i.test(field.value) ||
+        (!field.value && ['media-rumble','media-internet-archive'].includes(preset));
+      for (const opt of options)opt.disabled=provider;
+    };
+    field.oninput=adjust;adjust();
   }
   function insertWidget(key,x,y) {
     const p=page(), spec=widgets[key], parts=spec.parts;
@@ -873,7 +891,7 @@
       if (key==='wallpaper') Object.assign(o,{x:0,y:0,w:p.width,h:p.height});
       return o;
     });
-    if(RetroMedia.isPlayer(objects[0]))return playerDialog(objects[0],true);
+    if(RetroMedia.isPlayer(objects[0]))return playerDialog(objects[0],true,key);
     const prior=p.items[0],replace=key==='wallpaper'&&prior?.kind==='image'&&!prior.text.trim()&&!prior.href&&prior.x===0&&prior.y===0&&prior.w===p.width&&prior.h===p.height;
     if (p.items.length + objects.length - Number(!!replace)>64) throw Error('This page supports up to 64 objects.');
     if (key==='wallpaper') p.items.splice(0,replace?1:0,...objects);
