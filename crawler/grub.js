@@ -145,12 +145,22 @@
     $('network').textContent='Offline card file · the local site index.'; return;
   }
   var seenCursors=Object.create(null),loaded=Object.create(null),loadedCount=0;
+  async function directoryPage(path) {
+    for (var attempt=0; ; attempt++) {
+      try {
+        var res=await fetch(path,{credentials:'omit',cache:'no-store',headers:{Accept:'application/json'}});
+      } catch (error) {
+        if (attempt>=2) throw error;
+        res=null;
+      }
+      if (res && res.ok) return res.json();
+      if (res && (attempt>=2 || (res.status<500 && res.status!==429))) throw Error('Directory unavailable');
+      await new Promise(function(resolve){setTimeout(resolve,600*(attempt+1));});
+    }
+  }
   function readDirectory(cursor) {
     var path=memberOrigin+'/api/directory'+(cursor?'?cursor='+encodeURIComponent(cursor):'');
-    return fetch(path,{headers:{Accept:'application/json'}}).then(function (res) {
-      if (!res.ok) throw new Error('directory');
-      return res.json();
-    }).then(function (data) {
+    return directoryPage(path).then(function (data) {
       if (!Array.isArray(data.sites)) throw new Error('directory');
       data.sites.forEach(function (row) {
         var member=published(row);
@@ -167,7 +177,14 @@
       $('network').textContent=loadedCount ? loadedCount+' published member '+(loadedCount===1?'site':'sites')+' in the file.' : '';
     });
   }
-  readDirectory('').catch(function () {
-    $('network').textContent=loadedCount?'The member index stopped partway through. Showing the cards received.':'The member index is unavailable. Searching the local site index.';
-  });
+  function refresh(){
+    $('network').textContent='Opening the member card file…';
+    readDirectory('').catch(function(){
+      $('network').textContent='Showing the cards received so far. ';
+      var retry=element('button','Retry member search');retry.type='button';retry.onclick=refresh;
+      $('network').appendChild(retry);
+      seenCursors=Object.create(null);
+    });
+  }
+  refresh();
 }());
