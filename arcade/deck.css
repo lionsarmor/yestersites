@@ -50,9 +50,9 @@ body[data-hand=left] .pad{flex-direction:row-reverse}body[data-button-size=large
   body[data-button-size=large] .actions button{width:50px;height:50px}
 }
 @media (min-width:310px) and (max-width:365px) and (min-height:291px){
-  body[data-button-size=large] .pad{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'directions buttons' 'switches switches'}
-  body[data-button-size=large][data-hand=left] .pad{grid-template-areas:'buttons directions' 'switches switches'}
-  body[data-button-size=large] .cross{grid-area:directions;justify-self:center}
-  body[data-button-size=large] .actions{grid-area:buttons;justify-self:center}
-  body[data-button-size=large] .switches{grid-area:switches;display:flex;justify-content:center;gap:5px}
+  body .pad{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:'directions buttons' 'switches switches'}
+  body[data-hand=left] .pad{grid-template-areas:'buttons directions' 'switches switches'}
+  body .cross{grid-area:directions;justify-self:center}
+  body .actions{grid-area:buttons;justify-self:center}
+  body .switches{grid-area:switches;display:flex;justify-content:center;gap:5px}
 }
