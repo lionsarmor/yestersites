@@ -107,9 +107,9 @@
     if (!raw || typeof raw.slug!=='string'|| typeof raw.title!=='string' || typeof raw.url!=='string') return null;
     var parsed;
     try { parsed=new URL(raw.url,memberOrigin+'/'); } catch (e) {return null;}
-    if (parsed.origin!==memberOrigin || !/^https?:$/.test(parsed.protocol)) return null;
+    if(parsed.origin!==memberOrigin && parsed.href!=='https://'+raw.slug+'.yestersites.com/')return null;
     return {published:true,slug:raw.slug,title:raw.title,profile:raw.profile,byline:raw.byline || '',
-      url:'https://yestersites.com/members/'+raw.slug+'/',excerpt:raw.excerpt || raw.snippet || '',keywords:Array.isArray(raw.keywords)?raw.keywords.join(' '):raw.keywords || '',
+      url:parsed.origin===memberOrigin?'https://yestersites.com/members/'+raw.slug+'/':parsed.href,excerpt:raw.excerpt || raw.snippet || '',keywords:Array.isArray(raw.keywords)?raw.keywords.join(' '):raw.keywords || '',
       links:Array.isArray(raw.links)?raw.links:[]};
   }
   readQuery(); draw(); $('lookup').hidden=false;

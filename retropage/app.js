@@ -1417,7 +1417,7 @@
       clearTimeout(timer);
       const slug=field.value.trim().toLowerCase();
       if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)){notice.textContent='Use lowercase letters, numbers and hyphens.';return;}
-      const address='yestersites.com/members/'+slug+'/';notice.textContent=address;
+      const address=slug+'.yestersites.com';notice.textContent=address;
       timer=setTimeout(async()=>{
         try{
           const response=await fetch(service+'/api/address?slug='+encodeURIComponent(slug),{credentials:'omit'});

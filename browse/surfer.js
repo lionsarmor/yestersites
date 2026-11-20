@@ -23,7 +23,12 @@
   const current=()=>visits[index];
   function clean(raw){
     try {
-      const u=new URL(raw,location.origin);u.searchParams.delete('surfer');
+      const u=new URL(raw,location.origin);
+      const sub=/^([a-z0-9-]{1,40})\.yestersites\.com$/.exec(u.hostname);
+      if(sub && u.protocol==='https:' && !u.username && !u.password && !u.port && !['www','retropage','mail','api','admin'].includes(sub[1])){
+        return clean('/members/'+sub[1]+u.pathname+u.search+u.hash);
+      }
+      u.searchParams.delete('surfer');
       if(u.origin===location.origin && localRows.some(r=>u.pathname.startsWith('/'+r.slug+'/')))u.pathname='/members'+u.pathname;
       if(u.origin===location.origin && /^\/members\/[a-z0-9-]+\//.test(u.pathname) && !localRows.some(r=>u.pathname.startsWith('/members/'+r.slug+'/')))return new URL(u.pathname+u.search+u.hash,host).href;
       if(u.username || u.password || !['https:','http:'].includes(u.protocol))return null;
@@ -39,8 +44,13 @@
     $('mark').textContent=marked?'★ Saved':'☆ Bookmark';$('mark').setAttribute('aria-pressed',String(marked));
     $('stop').textContent=loading?'Stop':'Reload';
     $('sound').textContent=soundEnabled?'Mute':'Sound on';$('sound').setAttribute('aria-pressed',String(soundEnabled));
+    if(window.memberLinksActive && url){
+      const u=new URL(url),m=/^\/members\/([a-z0-9-]+)\/(.*)$/.exec(u.pathname);
+      if(m)$('address').value='https://'+m[1]+'.yestersites.com/'+m[2]+u.search+u.hash;
+    }
     history.replaceState(null,'',location.pathname+'?url='+encodeURIComponent(url));
   }
+  window.addEventListener('member-domains-ready',update);
   const radio=$('radio');
   function silence(){radio.pause();radio.removeAttribute('src');radio.load();}
   function play(){
