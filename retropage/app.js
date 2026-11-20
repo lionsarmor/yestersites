@@ -2014,25 +2014,29 @@
     options:()=>({width:bbsWidth,color:bbsColor}), setOptions:(width,color)=>{bbsWidth=width;bbsColor=color;prefs();},
     reset:ok=>dialog('Use the original terminal screen?', [{note:'Remove the custom BBS blocks for this page? Undo restores them.'}],ok,'Use original'),
   });
-  if(location.hash==='#account-edit' && parent!==window){
+  const openParams=new URLSearchParams(location.hash.slice(1));
+  const opening=openParams.has('open');
+  async function openPublishedProject(){
+    const key=openParams.get('open');
+    history.replaceState(null,'',location.pathname+location.search);
     const service='https://yestersites-webring.jamesmweeksjr.chatgpt.site';
-    const receive=event=>{
-      if(event.source!==parent || event.origin!==service || event.data?.type!=='retropage-open')return;
-      try{
-        load(event.data.project,'Opened your published project.');
-        window.removeEventListener('message',receive);
-        parent.postMessage({type:'retropage-opened'},service);
-        if(event.data.publish)publish();
-      }catch(error){status(error.message);}
-    };
-    window.addEventListener('message',receive);
-    parent.postMessage({type:'retropage-ready'},service);
+    dialog('Opening your saved project',[{note:'Loading pages, pictures and BBS screens…'}],null,'Close');
+    try{
+      const reply=await fetch(service+'/api/editor/open',{method:'POST',credentials:'omit',body:key,cache:'no-store'});
+      if(!reply.ok)throw Error('Open the site again from My Sites to get a fresh editor link.');
+      load(await reply.json(),'Opened your published project.');
+      if($('dialog').open)$('dialog').close();
+      if(openParams.get('publish')==='1')publish();
+    }catch(error){
+      dialog('Could not open this project',[{note:error.message},{url:service+'/account/',label:'Return to My Sites'}],null,'Close');
+    }
   }
   $('viewport').onscroll = drawRulers;
   new ResizeObserver(fit).observe($('viewport'));
   record(stickyError || 'Drag an object. Double-click text to edit.');
   if(requestedDrawer==='videos' && innerWidth<691) $('drawer').classList.add('open');
-  if(firstVisit && location.hash!=='#account-edit' && drawer==='Objects')RetroStudioDrawer.chooseStarter(load,true);
+  if(opening)openPublishedProject();
+  else if(firstVisit && drawer==='Objects')RetroStudioDrawer.chooseStarter(load,true);
 })();
 
 if ('serviceWorker' in navigator && ['https:', 'http:'].includes(location.protocol)) {
