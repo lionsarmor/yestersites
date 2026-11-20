@@ -1,0 +1,140 @@
+[
+  {
+    "name": "Mosaic icons",
+    "assets": [
+      {
+        "file": "mosaic/back.gif",
+        "label": "Back arrow"
+      },
+      {
+        "file": "mosaic/forward.gif",
+        "label": "Forward arrow"
+      },
+      {
+        "file": "mosaic/ball.red.gif",
+        "label": "Red bullet"
+      },
+      {
+        "file": "mosaic/ball.gray.gif",
+        "label": "Gray bullet"
+      },
+      {
+        "file": "mosaic/burst.gif",
+        "label": "Starburst"
+      },
+      {
+        "file": "mosaic/comp.blue.gif",
+        "label": "Blue computer"
+      },
+      {
+        "file": "mosaic/folder.gif",
+        "label": "Folder"
+      },
+      {
+        "file": "mosaic/folder.open.gif",
+        "label": "Open folder"
+      },
+      {
+        "file": "mosaic/diskimg.gif",
+        "label": "Floppy disk"
+      },
+      {
+        "file": "mosaic/hand.right.gif",
+        "label": "Pointing hand"
+      },
+      {
+        "file": "mosaic/hand.up.gif",
+        "label": "Hand pointing up"
+      },
+      {
+        "file": "mosaic/world1.gif",
+        "label": "Globe"
+      },
+      {
+        "file": "mosaic/quill.gif",
+        "label": "Quill pen"
+      },
+      {
+        "file": "mosaic/sound1.gif",
+        "label": "Audio file"
+      },
+      {
+        "file": "mosaic/movie.gif",
+        "label": "Movie reel"
+      },
+      {
+        "file": "mosaic/index.gif",
+        "label": "Search index"
+      },
+      {
+        "file": "mosaic/link.gif",
+        "label": "Link"
+      },
+      {
+        "file": "mosaic/transfer.gif",
+        "label": "File transfer"
+      },
+      {
+        "file": "mosaic/compressed.gif",
+        "label": "Compressed archive"
+      },
+      {
+        "file": "mosaic/text.gif",
+        "label": "Text document"
+      }
+    ]
+  },
+  {
+    "name": "Web animations",
+    "assets": [
+      {
+        "file": "animated/love-letter.gif",
+        "label": "Love letter",
+        "alt": "An envelope opens and a letter with a heart rises out.",
+        "stamp_width": 68
+      },
+      {
+        "file": "animated/hourglass.gif",
+        "label": "Turning hourglass",
+        "alt": "A small hourglass flips as the sand runs down.",
+        "stamp_width": 68
+      },
+      {
+        "file": "animated/roadwork-lights.gif",
+        "label": "Under construction",
+        "alt": "Yellow warning lamps blink on a striped roadwork barrier.",
+        "stamp_width": 68
+      },
+      {
+        "file": "animated/sparkles.gif",
+        "label": "Sparkling stars",
+        "alt": "A cluster of four-pointed stars sparkles.",
+        "stamp_width": 68
+      },
+      {
+        "file": "animated/glowing-crystals.gif",
+        "label": "Glowing crystals",
+        "alt": "Blue crystals glow above a pool of water.",
+        "stamp_width": 64
+      },
+      {
+        "file": "animated/jack-o-lantern.gif",
+        "label": "Jack-o’-lantern",
+        "alt": "A carved pumpkin glows from within.",
+        "stamp_width": 108
+      },
+      {
+        "file": "animated/forest-house.gif",
+        "label": "Forest house",
+        "alt": "A light glows on a house deep in a blue-green forest.",
+        "stamp_width": 120
+      },
+      {
+        "file": "animated/midnight-visitor.gif",
+        "label": "Midnight visitor",
+        "alt": "A beam of light descends toward a small orange animal at night.",
+        "stamp_width": 108
+      }
+    ]
+  }
+]

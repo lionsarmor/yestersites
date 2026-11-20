@@ -1,0 +1,230 @@
+{
+  "collection": "Mosaic / Apache directory icons",
+  "upstream": "https://github.com/apache/httpd",
+  "commit": "f1ac44b3066f4654dbdebdc73a922955faf6bf96",
+  "license": "Public domain as stated in docs/icons/README",
+  "credit": "Original icons by Kevin Hughes, with color tuning and additions by Andy Polyakov",
+  "license_source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/README",
+  "assets": [
+    {
+      "id": "mosaic-back",
+      "label": "Back arrow",
+      "file": "back.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 216,
+      "sha256": "0e9ced1019385b1101fdaa7c07d01d63aae771176a44d3df81d47b115b5128aa",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/back.gif"
+    },
+    {
+      "id": "mosaic-forward",
+      "label": "Forward arrow",
+      "file": "forward.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 219,
+      "sha256": "663d5408c32ac610f28ac172c086ac45edf5089153561887d85e5a5e67166463",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/forward.gif"
+    },
+    {
+      "id": "mosaic-ball-red",
+      "label": "Red bullet",
+      "file": "ball.red.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 205,
+      "sha256": "d9af893ef100e39803e09d4144877b3e1bae0045ae4a2e3dc89c2fa573bd9c9f",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/ball.red.gif"
+    },
+    {
+      "id": "mosaic-ball-gray",
+      "label": "Gray bullet",
+      "file": "ball.gray.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 233,
+      "sha256": "b7f57b778a73b8ef26ed7db4806bf722bdbdcbd5b421d40355dbb1c682a6ea75",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/ball.gray.gif"
+    },
+    {
+      "id": "mosaic-burst",
+      "label": "Starburst",
+      "file": "burst.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 235,
+      "sha256": "692994fa838beb0c0dbb1c9dba2ff1516e5cd3b603047c6972399cbbfc12a898",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/burst.gif"
+    },
+    {
+      "id": "mosaic-comp-blue",
+      "label": "Blue computer",
+      "file": "comp.blue.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 251,
+      "sha256": "ab9920647cb8259ac102f833af93aa720d38fcf159408f15007b6fbe171b2067",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/comp.blue.gif"
+    },
+    {
+      "id": "mosaic-folder",
+      "label": "Folder",
+      "file": "folder.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 225,
+      "sha256": "fbe5eca717cfbcb58891d431f9afaf30aa740d9fce007e820a599f22afa0dee2",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/folder.gif"
+    },
+    {
+      "id": "mosaic-folder-open",
+      "label": "Open folder",
+      "file": "folder.open.gif",
+      "width": 27,
+      "height": 22,
+      "frames": 1,
+      "bytes": 242,
+      "sha256": "9d6a2f20a8b72d861c0cce65bc520d01beb74ff4bb0c22d3b1aef8f43aff6988",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/folder.open.gif"
+    },
+    {
+      "id": "mosaic-diskimg",
+      "label": "Floppy disk",
+      "file": "diskimg.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 167,
+      "sha256": "1e6d694d750496da66b44ad12f40763ccf874c0b7f0104701f22bc0f5edd3235",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/diskimg.gif"
+    },
+    {
+      "id": "mosaic-hand-right",
+      "label": "Pointing hand",
+      "file": "hand.right.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 217,
+      "sha256": "8db8761bff66a355d6a2290de6bdb449e90f8e1114fe8789f7c4cb6c18040081",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/hand.right.gif"
+    },
+    {
+      "id": "mosaic-hand-up",
+      "label": "Hand pointing up",
+      "file": "hand.up.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 223,
+      "sha256": "3080bf8609701a8185676cf527bf2909749cfd599aed495fb570a71c80d45c3f",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/hand.up.gif"
+    },
+    {
+      "id": "mosaic-world1",
+      "label": "Globe",
+      "file": "world1.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 228,
+      "sha256": "015ac9c7ede6c8a23fec5ae2f649c5d7bfe75dfade7cfe0976166fe5d5e865d9",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/world1.gif"
+    },
+    {
+      "id": "mosaic-quill",
+      "label": "Quill pen",
+      "file": "quill.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 267,
+      "sha256": "9159f8cd359d02a018798af66969233482f77b86da6a66f5ee3fc2a203e2fc7e",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/quill.gif"
+    },
+    {
+      "id": "mosaic-sound1",
+      "label": "Audio file",
+      "file": "sound1.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 248,
+      "sha256": "099871a72d8579e956b1054b6ded8e68e5eaaa5603d4b0eb586b08f5c6ecf444",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/sound1.gif"
+    },
+    {
+      "id": "mosaic-movie",
+      "label": "Movie reel",
+      "file": "movie.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 243,
+      "sha256": "61d1241b39325af34b2f9eb20f12bde94670a657fc1808692d6d10ab4f3ff834",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/movie.gif"
+    },
+    {
+      "id": "mosaic-index",
+      "label": "Search index",
+      "file": "index.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 268,
+      "sha256": "73c2e1d7dcff33c932efc8520f12dd30e61836857f7de4c0993fe85f061b2131",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/index.gif"
+    },
+    {
+      "id": "mosaic-link",
+      "label": "Link",
+      "file": "link.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 249,
+      "sha256": "6bbe339bd936838d4c1e3721a6fe6d38f34562836b1deea5ba40f785298f922e",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/link.gif"
+    },
+    {
+      "id": "mosaic-transfer",
+      "label": "File transfer",
+      "file": "transfer.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 242,
+      "sha256": "97b4c3905310112a6b29c2d53ef10e63d4474afe600dff3594b48ac05c87a011",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/transfer.gif"
+    },
+    {
+      "id": "mosaic-compressed",
+      "label": "Compressed archive",
+      "file": "compressed.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 1038,
+      "sha256": "72028ff517a6e81f72a2184c7f5d191944db4890e5a6d7aab5ca1f5945b6d2ed",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/compressed.gif"
+    },
+    {
+      "id": "mosaic-text",
+      "label": "Text document",
+      "file": "text.gif",
+      "width": 20,
+      "height": 22,
+      "frames": 1,
+      "bytes": 229,
+      "sha256": "661d43fb30151a050da3b5cef49a2c7d0b01eeafdf1f4a001873406658b0f776",
+      "source": "https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/text.gif"
+    }
+  ]
+}

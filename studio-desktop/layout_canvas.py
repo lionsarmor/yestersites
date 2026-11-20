@@ -1,4 +1,4 @@
-"""Free-placement page canvas for the Retro Pages desktop editor.
+"""Free-placement page canvas for the Retro Page desktop editor.
 
 Object coordinates are CSS pixels measured from the page's top-left corner.
 Objects are shared with the document model. Their list order is the paint order.
@@ -12,14 +12,15 @@ from tkinter import font as tkfont
 from tkinter import ttk
 
 from PIL import Image, ImageOps, ImageTk
+from lettering import SIGNAL_FONT, item_lettering
 
 
-MAT = "#777e86"
-RULER = "#e9e6db"
-INK = "#343b41"
-SELECTION = "#164f85"
+MAT = "#c3bfb4"
+RULER = "#ece8dc"
+INK = "#312e2a"
+SELECTION = "#262421"
 HANDLE = 4
-MARGIN = 22
+MARGIN = 7
 GRID_STEP = 8
 
 
@@ -36,6 +37,7 @@ class DesignCanvas(ttk.Frame):
         self.on_change = on_change
         self.on_edit = on_edit
         self.items = []
+        self.hidden = set()
         self.page_width, self.page_height = 640, 480
         self.background = "#ffffff"
         self.selected = None
@@ -54,11 +56,11 @@ class DesignCanvas(ttk.Frame):
         self.rowconfigure(1, weight=1)
         tk.Label(
             self,
-            text="px",
+            text="",
             bg=RULER,
             fg=INK,
             bd=1,
-            relief="raised",
+            relief="flat",
             font=("TkDefaultFont", 8),
         ).grid(row=0, column=0, sticky="nsew")
         self.top = tk.Canvas(self, height=23, bg=RULER, highlightthickness=0)
@@ -229,13 +231,14 @@ class DesignCanvas(ttk.Frame):
 
         current_photos = {}
         for item in self.items:
-            self._draw_object(item, current_photos)
+            if item["id"] not in self.hidden:
+                self._draw_object(item, current_photos)
         self._photos = current_photos
         selected = self._find(self.selected)
-        if selected is not None:
+        if selected is not None and self.selected not in self.hidden:
             x1, y1, x2, y2 = self._screen_rect(selected)
-            cv.create_rectangle(x1, y1, x2, y2, outline="white", width=2)
-            cv.create_rectangle(x1, y1, x2, y2, outline=SELECTION, dash=(4, 2))
+            cv.create_rectangle(x1 - 1, y1 - 1, x2 + 1, y2 + 1, outline=SELECTION)
+            cv.create_rectangle(x1, y1, x2, y2, outline="white")
             for x, y in self._handles(selected).values():
                 cv.create_rectangle(
                     x - HANDLE,
@@ -319,6 +322,15 @@ class DesignCanvas(ttk.Frame):
             cv.create_rectangle(
                 x, y, x2, y2, fill=fill, outline=color if kind == "box" else ""
             )
+        if kind == "text" and item.get("font_family") == SIGNAL_FONT:
+            source = "data:image/gif;base64," + base64.b64encode(item_lettering(item)).decode("ascii")
+            w, h = max(1, round(x2 - x)), max(1, round(y2 - y))
+            key = (item["id"], source, w, h)
+            photo = self._photos.get(key) or self._get_photo(source, w, h)
+            if photo is not None:
+                current_photos[key] = photo
+                cv.create_image(x, y, image=photo, anchor="nw")
+                return
         if kind == "image":
             src = item.get("src") or ""
             if src:
@@ -431,7 +443,8 @@ class DesignCanvas(ttk.Frame):
     def _hit(self, x, y):
         for item in reversed(self.items):
             if (
-                item["x"] <= x <= item["x"] + item["w"]
+                item["id"] not in self.hidden
+                and item["x"] <= x <= item["x"] + item["w"]
                 and item["y"] <= y <= item["y"] + item["h"]
             ):
                 return item
@@ -439,7 +452,7 @@ class DesignCanvas(ttk.Frame):
 
     def _handle_at(self, event):
         selected = self._find(self.selected)
-        if selected is not None:
+        if selected is not None and self.selected not in self.hidden:
             x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
             for name, (px, py) in self._handles(selected).items():
                 if abs(x - px) <= HANDLE + 1 and abs(y - py) <= HANDLE + 1:

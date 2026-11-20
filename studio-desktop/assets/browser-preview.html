@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retro Page · Browser preview</title>
+<style>
+:root { color-scheme:light; font:14px Arial, Helvetica, sans-serif; color:#211f1d; background:#c3bfb4 }
+* { box-sizing:border-box }
+body { margin:0; display:flex; flex-direction:column; height:100vh; height:100dvh }
+header, nav, footer { flex:none; background:#e5e0d4; border:1px solid; border-color:#fffdf5 #837f77 #837f77 #fffdf5 }
+header { display:flex; align-items:center; flex-wrap:wrap; gap:8px 15px; padding:7px 14px }
+header img { height:24px; width:auto }
+h1 { font-size:17px; margin:0; border-left:2px groove #fffdf5; padding-left:14px }
+#site-name { margin-left:auto; font-weight:bold; overflow-wrap:anywhere }
+nav { display:flex; flex-wrap:wrap; align-items:center; gap:7px 15px; padding:7px 12px }
+nav label { display:flex; align-items:center; gap:6px; max-width:100% }
+select, nav a, #session button { font:inherit; color:inherit; padding:4px 6px; border:1px solid #837f77; border-radius:0 }
+select { background:#fffdf5; max-width:100% }
+#page { max-width:min(230px,61vw) }
+nav a, #session button { background:#e5e0d4; border:2px outset #e5e0d4; text-decoration:none; white-space:nowrap }
+nav a:active, #session button:active { border-style:inset }
+#size-label { white-space:nowrap }
+#stage { flex:1; min-height:0; overflow:auto; padding:12px; background:#c3bfb4 }
+#surround { position:relative; margin:0 auto; overflow:hidden; box-shadow:0 0 0 1px #6c6862, 1px 1px 0 1px #fffdf5 }
+iframe { display:block; border:0; background:white; transform-origin:top left }
+#session { width:calc(var(--screen-width) + 2em + 6px); max-width:100%; margin:0 auto; padding:1em; background:#0a100a; color:#69ed45; border:3px inset #c3bfb4;
+           font:16px/1.4 "Courier New", monospace; overflow:auto }
+#screen { width:var(--screen-width); margin:0; font:inherit; white-space:pre }
+#session form { display:flex; flex-wrap:wrap; align-items:center; gap:.5em; margin-top:.7em }
+#command { width:5ch; color:inherit; background:inherit; font:inherit; border:1px solid currentColor }
+#session button { color:#211f1d; font-size:14px }
+#message { display:block; margin-top:.4em }
+#message:empty { display:none }
+footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 16px; padding:5px 12px; font-size:13px }
+[hidden] { display:none!important }
+:focus-visible { outline:2px solid #811b2c; outline-offset:2px }
+@media(max-width:540px) { header { padding:5px 9px } header img { height:20px } h1 { font-size:15px } nav { gap:6px 10px } }
+</style>
+</head>
+<body>
+<header><img src="retro-page-logo.png" alt="Retro Page"><h1>Browser preview</h1><span id="site-name"></span></header>
+<nav aria-label="Preview controls">
+<label>Display <select id="mode">
+<option value="modern">Modern desktop</option>
+<option value="phone">Phone · 390 × 844</option>
+<option value="authored">Authored canvas size</option>
+<option value="classic640">Classic · 640 × 480</option>
+<option value="classic800">Classic · 800 × 600</option>
+<option value="text">Text-only HTML</option>
+<option value="bbs">BBS terminal</option>
+</select></label>
+<label>Start page <select id="page"></select></label>
+<label id="size-label">Zoom <select id="scale"><option value="fit">Fit to window</option><option value="actual">100%</option></select></label>
+<label id="columns-label" hidden>Columns <select id="columns"></select></label>
+<label id="phosphor-label" hidden>Phosphor <select id="phosphor"></select></label>
+<a id="direct" href="@@ENTRY@@" target="_blank" rel="noopener">Open start page ↗</a>
+</nav>
+<main id="stage">
+<noscript><p><a href="@@ENTRY@@">Open the exported page</a></p></noscript>
+<div id="surround"><iframe id="viewport" title="Exported page"></iframe></div>
+<section id="session" hidden aria-label="Interactive local BBS preview">
+<pre id="screen"></pre>
+<form id="terminal-form"><label for="command">Select &gt;</label><input id="command" autocomplete="off" spellcheck="false" maxlength="6"><button>Enter</button>
+<button type="button" id="bbs-back">Back</button><button type="button" id="bbs-help">Help</button></form>
+<output id="message" aria-live="polite"></output>
+</section>
+</main>
+<footer><span id="hint"></span><span id="dimensions"></span></footer>
+<script type="application/json" id="project">@@PROJECT@@</script>
+<script>
+"use strict";
+const project = JSON.parse(document.getElementById("project").textContent);
+const pages = project.pages;
+const byId = id => document.getElementById(id);
+const mode = byId("mode"), page = byId("page"), scale = byId("scale");
+const stage = byId("stage"), surround = byId("surround"), viewport = byId("viewport");
+const session = byId("session"), direct = byId("direct"), dimensions = byId("dimensions");
+const columns = byId("columns"), phosphor = byId("phosphor");
+const classicHint = "Classic HTML edition rendered by your current browser.";
+const profiles = {
+    modern: {edition:"modern", hint:"Authored layout in the available desktop viewport."},
+    phone: {edition:"phone", size:[390, 844], hint:"Phone edition in a mobile-sized viewport."},
+    authored: {edition:"modern", hint:"Modern edition at the page’s authored dimensions."},
+    classic640: {edition:"classic", size:[640, 480], hint:classicHint},
+    classic800: {edition:"classic", size:[800, 600], hint:classicHint},
+    text: {edition:"text", hint:"Text-only HTML with ordinary browser links."},
+    bbs: {hint:"Local terminal session. Enter a link number, H for Home, B for Back, or ? for Help."}
+};
+let terminalPage = project.active;
+let showingHelp = false;
+const historyStack = [];
+for (const [key, info] of Object.entries(pages)) {
+    page.add(new Option(info.title, key));
+}
+byId("site-name").textContent = project.site;
+document.title = project.site + " · Retro Page preview";
+mode.value = project.mode;
+page.value = project.active;
+for (const width of project.terminal.widths) columns.add(new Option(width, width));
+for (const color of Object.keys(project.terminal.colors)) phosphor.add(new Option(color, color));
+columns.value = project.terminal.columns;
+phosphor.value = project.terminal.color;
+
+function sizeViewport() {
+    if (mode.value === "bbs") {
+        dimensions.textContent = columns.value + " text columns";
+        return;
+    }
+    const profile = profiles[mode.value];
+    const padding = parseFloat(getComputedStyle(stage).paddingLeft) * 2;
+    const availableWidth = Math.max(1, stage.clientWidth - padding);
+    const availableHeight = Math.max(1, stage.clientHeight - padding);
+    const size = mode.value === "authored" ? [pages[page.value].width, pages[page.value].height] : profile.size;
+    const [width, height] = size || [availableWidth, availableHeight];
+    const ratio = size && scale.value === "fit" ? Math.min(1, availableWidth / width, availableHeight / height) : 1;
+    viewport.style.width = width + "px";
+    viewport.style.height = height + "px";
+    viewport.style.transform = "scale(" + ratio + ")";
+    surround.style.width = Math.ceil(width * ratio) + "px";
+    surround.style.height = Math.ceil(height * ratio) + "px";
+    dimensions.textContent = width + " × " + height + " CSS px" + (ratio < 1 ? " · " + Math.round(ratio * 100) + "%" : "");
+}
+
+function renderTerminal() {
+    session.style.setProperty("--screen-width", columns.value + "ch");
+    session.style.color = project.terminal.colors[phosphor.value];
+    const screen = showingHelp ? project.terminal.help : pages[terminalPage].terminal.screens[columns.value];
+    byId("screen").textContent = screen.join("\n");
+    byId("message").textContent = "";
+    byId("bbs-back").disabled = !showingHelp && !historyStack.length;
+    session.scrollLeft = 0;
+    stage.scrollTo(0, 0);
+    sizeViewport();
+}
+
+function visitTerminal(key) {
+    if (key !== terminalPage) historyStack.push(terminalPage);
+    terminalPage = key;
+    showingHelp = false;
+    renderTerminal();
+}
+
+function backTerminal() {
+    if (showingHelp) showingHelp = false;
+    else if (historyStack.length) terminalPage = historyStack.pop();
+    else {
+        byId("message").textContent = "At the start of this visit.";
+        return;
+    }
+    renderTerminal();
+}
+
+function helpTerminal() {
+    showingHelp = true;
+    renderTerminal();
+}
+
+function openDisplay() {
+    const profile = profiles[mode.value];
+    const terminal = mode.value === "bbs";
+    session.hidden = !terminal;
+    surround.hidden = terminal;
+    direct.hidden = terminal;
+    byId("columns-label").hidden = !terminal;
+    byId("phosphor-label").hidden = !terminal;
+    byId("size-label").hidden = terminal || (!profile.size && mode.value !== "authored");
+    byId("hint").textContent = profile.hint;
+    stage.scrollTo(0, 0);
+    if (terminal) {
+        terminalPage = page.value;
+        showingHelp = false;
+        historyStack.length = 0;
+        renderTerminal();
+    } else {
+        const path = pages[page.value].editions[profile.edition];
+        direct.href = path;
+        viewport.src = path;
+        viewport.title = pages[page.value].title + " · " + mode.selectedOptions[0].text;
+    }
+    sizeViewport();
+}
+
+byId("terminal-form").addEventListener("submit", event => {
+    event.preventDefault();
+    const input = byId("command");
+    const command = input.value.trim().toLowerCase();
+    input.value = "";
+    const links = pages[terminalPage].terminal.links;
+    if (command === "h" || command === "home") {
+        visitTerminal("home");
+    } else if (command === "b" || command === "back") {
+        backTerminal();
+    } else if (command === "?" || command === "help") {
+        helpTerminal();
+    } else if (/^[1-9][0-9]*$/.test(command) && Number(command) <= links.length) {
+        visitTerminal(links[Number(command) - 1]);
+    } else {
+        byId("message").textContent = "Enter a listed number or ? for Help.";
+    }
+    input.focus();
+});
+mode.addEventListener("change", openDisplay);
+page.addEventListener("change", openDisplay);
+scale.addEventListener("change", sizeViewport);
+columns.addEventListener("change", renderTerminal);
+phosphor.addEventListener("change", renderTerminal);
+byId("bbs-back").addEventListener("click", backTerminal);
+byId("bbs-help").addEventListener("click", helpTerminal);
+new ResizeObserver(sizeViewport).observe(stage);
+openDisplay();
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ded9cc" />
+    <meta
+      name="description"
+      content="Build a pixel-perfect old-school homepage with the Retro Page editor."
+    />
+    <title>Retro Page · Site editor</title>
+    <link rel="icon" href="./assets/paper-pencil.png" />
+    <link rel="stylesheet" href="./app.css" />
+    <script defer src="./presets.js"></script>
+    <script defer src="./project.js"></script>
+    <script defer src="./zip.js"></script>
+    <script defer src="./exports.js"></script>
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="titlebar">
+        <img src="./assets/paper-pencil.png" width="21" height="21" alt="" /><strong id="window-title"
+          >Retro Page — Late Night Signal.yst</strong
+        ><a href="https://yestersites.com/desktop/" class="download-app">Desktop edition</a>
+      </div>
+      <nav id="menus" class="menubar" aria-label="Editor menus"></nav>
+      <div class="toolbar" id="toolbar" aria-label="Editing tools">
+        <div class="toolgroup">
+          <button data-action="save" title="Save project (Ctrl+S)">
+            <i class="toolicon" style="--i: 2"></i>Save
+          </button>
+        </div>
+        <div class="toolgroup">
+          <button data-action="undo" title="Undo (Ctrl+Z)">
+            <i class="toolicon" style="--i: 3"></i>Undo
+          </button>
+        </div>
+        <div class="toolgroup">
+          <button data-action="add-text"><i class="toolicon" style="--i: 4"></i>Text</button
+          ><button data-action="add-image"><i class="toolicon" style="--i: 5"></i>Image</button
+          ><button data-action="add-link"><i class="toolicon" style="--i: 6"></i>Link</button>
+        </div>
+        <div class="toolgroup">
+          <button data-action="preview"><i class="toolicon" style="--i: 7"></i>Preview</button>
+        </div>
+        <button data-action="publish" class="publish">
+          <i class="toolicon" style="--i: 8"></i>Publish
+        </button>
+        <img
+          class="wordmark"
+          src="./assets/retro-page-logo.png"
+          width="520"
+          height="99"
+          alt="Retro Page"
+        />
+      </div>
+    </header>
+    <div class="mobile-panels">
+      <button data-action="show-drawer">Pages &amp; objects</button
+      ><button data-action="show-inspector">Inspector</button>
+    </div>
+    <main id="workspace">
+      <aside class="drawer panel" id="drawer">
+        <div class="panel-head">
+          <h2 id="drawer-title">Pages</h2>
+          <button class="square" data-action="add-page" aria-label="Add page" title="Add page">+</button>
+        </div>
+        <div id="drawer-content" class="drawer-content"></div>
+        <div class="tabs" aria-label="Tool drawers">
+          <button class="active" data-drawer="Pages">Pages</button
+          ><button data-drawer="Objects">Objects</button><button data-drawer="GIFs">GIFs</button>
+        </div>
+      </aside>
+      <section class="stage" aria-label="Page design canvas" id="stage">
+        <div class="ruler-corner"></div>
+        <div class="top-ruler ruler"></div>
+        <div class="left-ruler ruler"></div>
+        <div
+          id="viewport"
+          tabindex="0"
+          aria-label="Design canvas. Select an object and use arrow keys to move it."
+        >
+          <div id="paper-size"><div id="paper"></div></div>
+        </div>
+      </section>
+      <aside class="inspector" id="inspector">
+        <section class="panel layers-panel">
+          <div class="panel-head"><h2>Layers</h2></div>
+          <div id="layers" aria-label="Page layers"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h2 id="properties-title">Properties</h2></div>
+          <form id="properties" class="properties">
+            <div class="prop-row">
+              <label for="prop-x">Position (X, Y)</label
+              ><input id="prop-x" type="number" min="0" name="x" aria-label="X position" /><input
+                id="prop-y"
+                type="number"
+                min="0"
+                name="y"
+                aria-label="Y position"
+              />
+            </div>
+            <div class="prop-row">
+              <label for="prop-w">Size (W, H)</label
+              ><input id="prop-w" type="number" min="1" name="w" aria-label="Width" /><input
+                id="prop-h"
+                type="number"
+                min="1"
+                name="h"
+                aria-label="Height"
+              />
+            </div>
+            <label for="prop-text" id="prop-caption">Text</label
+            ><input id="prop-text" name="text" maxlength="8000" />
+            <div class="prop-buttons">
+              <button type="submit">Apply</button
+              ><button type="button" data-action="properties">Edit object…</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel bbs-panel">
+          <div class="panel-head">
+            <h2>BBS Preview</h2>
+            <div class="panel-controls">
+              <select id="bbs-width" aria-label="Terminal columns">
+                <option value="32">32 col</option>
+                <option value="40">40 col</option>
+                <option value="80">80 col</option></select
+              ><button
+                class="square"
+                data-action="bbs-options"
+                title="Terminal settings"
+                aria-label="Terminal settings"
+              >
+                …
+              </button>
+            </div>
+          </div>
+          <div class="terminal" id="terminal">
+            <pre id="bbs-lines" tabindex="0"></pre>
+            <form id="bbs-form">
+              <label for="bbs-input">Select &gt;</label
+              ><input
+                id="bbs-input"
+                maxlength="3"
+                autocomplete="off"
+                aria-label="Link number, H for Home, B for back or ? for help"
+              /><button title="Run command" aria-label="Run command">↵</button>
+            </form>
+          </div>
+        </section>
+      </aside>
+    </main>
+    <footer>
+      <strong id="page-status">Home</strong><span id="size-status">640 × 480</span
+      ><button id="zoom-status" data-action="zoom" title="Zoom">100%</button
+      ><span id="status" role="status">Drag an object. Double-click text to edit.</span
+      ><a href="https://roddy.world/" target="_blank" rel="noopener"
+        ><img src="./assets/roddy-wordmark.png" alt="RODDY" width="76"
+      /></a>
+    </footer>
+    <dialog id="dialog">
+      <form id="dialog-form">
+        <div class="panel-head">
+          <h2 id="dialog-title"></h2>
+          <button type="button" class="square" data-action="dialog-close" aria-label="Close">×</button>
+        </div>
+        <div id="dialog-fields"></div>
+        <div class="dialog-buttons">
+          <button type="button" data-action="dialog-close">Cancel</button
+          ><button type="submit" id="dialog-submit">OK</button>
+        </div>
+      </form>
+    </dialog>
+    <input id="open-file" type="file" accept=".yst,application/json" hidden /><input
+      id="image-file"
+      type="file"
+      accept="image/gif,image/png,image/jpeg"
+      hidden
+    />
+    <noscript
+      >The Retro Page editor needs JavaScript.
+      <a href="https://yestersites.com/desktop/">Get the desktop edition</a>.</noscript
+    >
+  </body>
+</html>

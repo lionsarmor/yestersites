@@ -1,4 +1,4 @@
-# Retro Pages 0.1.1
+# Retro Page 0.3.0
 
 Arrange text, links, pictures, boxes and rules on a desktop canvas. Your local `.yst` file holds the editable page and its pictures. You can build, preview and export a page offline.
 
@@ -7,10 +7,10 @@ Arrange text, links, pictures, boxes and rules on a desktop canvas. Your local `
 From the folder containing the download, run the following command. Apt also installs Tk and Pillow.
 
 ```sh
-sudo apt install ./Retro-Pages-0.1.1-all.deb
+sudo apt install ./Retro-Page-0.3.0-all.deb
 ```
 
-Open **Retro Pages** from the applications menu or run `retro-pages`. Double-click a `.yst` project to reopen it. Projects saved by YesterSites Studio 0.1.0 also open in Retro Pages.
+Open **Retro Page** from the applications menu or run `retro-page`. Double-click a `.yst` project to reopen it. Projects saved by YesterSites Studio 0.1.0 also open in Retro Page.
 
 ## Run the source edition
 
@@ -34,10 +34,12 @@ Pass a project filename after `app.py` to open it directly.
 
 ## Make a homepage
 
-1. Try the sample newspaper or choose **File → New blank page**.
-2. Drag an object or stamp from the drawer onto the page. Double-click text to write. Drag a selected object's handles to resize it. **Object → Properties** edits its exact size and position.
-3. Open **Page settings** to choose a page title, background and display profile. Save your editable copy with **File → Save**.
-4. Use **Preview** to open a local browser view. **File → Export website ZIP** creates an archive containing `index.html`, `text.html` and the page's image files. Extract the ZIP before opening it. The text edition follows reading order and works without CSS or JavaScript.
+1. Try the Late Night Signal sample or choose **File → New blank page**.
+2. Open **GIFs** at the bottom of the Pages drawer, choose Retro Page, Mosaic icons or Web animations, and drag a stamp or choose Text, Image or Link in the toolbar and click the drawing board. Double-click text to write. Drag a selected object's handles to resize it. The inspector edits exact sizes and positions. **Edit object** opens the link and typography settings.
+3. Open **Page → Page settings** to choose a page title, background and display profile. Save your editable copy with **File → Save**.
+4. Press **F5** or **Preview** to open a local browser workbench. Choose the desktop layout, phone, authored canvas size, Classic at 640×480 or 800×600, text HTML, or an interactive BBS screen. The ordinary exported `index.html` switches to a readable phone layout at 600 CSS pixels and below. Choose **File → Export website ZIP** and extract the archive before browsing it. Classic and text editions work without CSS or JavaScript.
 5. To put the page on YesterSites, set a site address in **Page settings**, choose whether to list it in the directory and click **Publish**. Your browser opens the publishing desk for sign-in and review. If it asks for a project, select your saved `.yst` file. Confirm publication in the browser.
 
-A page supports 64 objects, including up to three GIF, JPEG or PNG pictures of 96 KiB each. The editor preserves animated GIFs for the published page. Use the Text / BBS profile for a text-first web edition.
+Use the Pages drawer to switch pages. The **+** in its header adds another page. Choose an internal destination in the Link object's properties. Links survive page renames and work in both exported editions. **View → HTML Source** shows the generated markup, and BBS Preview accepts a link number or **H** for Home.
+
+Each page supports up to 64 objects and imports GIF, JPEG, and PNG up to 96 KiB per image. Browser preview and export preserve embedded GIF animation. The current YesterSites Publish bridge accepts a single page with up to three pictures. Multi-page sites can be previewed and exported as a complete ZIP. The terminal preview runs inside the editor.

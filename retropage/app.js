@@ -1,0 +1,1492 @@
+/* Retro Page's free-placement desktop, backed by the portable .yst document. */
+(() => {
+  'use strict';
+  const M = window.RetroModel,
+    presets = window.retroPresets,
+    $ = (id) => document.getElementById(id);
+  const storageKey = 'roddy.retro-page.project.v1';
+  const glyphIndex = { page: 0, eye: 1, image: 2, text: 3, closed: 4, link: 5, box: 6, rule: 7 };
+  const phosphors = { Green: '#76f04c', Amber: '#ffc05b', White: '#f3f1e7' };
+  const esc = (s) =>
+    String(s).replace(
+      /[&<>"']/g,
+      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+    );
+  const node = (tag, cls, text) => {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (text !== undefined) el.textContent = text;
+    return el;
+  };
+  function button(text, action, cls = '') {
+    const b = node('button', cls, text);
+    b.type = 'button';
+    b.dataset.action = action;
+    return b;
+  }
+  function glyph(kind) {
+    const i = node('i', 'glyph');
+    i.style.setProperty('--g', glyphIndex[kind]);
+    i.setAttribute('aria-hidden', 'true');
+    return i;
+  }
+  function downloadBlob(blob, name) {
+    const url = URL.createObjectURL(blob),
+      a = node('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+  function status(s) {
+    $('status').textContent = s;
+  }
+  const cleanName = (s) =>
+    (s || 'Homepage')
+      .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-')
+      .trim()
+      .slice(0, 80) || 'Homepage';
+  let doc = M.copy(presets.sample),
+    active = 'home',
+    selected = null,
+    drawer = 'Pages',
+    armed = null,
+    gesture = null,
+    editing = null,
+    clip = null;
+  let scale = 1,
+    zoom = 'fit',
+    grid = false,
+    snap = false,
+    filter = '',
+    hist = [],
+    at = 0,
+    clipboardOffset = 12;
+  let hidden = new Set(),
+    pageBbs = 'home',
+    bbsBack = [],
+    bbsHelp = false,
+    bbsWidth = 32,
+    bbsColor = 'Green',
+    stickyError = '';
+  try {
+    const recovery = localStorage.getItem(storageKey);
+    if (recovery) {
+      const state = JSON.parse(recovery);
+      doc = M.normalize(state.doc);
+      if (M.page(doc, state.active)) active = state.active;
+    }
+    const prefs = JSON.parse(localStorage.getItem(storageKey + '.terminal') || 'null');
+    if (prefs) {
+      bbsWidth = [32, 40, 80].includes(prefs.columns) ? prefs.columns : 32;
+      bbsColor = Object.hasOwn(phosphors, prefs.color) ? prefs.color : 'Green';
+    }
+  } catch {
+    stickyError = 'The previous browser draft could not be restored. The sample is open.';
+  }
+  selected = M.page(doc, active).items.at(-1)?.id || null;
+  pageBbs = active;
+  const page = () => M.page(doc, active),
+    object = () => page().items.find((o) => o.id === selected);
+  const layerKey = (id) => active + ':' + id;
+  function saveDraft() {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ doc, active }));
+    } catch {
+      stickyError = 'Browser storage is full or unavailable. Use Save to keep this project.';
+    }
+  }
+  function record(message) {
+    const data = JSON.stringify(doc);
+    if (!hist[at] || data !== hist[at].data) {
+      hist = hist.slice(0, at + 1);
+      hist.push({ data, active, selected });
+      while (
+        hist.length > 2 &&
+        (hist.length > 50 || hist.reduce((n, s) => n + s.data.length, 0) > 20 * 1024 * 1024)
+      )
+        hist.shift();
+      at = hist.length - 1;
+    }
+    saveDraft();
+    if (message) status(stickyError || message);
+    render();
+  }
+  function undo(delta) {
+    const pos = at + delta;
+    if (pos < 0 || pos >= hist.length) return;
+    at = pos;
+    const snap = hist[at];
+    doc = JSON.parse(snap.data);
+    active = M.page(doc, snap.active) ? snap.active : 'home';
+    selected = snap.selected;
+    pageBbs = active;
+    bbsBack = [];
+    bbsHelp = false;
+    record(delta < 0 ? 'Undid the last change.' : 'Redid the last change.');
+  }
+  function load(docNext, msg) {
+    doc = M.normalize(docNext);
+    active = 'home';
+    selected = doc.items.at(-1)?.id || null;
+    pageBbs = 'home';
+    bbsBack = [];
+    bbsHelp = false;
+    hidden.clear();
+    armed = null;
+    hist = [];
+    at = 0;
+    setDrawer('Pages');
+    record(msg);
+  }
+  const menus = {
+    File: [
+      ['New blank project', 'new', 'Ctrl+N'],
+      ['Open project…', 'open', 'Ctrl+O'],
+      ['Open sample', 'sample'],
+      null,
+      ['Save project…', 'save', 'Ctrl+S'],
+      ['Export website ZIP…', 'export'],
+      ['Publish to YesterSites…', 'publish'],
+    ],
+    Edit: [
+      ['Undo', 'undo', 'Ctrl+Z'],
+      ['Redo', 'redo', 'Ctrl+Y'],
+      null,
+      ['Copy object', 'copy', 'Ctrl+C'],
+      ['Paste object', 'paste', 'Ctrl+V'],
+      ['Duplicate object', 'duplicate', 'Ctrl+D'],
+      ['Delete object', 'delete', 'Del'],
+    ],
+    Object: [
+      ['Text', 'add-text'],
+      ['Image…', 'add-image'],
+      ['Link', 'add-link'],
+      ['Box', 'add-box'],
+      ['Horizontal rule', 'add-rule'],
+      null,
+      ['GIF stamps', 'stamps'],
+      ['Properties…', 'properties'],
+      ['Bring to front', 'front'],
+      ['Send to back', 'back'],
+    ],
+    Page: [
+      ['Add page…', 'add-page'],
+      ['Rename page…', 'rename-page'],
+      ['Duplicate page…', 'duplicate-page'],
+      ['Delete page…', 'delete-page'],
+      null,
+      ['Page settings…', 'settings'],
+    ],
+    View: [
+      ['View in browser', 'preview', 'F5'],
+      ['HTML source…', 'source'],
+      ['BBS preview', 'preview-bbs'],
+      null,
+      ['Zoom…', 'zoom'],
+      ['Show grid', 'grid'],
+      ['Snap to 8 px', 'snap'],
+    ],
+    Help: [
+      ['Using Retro Page', 'help'],
+      ['Artwork credits', 'credits'],
+      ['About Retro Page', 'about'],
+    ],
+  };
+  for (const [name, items] of Object.entries(menus)) {
+    const d = node('details'),
+      s = node('summary', null, name),
+      box = node('div', 'menu');
+    d.append(s, box);
+    for (const v of items) {
+      if (!v) {
+        box.append(node('hr'));
+        continue;
+      }
+      const b = button(v[0], v[1]);
+      if (v[2]) b.append(node('kbd', null, v[2]));
+      box.append(b);
+    }
+    d.addEventListener('toggle', () => {
+      if (d.open)
+        for (const other of $('menus').querySelectorAll('details')) if (other !== d) other.open = false;
+    });
+    $('menus').append(d);
+  }
+  function closeMenus() {
+    for (const d of $('menus').querySelectorAll('details')) d.open = false;
+  }
+  function closePanels() {
+    $('drawer').classList.remove('open');
+    $('inspector').classList.remove('open');
+  }
+  let dialogAccept = null;
+  function dialog(title, fields, accept, submit = 'OK') {
+    if ($('dialog').open) $('dialog').close();
+    const root = $('dialog-fields');
+    root.replaceChildren();
+    $('dialog-title').textContent = title;
+    dialogAccept = accept;
+    for (const f of fields) {
+      if (f.note) {
+        root.append(node('p', null, f.note));
+        continue;
+      }
+      if (f.url) {
+        const a = node('a', null, f.label);
+        a.href = f.url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        root.append(a);
+        continue;
+      }
+      const label = node('label');
+      let c;
+      if (f.type === 'select') {
+        c = node('select');
+        for (const v of f.options) {
+          const [value, t] = Array.isArray(v) ? v : [v, v];
+          c.add(new Option(t, value));
+        }
+      } else if (f.type === 'textarea') c = node('textarea');
+      else {
+        c = node('input');
+        c.type = f.type || 'text';
+      }
+      c.name = f.name;
+      c.setAttribute('aria-label', f.label);
+      if (f.type === 'checkbox') {
+        c.checked = !!f.value;
+        label.className = 'check';
+        label.append(c, document.createTextNode(f.label));
+      } else {
+        if (f.value !== undefined) c.value = f.value;
+        label.append(document.createTextNode(f.label), c);
+      }
+      for (const k of ['min', 'max', 'maxLength', 'required', 'readOnly'])
+        if (f[k] !== undefined) c[k] = f[k];
+      root.append(label);
+    }
+    $('dialog-submit').textContent = submit;
+    $('dialog').showModal();
+    root.querySelector('input,textarea,select')?.focus();
+  }
+  $('dialog-form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const values = {};
+    for (const c of $('dialog-fields').querySelectorAll('[name]'))
+      values[c.name] = c.type === 'checkbox' ? c.checked : c.value;
+    try {
+      const cb = dialogAccept;
+      $('dialog').close();
+      if (cb) await cb(values);
+    } catch (e) {
+      status(e.message);
+      alert(e.message);
+    }
+  });
+  function setDrawer(value) {
+    drawer = value;
+    renderDrawer();
+  }
+  function renderDrawer() {
+    if (!$('drawer-content')) return;
+    $('drawer-title').textContent = drawer === 'GIFs' ? 'GIF Stamps' : drawer;
+    $('drawer').querySelector('[data-action="add-page"]').hidden = drawer !== 'Pages';
+    for (const b of document.querySelectorAll('[data-drawer]'))
+      b.classList.toggle('active', b.dataset.drawer === drawer);
+    const root = $('drawer-content');
+    root.replaceChildren();
+    if (drawer === 'Pages') {
+      for (const [id, p] of M.pages(doc)) {
+        const b = node('button', 'drawer-row' + (id === active ? ' selected-row' : ''));
+        b.append(glyph('page'), node('span', null, id === 'home' ? 'Home' : p.title || 'Untitled'));
+        b.dataset.page = id;
+        b.title = p.title;
+        root.append(b);
+      }
+    } else if (drawer === 'Objects') {
+      for (const [kind, name] of Object.entries(M.kinds)) {
+        const b = button('', 'add-' + kind, 'object-choice');
+        b.append(glyph(kind), document.createTextNode(name));
+        b.draggable = true;
+        b.dataset.dragType = kind;
+        root.append(b);
+      }
+    } else {
+      const s = node('input', 'stamp-search');
+      s.type = 'search';
+      s.placeholder = 'Find a stamp';
+      s.setAttribute('aria-label', 'Find a stamp');
+      s.value = filter;
+      root.append(s);
+      const content = node('div');
+      root.append(content);
+      function fill() {
+        content.replaceChildren();
+        const groups = Map.groupBy
+          ? Map.groupBy(
+              presets.stamps.filter((x) => x.label.toLowerCase().includes(filter.toLowerCase())),
+              (x) => x.group,
+            )
+          : new Map();
+        if (!Map.groupBy)
+          for (const x of presets.stamps.filter((x) =>
+            x.label.toLowerCase().includes(filter.toLowerCase()),
+          )) {
+            if (!groups.has(x.group)) groups.set(x.group, []);
+            groups.get(x.group).push(x);
+          }
+        for (const [name, items] of groups) {
+          content.append(node('h3', 'category', name));
+          const g = node('div', 'stamp-grid');
+          content.append(g);
+          for (const st of items) {
+            const b = node('button', 'stamp'),
+              im = node('img');
+            b.draggable = true;
+            b.dataset.stamp = presets.stamps.indexOf(st);
+            b.title = st.alt || st.label;
+            im.src = st.src;
+            im.alt = '';
+            im.loading = 'lazy';
+            im.draggable = false;
+            b.append(im, node('span', null, st.label));
+            g.append(b);
+          }
+        }
+        if (!groups.size) content.append(node('p', null, 'No matching stamps.'));
+        const more = button('Artwork credits', 'credits', 'stamp-credits');
+        content.append(more);
+      }
+      s.oninput = () => {
+        filter = s.value;
+        fill();
+      };
+      fill();
+    }
+  }
+  function select(id) {
+    selected = id;
+    drawSelection();
+    renderLayers();
+    renderProperties();
+  }
+  function switchPage(id) {
+    if (!M.page(doc, id)) return;
+    active = id;
+    selected = null;
+    armed = null;
+    pageBbs = id;
+    bbsBack = [];
+    bbsHelp = false;
+    saveDraft();
+    render();
+    closePanels();
+  }
+  function renderLayers() {
+    const root = $('layers'),
+      top = root.scrollTop;
+    root.replaceChildren();
+    for (const o of [...page().items].reverse()) {
+      const row = node('div', 'layer-row' + (o.id === selected ? ' selected-row' : '')),
+        eye = node('button', 'eye'),
+        name = node('button', 'layer-name');
+      const off = hidden.has(layerKey(o.id));
+      eye.dataset.eye = o.id;
+      eye.setAttribute('aria-label', (off ? 'Show ' : 'Hide ') + (o.text || o.kind));
+      eye.title = off ? 'Show on canvas' : 'Hide on canvas';
+      eye.append(glyph(off ? 'closed' : 'eye'));
+      name.dataset.layer = o.id;
+      const src = o.kind === 'image' ? o.src : '';
+      if (src) {
+        const thumb = node('img');
+        thumb.src = src;
+        thumb.alt = '';
+        name.append(thumb);
+      } else name.append(glyph(o.kind));
+      const text = o.text.trim().replace(/\s+/g, ' ');
+      name.append(node('span', null, M.kinds[o.kind] + (text ? ': ' + text : '')));
+      row.append(eye, name);
+      root.append(row);
+    }
+    root.scrollTop = top;
+  }
+  function renderProperties() {
+    const o = object();
+    $('properties-title').textContent = o ? M.kinds[o.kind] + ' Properties' : 'Properties';
+    for (const k of ['x', 'y', 'w', 'h', 'text']) {
+      const c = $('prop-' + k);
+      c.value = o ? o[k] : '';
+      c.disabled = !o || (k === 'text' && o.kind === 'rule');
+    }
+    $('prop-caption').textContent = o?.kind === 'image' ? 'Alt text' : 'Text';
+    for (const c of $('properties').querySelectorAll('button')) c.disabled = !o;
+  }
+  function renderBbs() {
+    if (!M.page(doc, pageBbs)) pageBbs = active;
+    $('bbs-width').value = String(bbsWidth);
+    $('terminal').style.setProperty('--phosphor', phosphors[bbsColor]);
+    $('bbs-lines').textContent = bbsHelp
+      ? 'TERMINAL HELP\n\n1…9  Follow a link\nH    Go Home\nB    Go back\n?    Help\n\nB returns to your page.'
+      : M.terminal(doc, pageBbs, bbsWidth).lines.join('\n');
+  }
+  function geometry(el, o) {
+    for (const k of ['x', 'y', 'w', 'h'])
+      el.style[{ x: 'left', y: 'top', w: 'width', h: 'height' }[k]] = o[k] + 'px';
+  }
+  function drawObjects() {
+    const paper = $('paper');
+    paper.replaceChildren();
+    paper.style.width = page().width + 'px';
+    paper.style.height = page().height + 'px';
+    paper.style.backgroundColor = page().background;
+    for (const [i, o] of page().items.entries()) {
+      const el = node('div', 'canvas-object');
+      el.dataset.object = o.id;
+      el.title = o.kind === 'image' ? o.text : '';
+      el.hidden = hidden.has(layerKey(o.id));
+      geometry(el, o);
+      Object.assign(el.style, {
+        zIndex: i + 1,
+        background: o.kind === 'rule' ? o.color : o.fill || 'transparent',
+        color: o.color,
+        fontFamily: M.fonts[o.font_family],
+        fontSize: o.font_size + 'px',
+        fontWeight: o.bold ? 'bold' : 'normal',
+        fontStyle: o.italic ? 'italic' : 'normal',
+        textAlign: o.align,
+        textDecoration: o.href || o.kind === 'link' ? 'underline' : 'none',
+      });
+      if (o.kind === 'box') el.style.boxShadow = 'inset 0 0 0 1px ' + o.color;
+      const src = M.appearance(o);
+      if (src) {
+        const im = node('img');
+        im.src = src;
+        im.alt = o.text;
+        el.append(im);
+      } else if (o.kind !== 'rule') el.textContent = o.text || (o.kind === 'image' ? 'Image' : '');
+      paper.append(el);
+    }
+    paper.classList.toggle('grid', grid);
+    paper.classList.toggle('pick-target', !!armed);
+    drawSelection();
+    fit();
+  }
+  function drawSelection() {
+    const paper = $('paper');
+    paper.querySelector('.selection')?.remove();
+    const o = object();
+    if (!o || hidden.has(layerKey(o.id)) || editing) return;
+    const rect = node('div', 'selection');
+    geometry(rect, o);
+    for (const [dir, x, y] of [
+      ['nw', 0, 0],
+      ['n', 50, 0],
+      ['ne', 100, 0],
+      ['w', 0, 50],
+      ['e', 100, 50],
+      ['sw', 0, 100],
+      ['s', 50, 100],
+      ['se', 100, 100],
+    ]) {
+      const h = node('i', 'handle');
+      h.dataset.handle = dir;
+      h.style.left = x + '%';
+      h.style.top = y + '%';
+      h.style.cursor = dir + '-resize';
+      rect.append(h);
+    }
+    paper.append(rect);
+  }
+  function fit() {
+    const v = $('viewport'),
+      p = page(),
+      margin = 14;
+    if (!v.clientWidth || !p) return;
+    scale =
+      zoom === 'fit'
+        ? M.clamp(
+            Math.min((v.clientWidth - margin) / p.width, (v.clientHeight - margin) / p.height),
+            0.18,
+            1.5,
+          )
+        : Number(zoom);
+    $('paper').style.transform = 'scale(' + scale + ')';
+    $('paper-size').style.width = p.width * scale + 'px';
+    $('paper-size').style.height = p.height * scale + 'px';
+    $('zoom-status').textContent = Math.round(scale * 100) + '%';
+    drawRulers();
+  }
+  function drawRulers() {
+    const v = $('viewport');
+    for (const [sel, horizontal, size] of [
+      ['.top-ruler', true, page().width],
+      ['.left-ruler', false, page().height],
+    ]) {
+      const root = document.querySelector(sel);
+      root.replaceChildren();
+      const offset = horizontal ? v.scrollLeft : v.scrollTop,
+        limit = horizontal ? root.clientWidth : root.clientHeight;
+      const tick = scale < 0.55 ? 16 : 8;
+      for (let n = 0; n <= size; n += tick) {
+        const pos = 7 + n * scale - offset;
+        if (pos < -19 || pos > limit + 3) continue;
+        const major = n % (tick * 8) === 0;
+        const mark = node(major ? 'b' : 'i', null, major ? String(n) : '');
+        mark.style[horizontal ? 'left' : 'top'] = pos + 'px';
+        root.append(mark);
+      }
+    }
+  }
+  function render() {
+    $('window-title').textContent = 'Retro Page — ' + (doc.title || 'Untitled homepage') + '.yst';
+    document.title = 'Retro Page — ' + (doc.title || 'Untitled homepage');
+    $('page-status').textContent = active === 'home' ? 'Home' : page().title;
+    $('size-status').textContent = page().width + ' × ' + page().height;
+    renderDrawer();
+    drawObjects();
+    renderLayers();
+    renderProperties();
+    renderBbs();
+    for (const b of document.querySelectorAll('[data-action="undo"]')) b.disabled = at === 0;
+    for (const b of document.querySelectorAll('[data-action="redo"]'))
+      b.disabled = at === hist.length - 1;
+    for (const b of $('toolbar').querySelectorAll('[data-action^="add-"]'))
+      b.setAttribute('aria-pressed', String(!!armed && b.dataset.action === 'add-' + armed.kind));
+  }
+  function point(ev) {
+    const r = $('paper').getBoundingClientRect();
+    return [Math.round((ev.clientX - r.left) / scale), Math.round((ev.clientY - r.top) / scale)];
+  }
+  function snapped(v) {
+    return snap ? Math.round(v / 8) * 8 : Math.round(v);
+  }
+  function editInline() {
+    const o = object();
+    if (!o || !['text', 'link', 'box'].includes(o.kind) || hidden.has(layerKey(o.id))) return;
+    finishInline(true);
+    const el = node('textarea', 'inline-edit');
+    editing = el;
+    geometry(el, o);
+    el.value = o.text;
+    el.maxLength = 8000;
+    el.style.background = o.fill || '#fffdf5';
+    el.style.color = o.fill ? o.color : '#222';
+    el.style.fontFamily = M.fonts[o.font_family];
+    el.style.fontSize = Math.min(o.font_size, 28) + 'px';
+    $('paper').append(el);
+    drawSelection();
+    el.focus();
+    el.select();
+    el.onkeydown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        finishInline(false);
+      }
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        finishInline(true);
+      }
+    };
+    el.onblur = () => finishInline(true);
+  }
+  function finishInline(save) {
+    if (!editing) return;
+    const e = editing,
+      o = object(),
+      value = e.value;
+    editing = null;
+    e.onblur = null;
+    e.remove();
+    if (save && o && o.text !== value) {
+      o.text = value;
+      record('Updated text.');
+    } else drawSelection();
+  }
+  function resize(o, b, dir, dx, dy) {
+    let l = b.x,
+      t = b.y,
+      r = l + b.w,
+      bottom = t + b.h;
+    const minX = Math.min(6, b.w),
+      minY = Math.min(4, b.h);
+    if (dir.includes('w')) l = M.clamp(snapped(l + dx), 0, r - minX);
+    if (dir.includes('e')) r = M.clamp(snapped(r + dx), l + minX, page().width);
+    if (dir.includes('n')) t = M.clamp(snapped(t + dy), 0, bottom - minY);
+    if (dir.includes('s')) bottom = M.clamp(snapped(bottom + dy), t + minY, page().height);
+    Object.assign(o, { x: l, y: t, w: r - l, h: bottom - t });
+  }
+  const paper = $('paper');
+  paper.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.target === editing) return;
+    if (armed) {
+      e.preventDefault();
+      const [x, y] = point(e);
+      const data = armed;
+      armed = null;
+      insert(data, x, y).catch((er) => status(er.message));
+      return;
+    }
+    finishInline(true);
+    const handle = e.target.closest('[data-handle]'),
+      el = e.target.closest('[data-object]');
+    const id = handle ? selected : el?.dataset.object || null;
+    select(id);
+    if (!id) return;
+    const o = object();
+    gesture = {
+      pid: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      before: { x: o.x, y: o.y, w: o.w, h: o.h },
+      dir: handle?.dataset.handle || 'move',
+    };
+    paper.setPointerCapture(e.pointerId);
+    $('viewport').focus({ preventScroll: true });
+    e.preventDefault();
+  });
+  paper.addEventListener('pointermove', (e) => {
+    if (!gesture || gesture.pid !== e.pointerId) return;
+    const o = object(),
+      g = gesture,
+      b = g.before,
+      dx = (e.clientX - g.startX) / scale,
+      dy = (e.clientY - g.startY) / scale;
+    if (g.dir === 'move') {
+      o.x = M.clamp(snapped(b.x + dx), 0, page().width - o.w);
+      o.y = M.clamp(snapped(b.y + dy), 0, page().height - o.h);
+    } else resize(o, b, g.dir, dx, dy);
+    const el = [...paper.querySelectorAll('[data-object]')].find((n) => n.dataset.object === o.id);
+    if (el) geometry(el, o);
+    drawSelection();
+    renderProperties();
+  });
+  function gestureEnd(cancel) {
+    if (!gesture) return;
+    const o = object(),
+      b = gesture.before,
+      pid = gesture.pid;
+    gesture = null;
+    if (paper.hasPointerCapture(pid)) paper.releasePointerCapture(pid);
+    if (cancel && o) Object.assign(o, b);
+    if (cancel) drawObjects();
+    else if (o && Object.keys(b).some((k) => o[k] !== b[k])) record('Updated object position and size.');
+    else drawSelection();
+  }
+  paper.addEventListener('pointerup', () => gestureEnd(false));
+  paper.addEventListener('pointercancel', () => gestureEnd(true));
+  paper.addEventListener('dblclick', (e) => {
+    const o = object();
+    if (!o || !e.target.closest('[data-object]')) return;
+    ['image', 'rule'].includes(o.kind) ? properties() : editInline();
+  });
+  function place(data) {
+    armed = data;
+    closePanels();
+    drawObjects();
+    status('Click the page to place ' + (data.label || M.kinds[data.kind]) + '. Esc cancels.');
+    for (const b of $('toolbar').querySelectorAll('[data-action^="add-"]'))
+      b.setAttribute('aria-pressed', String(b.dataset.action === 'add-' + data.kind));
+  }
+  async function insert(data, x, y) {
+    if (page().items.length >= 64) throw Error('A page supports up to 64 objects.');
+    const p = page(),
+      id = active,
+      o = M.item(data.kind, x, y, p);
+    const rgb = p.background
+      .slice(1)
+      .match(/../g)
+      .map((v) => parseInt(v, 16));
+    if (rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114 < 100 && ['text', 'link'].includes(o.kind))
+      o.color = o.kind === 'link' ? '#ffdf78' : '#fff2be';
+    if (data.src) {
+      const [w, h] = await M.dimensions(data.src);
+      if (active !== id || p !== page()) return;
+      const scale = Math.min(1, p.width / w, p.height / h, (data.stamp_width || w) / w);
+      o.w = Math.max(1, Math.round(w * scale));
+      o.h = Math.max(1, Math.round(h * scale));
+      o.x = M.clamp(x, 0, p.width - o.w);
+      o.y = M.clamp(y, 0, p.height - o.h);
+      o.src = data.src;
+      o.text = data.alt || data.label || 'Image';
+    }
+    p.items.push(o);
+    selected = o.id;
+    record('Placed ' + M.kinds[o.kind] + '.');
+    if (o.kind === 'text') editInline();
+    if (o.kind === 'link') properties();
+  }
+  function properties() {
+    const o = object();
+    if (!o) return status('Select an object on the page.');
+    const fields =
+      o.kind === 'rule'
+        ? []
+        : [
+            {
+              name: 'text',
+              label: o.kind === 'image' ? 'Alt text' : 'Text',
+              type: 'textarea',
+              value: o.text,
+              maxLength: 8000,
+            },
+          ];
+    for (const [name, label, max] of [
+      ['x', 'X position', page().width - 1],
+      ['y', 'Y position', page().height - 1],
+      ['w', 'Width', page().width],
+      ['h', 'Height', page().height],
+    ])
+      fields.push({
+        name,
+        label,
+        type: 'number',
+        value: o[name],
+        min: 'xy'.includes(name) ? 0 : 1,
+        max,
+        required: true,
+      });
+    if (o.kind !== 'rule')
+      fields.push(
+        {
+          name: 'href',
+          label: 'Web address',
+          value: o.href.startsWith('page:') ? '' : o.href,
+          maxLength: 2048,
+        },
+        {
+          name: 'target',
+          label: 'Or link to page',
+          type: 'select',
+          options: [
+            ['', 'None'],
+            ...M.pages(doc).map(([id, p]) => [id, id === 'home' ? 'Home' : p.title]),
+          ],
+          value: o.href.startsWith('page:') ? o.href.slice(5) : '',
+        },
+      );
+    if (['text', 'link', 'box'].includes(o.kind))
+      fields.push(
+        {
+          name: 'font_family',
+          label: 'Typeface',
+          type: 'select',
+          options: Object.keys(M.fonts),
+          value: o.font_family,
+        },
+        {
+          name: 'font_size',
+          label: 'Type size (px)',
+          type: 'number',
+          min: 6,
+          max: 160,
+          value: o.font_size,
+          required: true,
+        },
+        {
+          name: 'align',
+          label: 'Alignment',
+          type: 'select',
+          options: ['left', 'center', 'right'],
+          value: o.align,
+        },
+        { name: 'bold', label: 'Bold', type: 'checkbox', value: o.bold },
+        { name: 'italic', label: 'Italic', type: 'checkbox', value: o.italic },
+      );
+    fields.push(
+      { name: 'color', label: 'Ink', type: 'color', value: o.color },
+      { name: 'fill', label: 'Fill (hex or blank for transparent)', value: o.fill },
+    );
+    dialog(
+      M.kinds[o.kind] + ' properties',
+      fields,
+      (v) => {
+        if ('target' in v) {
+          v.href = v.target ? 'page:' + v.target : v.href.trim();
+          delete v.target;
+        }
+        for (const k of ['x', 'y', 'w', 'h', 'font_size']) if (k in v) v[k] = Number(v[k]);
+        applyObject(o, v);
+      },
+      'Apply',
+    );
+  }
+  function applyObject(o, values) {
+    const candidate = { ...o, ...values };
+    const p = page();
+    const test = {
+      ...doc,
+      pages: (doc.pages || []).map((child) =>
+        child === p ? { ...child, items: child.items.map((i) => (i === o ? candidate : i)) } : child,
+      ),
+    };
+    if (p === doc) test.items = doc.items.map((i) => (i === o ? candidate : i));
+    M.normalize(test);
+    Object.assign(o, values);
+    record('Applied object properties.');
+  }
+  $('properties').onsubmit = (e) => {
+    e.preventDefault();
+    const o = object();
+    if (!o) return;
+    try {
+      const v = {};
+      for (const k of ['x', 'y', 'w', 'h']) v[k] = Number($('prop-' + k).value);
+      if (o.kind !== 'rule') v.text = $('prop-text').value;
+      applyObject(o, v);
+    } catch (err) {
+      status(err.message);
+    }
+  };
+  function pageSettings() {
+    const p = page();
+    const fields = [
+      { name: 'title', label: 'Page title', value: p.title, maxLength: 80, required: true },
+      { name: 'byline', label: 'Webmaster', value: p.byline, maxLength: 48 },
+      {
+        name: 'width',
+        label: 'Width (px)',
+        type: 'number',
+        min: 160,
+        max: 2048,
+        value: p.width,
+        required: true,
+      },
+      {
+        name: 'height',
+        label: 'Height (px)',
+        type: 'number',
+        min: 120,
+        max: 8192,
+        value: p.height,
+        required: true,
+      },
+      { name: 'background', label: 'Background color', type: 'color', value: p.background },
+      {
+        name: 'profile',
+        label: 'Page format',
+        type: 'select',
+        options: [
+          ['classic', '1990s graphical'],
+          ['millennium', 'Early 2000s'],
+          ['text', 'Text / BBS'],
+        ],
+        value: p.profile,
+      },
+    ];
+    if (active === 'home')
+      fields.push(
+        { name: 'slug', label: 'YesterSites address', value: p.slug, maxLength: 40 },
+        {
+          name: 'listed',
+          label: 'List in the YesterSites directory',
+          type: 'checkbox',
+          value: p.listed,
+        },
+      );
+    dialog(
+      'Page settings',
+      fields,
+      (v) => {
+        v.width = Number(v.width);
+        v.height = Number(v.height);
+        const test =
+          p === doc
+            ? { ...doc, ...v }
+            : { ...doc, pages: doc.pages.map((child) => (child === p ? { ...p, ...v } : child)) };
+        M.normalize(test);
+        Object.assign(p, v);
+        record('Saved page settings.');
+      },
+      'Apply',
+    );
+  }
+  function addPage() {
+    if (M.pages(doc).length >= 24) return status('A site supports up to 24 pages.');
+    dialog(
+      'Add page',
+      [{ name: 'title', label: 'Page title', value: '', maxLength: 80, required: true }],
+      (v) => {
+        const p = M.blank(v.title.trim());
+        p.page_id = M.uid();
+        p.background = page().background;
+        (doc.pages || (doc.pages = [])).push(p);
+        switchPage(p.page_id);
+        setDrawer('Pages');
+        record('Added a page.');
+      },
+      'Add',
+    );
+  }
+  function duplicatePage() {
+    if (M.pages(doc).length >= 24) return status('A site supports up to 24 pages.');
+    const original = page(),
+      p = M.copy({ ...original, pages: undefined });
+    delete p.pages;
+    p.page_id = M.uid();
+    for (const o of p.items) {
+      o.id = M.uid();
+      if (o.href === 'page:' + active) o.href = 'page:' + p.page_id;
+    }
+    p.title = p.title.slice(0, 74) + ' copy';
+    (doc.pages || (doc.pages = [])).push(p);
+    switchPage(p.page_id);
+    record('Duplicated page.');
+  }
+  function removePage() {
+    if (active === 'home') return status('The home page is required.');
+    const id = active;
+    dialog(
+      'Delete page',
+      [{ note: 'Delete ' + page().title + ' and clear links to this page?' }],
+      () => {
+        doc.pages = doc.pages.filter((p) => p.page_id !== id);
+        if (!doc.pages.length) delete doc.pages;
+        for (const [, p] of M.pages(doc))
+          for (const o of p.items) if (o.href === 'page:' + id) o.href = '';
+        switchPage('home');
+        record('Deleted page. Undo restores it.');
+      },
+      'Delete',
+    );
+  }
+  function paste() {
+    if (!clip) return status('Copy an object before pasting.');
+    if (page().items.length >= 64) return status('This page already has 64 objects.');
+    const o = M.copy(clip);
+    o.id = M.uid();
+    o.w = Math.min(o.w, page().width);
+    o.h = Math.min(o.h, page().height);
+    o.x = M.clamp(o.x + clipboardOffset, 0, page().width - o.w);
+    o.y = M.clamp(o.y + clipboardOffset, 0, page().height - o.h);
+    if (o.href.startsWith('page:') && !M.page(doc, o.href.slice(5))) o.href = '';
+    page().items.push(o);
+    selected = o.id;
+    clipboardOffset += 8;
+    record('Pasted object.');
+  }
+  function save() {
+    finishInline(true);
+    const data = JSON.stringify(M.normalize(doc), null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    if (blob.size > 24 * 1024 * 1024) throw Error('Project exceeds the 24 MiB desktop file limit.');
+    downloadBlob(blob, cleanName(doc.title) + '.yst');
+    status('Saved an editable .yst project.');
+  }
+  function publish() {
+    if (doc.pages?.length) {
+      dialog(
+        'Publish to YesterSites',
+        [
+          {
+            note:
+              'Member publishing currently supports one page. Export this entire site as a ZIP to keep all ' +
+              M.pages(doc).length +
+              ' pages.',
+          },
+        ],
+        () => window.RetroExport.download(doc),
+        'Export ZIP',
+      );
+      return;
+    }
+    dialog(
+      'Publish to YesterSites',
+      [
+        { name: 'slug', label: 'Site address', value: doc.slug, maxLength: 40, required: true },
+        {
+          name: 'listed',
+          label: 'List in the YesterSites directory',
+          type: 'checkbox',
+          value: doc.listed,
+        },
+        { note: 'Continue to the YesterSites publishing desk to sign in and review this page.' },
+      ],
+      (v) => {
+        const d = M.normalize({ ...doc, slug: v.slug.trim(), listed: v.listed });
+        if (!d.title.trim() || !d.items.length)
+          throw Error('Add a page title and at least one object before publishing.');
+        let images = 0;
+        for (const o of d.items) {
+          if (o.kind === 'text' && o.font_family === 'Lightning Display') {
+            o.src = M.lettering(o);
+            o.kind = 'image';
+            o.font_family = 'Arial';
+          }
+          if (o.kind === 'image') {
+            images++;
+            M.imageType(o.src);
+          }
+          if ((o.kind === 'link' && !o.href) || o.href.startsWith('page:'))
+            throw Error('Set a web address on each link before publishing this single page.');
+        }
+        if (images > 3)
+          throw Error(
+            'Published pages currently support up to three pictures. Use Export ZIP for larger sites.',
+          );
+        const bytes = new TextEncoder().encode(JSON.stringify(d));
+        if (bytes.length > 512 * 1024)
+          throw Error('Publishing currently supports up to 512 KiB. Export this site as a ZIP.');
+        const chars = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
+        const target =
+          'https://yestersites.com/desktop/publish/#draft=' +
+          btoa(chars).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        doc.slug = d.slug;
+        doc.listed = d.listed;
+        record('Prepared your page for the publishing desk.');
+        const a = node('a');
+        a.href = target;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.click();
+      },
+      'Continue',
+    );
+  }
+  function bbsCommand() {
+    const c = $('bbs-input').value.trim().toUpperCase();
+    $('bbs-input').value = '';
+    if (c === '?') {
+      bbsHelp = true;
+    } else if (c === 'B' && bbsHelp) bbsHelp = false;
+    else if (c === 'B') {
+      pageBbs = bbsBack.pop() || 'home';
+      bbsHelp = false;
+    } else if (c === 'H') {
+      bbsBack.push(pageBbs);
+      pageBbs = 'home';
+      bbsHelp = false;
+    } else {
+      const target = M.terminal(doc, pageBbs, bbsWidth).links[Number(c) - 1];
+      if (!/^\d+$/.test(c) || !target)
+        return status('Enter a link number, H for Home, B for Back, or ? for help.');
+      bbsBack.push(pageBbs);
+      pageBbs = target;
+      bbsHelp = false;
+    }
+    renderBbs();
+    $('bbs-lines').scrollTop = 0;
+  }
+  function prefs() {
+    try {
+      localStorage.setItem(
+        storageKey + '.terminal',
+        JSON.stringify({ columns: bbsWidth, color: bbsColor }),
+      );
+    } catch {}
+    renderBbs();
+  }
+  $('bbs-width').onchange = (e) => {
+    bbsWidth = Number(e.target.value);
+    prefs();
+  };
+  $('bbs-form').onsubmit = (e) => {
+    e.preventDefault();
+    bbsCommand();
+  };
+  async function action(key) {
+    closeMenus();
+    if (key !== 'dialog-close') finishInline(true);
+    const o = object();
+    if (key.startsWith('add-') && key !== 'add-page') {
+      const kind = key.slice(4);
+      if (kind === 'image') $('image-file').click();
+      else place({ kind });
+      return;
+    }
+    switch (key) {
+      case 'dialog-close':
+        $('dialog').close();
+        return;
+      case 'new':
+      case 'sample':
+        dialog(
+          key === 'new' ? 'New project' : 'Open sample project',
+          [{ note: 'Replace the current drawing board? Save a .yst copy to keep this project.' }],
+          () =>
+            load(
+              key === 'new' ? M.blank() : presets.sample,
+              key === 'new' ? 'Created a blank project.' : 'Opened Late Night Signal.',
+            ),
+          'Open',
+        );
+        break;
+      case 'open':
+        $('open-file').click();
+        break;
+      case 'save':
+        save();
+        break;
+      case 'undo':
+        undo(-1);
+        break;
+      case 'redo':
+        undo(1);
+        break;
+      case 'copy':
+        if (o) {
+          clip = M.copy(o);
+          clipboardOffset = 12;
+          status('Copied ' + M.kinds[o.kind] + '.');
+        }
+        break;
+      case 'paste':
+        paste();
+        break;
+      case 'duplicate':
+        if (o) {
+          clip = M.copy(o);
+          clipboardOffset = 12;
+          paste();
+        }
+        break;
+      case 'delete':
+        if (o) {
+          page().items = page().items.filter((i) => i.id !== o.id);
+          selected = null;
+          record('Deleted object.');
+        }
+        break;
+      case 'front':
+      case 'back':
+        if (o) {
+          const items = page().items;
+          items.splice(items.indexOf(o), 1);
+          items[key === 'front' ? 'push' : 'unshift'](o);
+          record('Changed layer order.');
+        }
+        break;
+      case 'properties':
+        properties();
+        break;
+      case 'settings':
+        pageSettings();
+        break;
+      case 'add-page':
+        addPage();
+        break;
+      case 'duplicate-page':
+        duplicatePage();
+        break;
+      case 'delete-page':
+        removePage();
+        break;
+      case 'rename-page':
+        dialog(
+          'Rename page',
+          [{ name: 'title', label: 'Page title', value: page().title, maxLength: 80, required: true }],
+          (v) => {
+            page().title = v.title.trim();
+            record('Renamed page.');
+          },
+          'Rename',
+        );
+        break;
+      case 'stamps':
+        setDrawer('GIFs');
+        if (innerWidth < 691) $('drawer').classList.add('open');
+        break;
+      case 'show-drawer':
+        $('inspector').classList.remove('open');
+        $('drawer').classList.toggle('open');
+        break;
+      case 'show-inspector':
+        $('drawer').classList.remove('open');
+        $('inspector').classList.toggle('open');
+        break;
+      case 'grid':
+        grid = !grid;
+        drawObjects();
+        status(grid ? 'Grid on.' : 'Grid off.');
+        break;
+      case 'snap':
+        snap = !snap;
+        status(snap ? 'Snap to 8 px on.' : 'Snapping off.');
+        break;
+      case 'zoom':
+        dialog(
+          'Drawing board zoom',
+          [
+            {
+              name: 'z',
+              label: 'Magnification',
+              type: 'select',
+              options: [
+                ['fit', 'Fit to window'],
+                ['0.5', '50%'],
+                ['0.75', '75%'],
+                ['1', '100%'],
+                ['1.5', '150%'],
+                ['2', '200%'],
+              ],
+              value: zoom,
+            },
+          ],
+          (v) => {
+            zoom = v.z;
+            fit();
+          },
+          'Apply',
+        );
+        break;
+      case 'bbs-options':
+        dialog(
+          'BBS display',
+          [
+            { name: 'n', label: 'Columns', type: 'select', options: [32, 40, 80], value: bbsWidth },
+            {
+              name: 'color',
+              label: 'Phosphor',
+              type: 'select',
+              options: Object.keys(phosphors),
+              value: bbsColor,
+            },
+          ],
+          (v) => {
+            bbsWidth = Number(v.n);
+            bbsColor = v.color;
+            prefs();
+          },
+          'Apply',
+        );
+        break;
+      case 'preview':
+      case 'preview-bbs':
+        await RetroExport.openPreview(
+          doc,
+          active,
+          key === 'preview-bbs' ? 'bbs' : page().profile === 'text' ? 'text' : 'modern',
+        );
+        break;
+      case 'export':
+        await RetroExport.download(doc);
+        status('Exported your website ZIP.');
+        break;
+      case 'source':
+        dialog(
+          'HTML source',
+          [
+            {
+              name: 'html',
+              label: page().title,
+              type: 'textarea',
+              value: await RetroExport.source(doc, active),
+              readOnly: true,
+            },
+          ],
+          null,
+          'Close',
+        );
+        break;
+      case 'publish':
+        publish();
+        break;
+      case 'credits':
+        dialog(
+          'Artwork credits',
+          [
+            { note: 'Retro Page artwork and Late Night Signal by RODDY.' },
+            {
+              url: 'assets/credits/LICENSE-AND-CREDITS.txt',
+              label: 'Mosaic icons — original credits and terms',
+            },
+            { url: 'assets/credits/SOURCES.txt', label: 'Animated GIF stamps — authors and sources' },
+            { url: 'assets/credits/CC0-1.0.txt', label: 'CC0 public domain dedication' },
+          ],
+          null,
+          'Close',
+        );
+        break;
+      case 'about':
+        dialog(
+          'About Retro Page',
+          [
+            { note: 'Retro Page is a RODDY desktop and web editor for making YesterSites homepages.' },
+            { url: 'https://roddy.world/', label: 'roddy.world' },
+          ],
+          null,
+          'Close',
+        );
+        break;
+      case 'help':
+        dialog(
+          'Using Retro Page',
+          [
+            {
+              note: 'Choose Text, Image or Link, then click the drawing board. Drag an object to move it. Drag a white square to resize it. Double-click text to type. Ctrl+Enter finishes an edit.',
+            },
+            {
+              note: 'Use Pages to add a page and GIFs to browse stamps. Preview tests your work on desktop, phone, Classic HTML and BBS. Save makes an editable .yst file. Export website ZIP creates standalone pages you can host anywhere.',
+            },
+          ],
+          null,
+          'Close',
+        );
+        break;
+    }
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-action]');
+    if (b) {
+      action(b.dataset.action).catch((err) => {
+        status(err.message);
+        alert(err.message);
+      });
+      return;
+    }
+    const tab = e.target.closest('[data-drawer]');
+    if (tab) {
+      setDrawer(tab.dataset.drawer);
+      return;
+    }
+    const p = e.target.closest('[data-page]');
+    if (p) {
+      switchPage(p.dataset.page);
+      return;
+    }
+    const st = e.target.closest('[data-stamp]');
+    if (st) {
+      place({ kind: 'image', ...presets.stamps[Number(st.dataset.stamp)] });
+      return;
+    }
+    const eye = e.target.closest('[data-eye]');
+    if (eye) {
+      const k = layerKey(eye.dataset.eye);
+      hidden.has(k) ? hidden.delete(k) : hidden.add(k);
+      drawObjects();
+      renderLayers();
+      return;
+    }
+    const layer = e.target.closest('[data-layer]');
+    if (layer) {
+      select(layer.dataset.layer);
+      return;
+    }
+    if (!e.target.closest('.menubar')) closeMenus();
+  });
+  $('layers').addEventListener('dblclick', (e) => {
+    if (e.target.closest('[data-layer]')) properties();
+  });
+  $('drawer-content').addEventListener('dragstart', (e) => {
+    const b = e.target.closest('[data-stamp],[data-drag-type]');
+    if (b)
+      e.dataTransfer.setData(
+        'application/x-retro-page-tool',
+        JSON.stringify(
+          b.dataset.stamp !== undefined
+            ? { kind: 'image', stamp: Number(b.dataset.stamp) }
+            : { kind: b.dataset.dragType },
+        ),
+      );
+  });
+  paper.addEventListener('dragover', (e) => e.preventDefault());
+  paper.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    try {
+      const [x, y] = point(e),
+        file = e.dataTransfer.files[0];
+      let data;
+      if (file) {
+        const src = await M.readImage(file);
+        M.imageType(src);
+        data = { kind: 'image', src, label: file.name };
+      } else {
+        const raw = e.dataTransfer.getData('application/x-retro-page-tool');
+        if (!raw) return;
+        data = JSON.parse(raw);
+        if (!Object.hasOwn(M.kinds, data.kind)) return;
+        if ('stamp' in data) Object.assign(data, presets.stamps[data.stamp]);
+        else if (data.kind === 'image') {
+          $('image-file').click();
+          return;
+        }
+      }
+      armed = null;
+      await insert(data, x, y);
+    } catch (err) {
+      status(err.message);
+    }
+  });
+  $('open-file').onchange = async (e) => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    try {
+      if (f.size > 24 * 1024 * 1024) throw Error('Project exceeds 24 MiB.');
+      const raw = M.normalize(JSON.parse(await f.text()));
+      load(raw, 'Opened ' + f.name + '.');
+    } catch (err) {
+      status('Could not open project. ' + err.message);
+    }
+  };
+  $('image-file').onchange = async (e) => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    try {
+      const src = await M.readImage(f);
+      M.imageType(src);
+      await M.dimensions(src);
+      place({ kind: 'image', src, label: f.name.replace(/\.[^.]+$/, '') });
+    } catch (err) {
+      status(err.message);
+    }
+  };
+  document.addEventListener('keydown', (e) => {
+    if ($('dialog').open) return;
+    if (e.key === 'Escape') {
+      if (editing) return;
+      gestureEnd(true);
+      armed = null;
+      closeMenus();
+      closePanels();
+      render();
+      return;
+    }
+    if (e.target.matches('input,textarea,select,[contenteditable]')) return;
+    const shortcut =
+      e.ctrlKey || e.metaKey
+        ? {
+            s: 'save',
+            o: 'open',
+            n: 'new',
+            z: e.shiftKey ? 'redo' : 'undo',
+            y: 'redo',
+            c: 'copy',
+            v: 'paste',
+            d: 'duplicate',
+          }[e.key.toLowerCase()]
+        : { F5: 'preview', Delete: 'delete', Backspace: 'delete' }[e.key];
+    if (shortcut) {
+      e.preventDefault();
+      action(shortcut).catch((err) => status(err.message));
+      return;
+    }
+    if (e.key === 'Enter' && object() && e.target === $('viewport')) {
+      e.preventDefault();
+      editInline();
+      return;
+    }
+    const dir = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key],
+      o = object();
+    if (dir && o && e.target === $('viewport')) {
+      e.preventDefault();
+      const step = e.shiftKey ? 8 : 1;
+      o.x = M.clamp(o.x + dir[0] * step, 0, page().width - o.w);
+      o.y = M.clamp(o.y + dir[1] * step, 0, page().height - o.h);
+      record('Moved object.');
+    }
+  });
+  $('viewport').onscroll = drawRulers;
+  new ResizeObserver(fit).observe($('viewport'));
+  record(stickyError || 'Drag an object. Double-click text to edit.');
+})();
+
+if ('serviceWorker' in navigator && ['https:', 'http:'].includes(location.protocol)) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./offline.js').catch(() => {
+      // Local saves and the downloadable editor still work where workers are disabled.
+    });
+  });
+}

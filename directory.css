@@ -3,28 +3,28 @@
 header .maker-button { display: block; width: fit-content; margin-left: auto; text-align: center; color: #272037; text-decoration: none; }
 header .maker-button small { display: block; font: 12px/1.15 Arial, sans-serif; }
 header .maker-button img, .maker-button img { width: 116px; height: auto; max-width: none; vertical-align: middle; border: 0; }
-.software-ad, .software-ad:visited, .software-ad:hover {
-  display: flex; align-items: center; justify-content: center; gap: 14px; width: fit-content; max-width: 100%;
-  margin: 13px auto 0; padding: 4px 9px 4px 5px; color: #fff3c4; background: #282849;
-  border: 3px outset #a9a2ae; text-decoration: none; text-align: left;
-}
-.software-ad img { image-rendering: pixelated; width: 102px; height: 45px; }
-.software-ad strong { color: #ffe189; font: bold italic 27px/.95 Georgia, 'Times New Roman', serif; }
-.software-ad small { display: block; margin-top: 4px; font: 13px/1.1 'Trebuchet MS', Arial, sans-serif; }
-.software-ad .get { padding: 4px 7px; color: #232238; background: #ded6b9; border: 2px outset #faf3d9; font: bold 12px/1.2 Arial, sans-serif; white-space: nowrap; }
-.software-ad:hover .get, .software-ad:focus .get { background: #ffe6a2; }
+.editor-links { display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 8px; margin: 12px auto 6px; }
+.editor-links a { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 5px 10px; border: 2px outset #fbf4df; color: #241f22; background: #e3dcca; font: bold 14px/1.2 Arial, sans-serif; text-decoration: none; }
+.editor-links a:hover, .editor-links a:focus-visible { background: #fff1c2; color: #581a30; }
+.editor-links a:active { border-style: inset; }
+.editor-launch img { width: 166px; height: auto; }
+.editor-links .editor-launch span { color: #781427; }
+.editor-download img { width: 28px; height: 28px; image-rendering: pixelated; }
+header h1 .desktop-logo { width: 235px; max-width: 100%; height: auto; margin-top: 8px; }
+.release-files { padding-left: 1.35em; }
+.release-files li { margin: .45em 0; }
+.release-files a { font-weight: bold; }
+.studio-shot { display: block; width: 100%; height: auto; border: 2px inset #d5cbbd; }
 @media (min-width: 690px) {
   main > header { position: relative; }
   header .maker-button { position: absolute; right: 0; top: 6px; }
 }
 @media (max-width: 689px) {
   header .maker-button img { width: 102px; }
-  .software-ad { gap: 7px; }
-  .software-ad img { width: 68px; height: 30px; }
 }
-@media (max-width: 440px) {
-  .software-ad { display: grid; grid-template-columns: 68px minmax(0,1fr); column-gap: 8px; row-gap: 4px; padding: 6px; }
-  .software-ad picture { grid-row: 1 / span 2; }
-  .software-ad .get { grid-column: 2; justify-self: start; }
-  .software-ad small { line-height: 1.25; }
+@media (max-width: 500px) {
+  .editor-links { gap: 4px; margin-top: 8px; }
+  .editor-links a { padding: 4px 7px; gap: 5px; }
+  .editor-launch img { width: 126px; height: auto; }
+  .editor-download img { width: 20px; height: 20px; }
 }

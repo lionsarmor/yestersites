@@ -1,0 +1,13 @@
+Animated stamps for Retro Page
+
+VibeGIF / Direct-Img
+https://github.com/direct-img/vibegif.direct-img.link
+Snapshot ef26188153b32144219d58bc236b228c59c606ad
+Asset dedication and legal code: https://github.com/direct-img/vibegif.direct-img.link/blob/ef26188153b32144219d58bc236b228c59c606ad/LICENSE
+
+Pixel art Gifs by kazerlelutin
+https://kazerlelutin.itch.io/pixel-art-gifs
+The artist marks this pack CC0 1.0 and permits commercial use. These four GIFs are the originals linked from the pack page.
+
+Both collections use CC0 1.0 Universal. See CC0-1.0.txt and https://creativecommons.org/publicdomain/zero/1.0/.
+Each file’s exact source URL, size, animation details, and SHA-256 are in catalog.json. The original GIF bytes were preserved.
