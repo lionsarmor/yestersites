@@ -23,4 +23,5 @@
       await player.ruffle().load({data:bytes,swfFileName:'movie.swf',...window.RufflePlayer.config});
     }catch{screen.className='';screen.replaceChildren(button,status);button.disabled=false;status.textContent='Playback failed. This movie needs a supported browser and a self-contained SWF.';}
   };
+  button.disabled=false;status.textContent='Ruffle projector';
 })();
