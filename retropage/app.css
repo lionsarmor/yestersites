@@ -255,6 +255,7 @@ main {
   line-height: 16px;
 }
 .drawer {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
 }
@@ -301,10 +302,14 @@ main {
   image-rendering: pixelated;
 }
 .tabs {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+}
+@container (max-width: 190px) {
+  .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .tabs button {
-  flex: 1;
+  white-space: nowrap;
   padding: 5px 2px;
   font-size: 13px;
 }

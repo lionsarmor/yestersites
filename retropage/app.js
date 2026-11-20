@@ -46,10 +46,11 @@
       .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-')
       .trim()
       .slice(0, 80) || 'Homepage';
+  const requestedDrawer = new URLSearchParams(location.search).get('drawer');
   let doc = {...M.copy(presets.sample),listed:true},
     active = 'home',
     selected = null,
-    drawer = new URLSearchParams(location.search).get('drawer') === 'gifs' ? 'GIFs' : 'Objects',
+    drawer = requestedDrawer === 'videos' ? 'Video Vault' : requestedDrawer === 'gifs' ? 'GIFs' : 'Objects',
     armed = null,
     gesture = null,
     editing = null,
@@ -316,14 +317,17 @@
   });
   function setDrawer(value) {
     if (drawer === 'GIFs') artScroll = $('drawer-content').scrollTop;
-    if(drawer==='Objects' && value!=='Objects')vaultPanel?.stopPreview();
+    if (drawer === 'Video Vault' && value !== drawer) {
+      vaultPanel.stopPreview();
+      vaultScroll = $('drawer-content').scrollTop;
+    }
     drawer = value;
     renderDrawer();
   }
   const stamps = [...presets.stamps];
   const shelf=RetroStudioDrawer.artShelf();
   const shelfGroups=['Favorites','Recently used','Used on this site'];
-  let refreshShelf=()=>{}, vaultPanel;
+  let refreshShelf=()=>{}, vaultPanel, vaultScroll=0;
   function projectArtwork(){
     const result=new Map(),library=new Map(stamps.map(st=>[st.src,st]));
     for(const [pageId,p] of M.pages(doc))for(const o of p.items){
@@ -396,8 +400,11 @@
     if (!$('drawer-content')) return;
     $('drawer-title').textContent = drawer === 'GIFs' ? 'GIF Stamps' : drawer;
     $('drawer').querySelector('[data-action="add-page"]').hidden = drawer !== 'Pages';
-    for (const b of document.querySelectorAll('[data-drawer]'))
-      b.classList.toggle('active', b.dataset.drawer === drawer);
+    for (const b of document.querySelectorAll('[data-drawer]')) {
+      const current = b.dataset.drawer === drawer;
+      b.classList.toggle('active', current);
+      b.setAttribute('aria-pressed', String(current));
+    }
     const root = $('drawer-content');
     root.replaceChildren();
     root.scrollTop = 0;
@@ -409,23 +416,23 @@
         b.title = p.title;
         root.append(b);
       }
+    } else if (drawer === 'Video Vault') {
+      vaultPanel ||= RetroStudioDrawer.videoVault(item=>{
+        const offset=18*(page().items.filter(RetroMedia.isPlayer).length%4);
+        insertWidget('media-youtube',24+offset,48+offset,{href:item.url,text:item.title.slice(0,120)});
+      },'https://yestersites-webring.jamesmweeksjr.chatgpt.site');
+      root.append(vaultPanel);
+      root.scrollTop = vaultScroll;
     } else if (drawer === 'Objects') {
       const groups = node('select', 'stamp-search');
       groups.setAttribute('aria-label', 'Object group');
-      for (const name of ['Basic shapes', 'Web objects', 'Media players','Video Vault']) groups.add(new Option(name));
+      for (const name of ['Basic shapes', 'Web objects', 'Media players']) groups.add(new Option(name));
       groups.value = objectGroup;
-      groups.onchange=()=>{vaultPanel?.stopPreview();objectGroup=groups.value;renderDrawer();};
+      groups.onchange=()=>{objectGroup=groups.value;renderDrawer();};
       root.append(groups);
-      if(objectGroup==='Video Vault'){
-        vaultPanel ||= RetroStudioDrawer.videoVault(item=>{
-          const offset=18*(page().items.filter(RetroMedia.isPlayer).length%4);
-          insertWidget('media-youtube',24+offset,48+offset,{href:item.url,text:item.title.slice(0,120)});
-        },'https://yestersites-webring.jamesmweeksjr.chatgpt.site');
-        root.append(vaultPanel);return;
-      }
       if(objectGroup==='Media players'){
         const vault=node('button','media-shelf-link','Search Video Vault ▸');
-        vault.type='button';vault.onclick=()=>{objectGroup='Video Vault';renderDrawer();};root.append(vault);
+        vault.type='button';vault.onclick=()=>setDrawer('Video Vault');root.append(vault);
       }
       const choices=node('div','object-grid');
       root.append(choices);
@@ -1840,7 +1847,7 @@
     }
     const tab = e.target.closest('[data-drawer]');
     if (tab) {
-      setDrawer(tab.dataset.drawer);
+      if (tab.dataset.drawer !== drawer) setDrawer(tab.dataset.drawer);
       return;
     }
     const p = e.target.closest('[data-page]');
@@ -2024,7 +2031,8 @@
   $('viewport').onscroll = drawRulers;
   new ResizeObserver(fit).observe($('viewport'));
   record(stickyError || 'Drag an object. Double-click text to edit.');
-  if(firstVisit && location.hash!=='#account-edit' && drawer!=='GIFs')RetroStudioDrawer.chooseStarter(load,true);
+  if(requestedDrawer==='videos' && innerWidth<691) $('drawer').classList.add('open');
+  if(firstVisit && location.hash!=='#account-edit' && drawer==='Objects')RetroStudioDrawer.chooseStarter(load,true);
 })();
 
 if ('serviceWorker' in navigator && ['https:', 'http:'].includes(location.protocol)) {
