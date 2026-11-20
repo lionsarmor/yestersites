@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Windows 3.1 reader · YesterSites</title><link rel="stylesheet" href="../../directory.css"></head>
+<body bgcolor="#ebe5cf" text="#20192e" link="#112485" background="../../assets/gingham.gif"><main>
+<h1>Read a member site in Windows 3.1</h1>
+<p><a href="windows31-gateway.zip"><b>Download the Mosaic launcher and classic gateway</b></a> (Python source ZIP)</p>
+<p>On your modern computer, extract the ZIP. Use Python 3.9 or newer, DOSBox-X with SLIRP, your own installed Windows 3.1 drive, and the Mosaic and Trumpet Winsock archives listed in the included README.</p>
+<pre>python3 launch-windows31.py switchboard-radio --guest /path/to/drive --media-dir media</pre>
+<p>Replace <b>switchboard-radio</b> with the YesterSites member name you want to visit. Mosaic opens the live classic edition with its artwork.</p>
+<h2>Already have a networked DOSBox-X guest?</h2>
+<p>Run the gateway on the modern host. Open the address below in your guest browser.</p>
+<pre>python3 legacy_gateway.py switchboard-radio --port 8077
+http://10.0.2.2:8077/INDEX.HTM</pre>
+<p>Use <b>/BBS.HTM</b> for bulletin screens or <b>/TEXT.HTM</b> for text only. Keep the gateway running while you browse. It reads one member site per session.</p>
+<p>[ <a href="../">Retro Page downloads</a> | <a href="../../">YesterSites</a> ]</p></main></body></html>
