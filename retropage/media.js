@@ -304,15 +304,30 @@ const RetroMedia = (() => {
         const iframe=screen.querySelector('template').content.firstElementChild.cloneNode(true);
         screen.replaceChildren(iframe);iframe.focus();
       });
-      if(document.fullscreenEnabled && deck.requestFullscreen){
+      {
         const full=document.createElement('button');full.type='button';full.className='movie-expand';
         const sizeIcon=()=>{
-          const expanded=document.fullscreenElement===deck;
+          const expanded=document.fullscreenElement===deck || deck.classList.contains('cinema-expanded');
           full.textContent=expanded?'❐':'⛶';full.title=expanded?'Exit fullscreen':'Enter fullscreen';
           full.setAttribute('aria-label',full.title);
         };
         deck.addEventListener('fullscreenchange',sizeIcon);sizeIcon();
-        full.onclick=()=>{const change=document.fullscreenElement===deck?document.exitFullscreen():deck.requestFullscreen();change.catch(()=>{});};
+        function restore(){
+          if(deck.hasAttribute('popover')){deck.hidePopover();deck.removeAttribute('popover');}
+          deck.classList.remove('cinema-expanded');sizeIcon();full.focus();
+        }
+        function expandInPage(){
+          deck.classList.add('cinema-expanded');
+          if(deck.showPopover){deck.setAttribute('popover','manual');deck.showPopover();}
+          sizeIcon();full.focus();
+        }
+        full.onclick=()=>{
+          if(document.fullscreenElement===deck)document.exitFullscreen().catch(sizeIcon);
+          else if(deck.classList.contains('cinema-expanded'))restore();
+          else if(document.fullscreenEnabled && deck.requestFullscreen)deck.requestFullscreen().catch(expandInPage);
+          else expandInPage();
+        };
+        deck.addEventListener('keydown',event=>{if(event.key==='Escape' && deck.classList.contains('cinema-expanded')){event.preventDefault();restore();}});
         deck.querySelector('.movie-console').append(full);
       }
     }
@@ -525,7 +540,8 @@ const RetroMedia = (() => {
 .ref-music[data-playing=true] [data-key=play],.ref-music[data-paused=true] [data-key=pause]{background:var(--ref-face) var(--key-position)/var(--key-size) no-repeat;filter:brightness(.78)}
 .ref-radio[data-channel="2"] [data-key=side]::after{content:"";position:absolute;left:77%;top:17%;height:65%;width:2px;background:#a02c12;box-shadow:1px 0 #f8d36c}
 .ref-deck .ref-key:focus-visible{z-index:2;outline-offset:0}
-.transport [data-sound]::before{content:"◖)) ";font:bold 10px monospace}.transport [data-sound=off]::before{content:"◖× "}`;
+.transport [data-sound]::before{content:"◖)) ";font:bold 10px monospace}.transport [data-sound=off]::before{content:"◖× "}
+.retro-player.cinema.cinema-expanded{position:fixed;inset:0;z-index:9999;box-sizing:border-box;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;border-radius:0}.cinema-expanded .movie-gate{flex:1 1 auto;min-height:0}`;
   const referenceCss=`
 .ref-wrap{display:grid;place-items:center;width:100%;height:100%;min-width:0;min-height:0;container-type:size;pointer-events:auto;text-decoration:none}
 .ref-deck{display:block;position:relative;isolation:isolate;width:min(100cqw,calc(100cqh * var(--rw) / var(--rh)));max-width:100%;aspect-ratio:var(--rw)/var(--rh);background-image:var(--ref-face);background-size:100% 100%;background-repeat:no-repeat;container-type:inline-size;color:#121212;font:12px Arial,sans-serif;text-align:left;letter-spacing:normal;line-height:1;overflow:clip;text-decoration:none}
