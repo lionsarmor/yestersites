@@ -1,17 +1,25 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://yestersites.com/arcade/; style-src 'self' https://yestersites.com/arcade/; img-src 'self' https://yestersites.com/arcade/; connect-src 'self' https:; worker-src blob:; base-uri 'none'; form-action 'none'">
-<title>Cartridge Club</title><link rel="stylesheet" href="deck.css"><script defer src="deck.js?v=gamepad2"></script></head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'wasm-unsafe-eval' 'self' https://yestersites.com/arcade/; style-src 'self' https://yestersites.com/arcade/; img-src 'self' https://yestersites.com/arcade/; connect-src 'self' https:; worker-src blob:; base-uri 'none'; form-action 'none'">
+<title>Cartridge Club</title><link rel="stylesheet" href="deck.css"><script defer src="format.js"></script><script defer src="desk-controls.js"></script><script defer src="deck.js?v=cartridges3"></script></head>
 <body><main class="case">
 <header><strong>Cartridge Club</strong><button type="button" id="full">Full screen</button><span id="power" title="Power off" aria-hidden="true"></span></header>
 <div class="bezel"><div id="display">
 <canvas id="screen" width="256" height="240" tabindex="0" aria-label="Game screen. Arrow keys move. X and Z press A and B. Enter starts, Shift selects."></canvas>
 <div id="curtain"><img id="poster" src="lantern-run.png" alt="" hidden><div id="cart" hidden aria-hidden="true"><i></i></div><button type="button" id="play">Play cartridge</button></div>
 </div></div>
+<div class="session-actions"><button type="button" id="save" disabled>Save game</button><button type="button" id="load-save" disabled>Resume save</button><button type="button" id="settings">Controls</button></div>
 <div class="info"><strong id="label"></strong><span id="status" role="status">Ready</span></div>
 <div class="pad">
 <div class="cross" aria-label="Direction pad"><button data-key="UP" aria-label="Up">▲</button><button data-key="LEFT" aria-label="Left">◀</button><i></i><button data-key="RIGHT" aria-label="Right">▶</button><button data-key="DOWN" aria-label="Down">▼</button></div>
 <div class="switches"><div><button data-key="SELECT">Select</button><button data-key="START">Start</button></div><div><button id="pause" disabled>Pause</button><button id="sound" aria-pressed="false">Sound off</button></div></div>
 <div class="actions"><button data-key="B">B</button><button data-key="A">A</button></div>
-</div><p id="help">Move with arrows · X / Z for A / B · Enter to start</p></main></body></html>
+</div><small id="pad-presence" hidden></small><p id="help">Move with arrows · X / Z for A / B · Enter to start</p></main>
+<dialog id="options"><div class="dialog-heading"><strong>Cartridge controls</strong><button id="close-options" aria-label="Close controls">×</button></div>
+<section><div class="controller-line"><span id="controller-status" role="status">Looking for a controller…</span><button id="reconnect">Reconnect</button></div>
+<div class="layout-options"><label>Layout <select id="hand"><option value="right">Right-handed</option><option value="left">Left-handed</option></select></label><label>Button size <select id="button-size"><option value="normal">Standard</option><option value="large">Large</option></select></label></div>
+<table><thead><tr><th>Action</th><th>Keyboard</th><th>Controller</th></tr></thead><tbody id="bindings"></tbody></table>
+<p id="binding-hint" role="status">Choose a binding, then press its new key or controller button.</p><button id="defaults">Restore defaults</button>
+<details id="transfer"><summary>Transfer a saved game</summary><p>Copy your save code to another device, or paste a code for this cartridge.</p><textarea id="save-code" rows="2" maxlength="1400000" aria-label="Portable save code"></textarea><button id="export-save">Get save code</button> <button id="import-save">Use save code</button></details>
+</section></dialog></body></html>

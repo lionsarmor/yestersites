@@ -2,7 +2,7 @@
 const base = new URL('./', self.location.href);
 const entry = new URL('index.html',base).href;
 const prefix = 'roddy-retro-page:' + base.pathname + ':';
-const version = prefix + '0.13.0-cartridges';
+const version = prefix + '0.13.0-film-club';
 const resources = [
   './assets/member-nav.js','./assets/member-nav.css','./assets/member-key.png',
   './studio-drawer.js','./studio-drawer.css',

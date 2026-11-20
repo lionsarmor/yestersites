@@ -8,14 +8,19 @@
   }
   const $=id=>document.getElementById(id);
   const canvas=$('screen'), context=canvas.getContext('2d',{alpha:false});
-  const source=new URLSearchParams(location.hash.slice(1)).get('rom');
+  const attached=location.hash.startsWith('#data=');
+  const source=attached?null:new URLSearchParams(location.hash.slice(1)).get('rom');
   const bundled=new URL('lantern-run.nes',location.href);
-  const sample=!source || source===bundled.href;
+  const sample=!attached && (!source || source===bundled.href);
+  const pond=!attached && source===new URL('pond-post.gb',location.href).href;
+  let system='nes',fingerprint='',stored=false,lastSave=null,restoreAtStart=false;
+  let stateId=0,saveBusy=false;
+  const stateReplies=new Map();
   const maxSize=2*1024*1024+528;
   let worker=null, workerURL='', state='ready', pending=false, watched, clock=0, animation=0;
   let audio=null, volume=null, nextSound=0, audible=false;
   const held=new Map();
-  const keys={ArrowUp:'UP',ArrowDown:'DOWN',ArrowLeft:'LEFT',ArrowRight:'RIGHT',KeyX:'A',KeyZ:'B',Enter:'START',ShiftLeft:'SELECT',ShiftRight:'SELECT'};
+
 
   function cartridgeURL(){
     if (sample) return bundled;
@@ -53,11 +58,6 @@
     const rom=new Uint8Array(size);
     let offset=0;
     for(const chunk of chunks){rom.set(chunk,offset);offset+=chunk.length;}
-    if(size<16 || rom[0]!==78 || rom[1]!==69 || rom[2]!==83 || rom[3]!==26 || !rom[4] || (rom[7]&12)!==0){
-      throw Error('Choose an uncompressed iNES 1.0 .nes cartridge.');
-    }
-    const expected=16+(rom[6]&4?512:0)+rom[4]*16384+rom[5]*8192;
-    if(expected!==size)throw Error('The cartridge length does not match its header.');
     return rom;
   }
   function input(key,id,down){
@@ -74,6 +74,69 @@
     for(const [key,ids] of held)for(const id of Array.from(ids))input(key,id,false);
     held.clear();
   }
+  function saveButtons(){
+    const active=Boolean(worker && fingerprint && ['paused','playing'].includes(state));
+    $('save').disabled=!active || saveBusy;
+    $('load-save').disabled=saveBusy || (state!=='ready' && !(active && (stored || lastSave)));
+    $('export-save').disabled=!active || saveBusy;$('import-save').disabled=!active || saveBusy;
+  }
+  async function refreshSave(){
+    const id=fingerprint;
+    try{
+      const bytes=await cartridgeSlot('get','state-'+id);
+      if(fingerprint===id && bytes && !lastSave){stored=true;lastSave=bytes;saveButtons();}
+    }catch{}
+  }
+  function engineState(type,packed){
+    return new Promise((resolve,reject)=>{
+      const id=++stateId;
+      const timer=setTimeout(()=>{stateReplies.delete(id);reject(Error('The game did not answer the save request.'));},8000);
+      stateReplies.set(id,{resolve:v=>{clearTimeout(timer);resolve(v);},reject:e=>{clearTimeout(timer);reject(e);}});
+      worker.postMessage({type,id,packed});
+    });
+  }
+  async function saveGame(portable=false){
+    if(saveBusy || !worker)return;
+    pause();saveBusy=true;saveButtons();
+    try{
+      const packed=await engineState('snapshot');lastSave=packed;
+      if(portable){
+        const values=new Uint8Array(packed);let text='';
+        for(let i=0;i<values.length;i+=16384)text+=String.fromCharCode(...values.subarray(i,i+16384));
+        $('save-code').value='CC1.'+fingerprint+'.'+btoa(text);$('save-code').focus();$('save-code').select();
+        $('binding-hint').textContent='Save code ready to copy.';
+      }else{
+        await cartridgeSlot('put','state-'+fingerprint,packed);stored=true;
+        $('status').textContent='Game saved on this device.';
+      }
+    }catch(error){$('status').textContent=error.message; if(!portable)$('help').textContent='Controls → Transfer a saved game can make a portable copy.';}
+    finally{saveBusy=false;saveButtons();}
+  }
+  async function restoreGame(imported){
+    if(saveBusy)return;
+    if(state==='ready'){restoreAtStart=true;await launch();return;}
+    if(!worker)return;
+    pause();saveBusy=true;saveButtons();
+    try{
+      const packed=imported || (await cartridgeSlot('get','state-'+fingerprint).catch(()=>null)) || lastSave;
+      if(!packed)throw Error('No saved game for this cartridge on this device.');
+      await engineState('restore',packed);lastSave=packed;
+      if(imported && $('options').open)$('options').close();
+      resume();$('status').textContent='Saved game resumed.';
+    }catch(error){$('status').textContent=error.message;$('binding-hint').textContent=error.message;}
+    finally{saveBusy=false;saveButtons();}
+  }
+  $('save').onclick=()=>saveGame();$('load-save').onclick=()=>restoreGame();
+  $('export-save').onclick=()=>saveGame(true);
+  $('import-save').onclick=()=>{
+    const code=$('save-code').value.trim().split('.');
+    if(code.length!==3 || code[0]!=='CC1' || code[1]!==fingerprint){$('binding-hint').textContent='Choose a save code for this exact cartridge.';return;}
+    try{
+      const packed=Uint8Array.from(atob(code[2]),c=>c.charCodeAt(0));
+      if(!packed.length || packed.length>1024*1024)throw Error();
+      restoreGame(packed.buffer);
+    }catch{$('binding-hint').textContent='Invalid save code.';}
+  };
   function showState(next,message){
     state=next;document.body.className=next;
     $('status').textContent=message;
@@ -84,8 +147,9 @@
     $('play').disabled=state==='loading';
     $('play').textContent={ready:'Play cartridge',loading:'Loading…',paused:'Resume game',error:'Try again'}[state]||'Play cartridge';
     $('curtain').hidden=state==='playing';
-    $('poster').hidden=!sample || state==='paused';
-    $('cart').hidden=sample || state==='paused';
+    $('poster').hidden=!(sample||pond) || state==='paused';
+    $('cart').hidden=sample || pond || state==='paused';
+    saveButtons();
     for(const button of document.querySelectorAll('[data-key]'))button.disabled=state!=='playing';
   }
   function silence(){
@@ -109,22 +173,10 @@
     const sound=audio.createBufferSource();sound.buffer=buffer;sound.connect(volume);
     nextSound=Math.max(now+.015,nextSound);sound.start(nextSound);nextSound+=buffer.duration;
   }
-  let padEnabled=true;
-  const padKeys={A:0,B:1,SELECT:8,START:9,UP:12,DOWN:13,LEFT:14,RIGHT:15};
-  function readPad(){
-    if(!padEnabled || !navigator.getGamepads)return;
-    let pads;
-    try{pads=navigator.getGamepads();}catch{padEnabled=false;return;}
-    const p=Array.from(pads).find(p=>p && p.mapping==='standard');
-    for(const [key,n] of Object.entries(padKeys)){
-      const x=p?.axes[0]||0,y=p?.axes[1]||0;
-      const stick={LEFT:x<-.45,RIGHT:x>.45,UP:y<-.45,DOWN:y>.45};
-      input(key,'gamepad',Boolean(p?.buttons[n]?.pressed || stick[key]));
-    }
-  }
+  const controls=installDeckControls(input,pause);
   function animate(now){
     if(state!=='playing')return;
-    readPad();
+    controls.poll();
     if(!pending){
       const count=Math.min(2,Math.floor((now-clock)*60/1000));
       if(count>0){
@@ -150,37 +202,66 @@
     showState('loading','Reading cartridge…');
     const download=new AbortController(), timer=setTimeout(()=>download.abort(),15000);
     try{
-      const url=cartridgeURL();
-      // Worker source is assembled exclusively from these two bundled, same-release files.
-      // ROM bytes cross the worker boundary as data and are interpreted by JSNES.
-      const [rom,...sources]=await Promise.all([readCartridge(url,download.signal),
-        ...['jsnes-2.1.0/jsnes.min.js','engine-worker.js'].map(async filename=>{
-          const response=await fetch(new URL(filename,location.href),{signal:download.signal,credentials:'omit',redirect:'error'});
-          if(!response.ok)throw Error('Could not load the cartridge engine.');
-          return response.text();
-        })]);
-      workerURL=URL.createObjectURL(new Blob([sources[0],'\n',sources[1]],{type:'text/javascript'}));
+      let rom;
+      if(attached){
+        const blob=location.hash.slice('#data='.length);
+        if(!blob.length || blob.length>4*Math.ceil(524288/3))throw Error('Attached cartridge exceeds 512 KiB.');
+        try{rom=Uint8Array.from(atob(blob),c=>c.charCodeAt(0));}catch{throw Error('Invalid attached cartridge encoding.');}
+        if(rom.byteLength>524288)throw Error('Attached cartridge exceeds 512 KiB.');
+      }else rom=await readCartridge(cartridgeURL(),download.signal);
+      const info=CartridgeFormat.inspect(rom);system=info.system;
+      fingerprint=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',rom)),b=>b.toString(16).padStart(2,'0')).join('');
+      stored=false;lastSave=null;
+      if(info.title && !pond)$('label').textContent=info.title;
+      if(info.title==='POND POST')$('help').textContent='Deliver three letters. Move to a post box and press A.';
+      canvas.setAttribute('aria-label','Playable game screen. Open Controls for keyboard and controller bindings.');
+      canvas.width=system==='gb'?160:256;canvas.height=system==='gb'?144:240;
+      $('display').classList.toggle('gb',system==='gb');
+      const engine=system==='gb'?'binjgb-6c04827/binjgb.js':'jsnes-2.1.0/jsnes.min.js';
+      async function asset(name,asBinary=false){
+        const response=await fetch(new URL(name,location.href),{signal:download.signal,credentials:'omit',redirect:'error'});
+        if(!response.ok)throw Error('Could not load the cartridge engine.');
+        return asBinary?response.arrayBuffer():response.text();
+      }
+      const [core,codec,adapter,wasm]=await Promise.all([
+        asset(engine),asset('state-worker.js'),asset(system==='gb'?'gb-worker.js':'engine-worker.js'),
+        system==='gb'?asset('binjgb-6c04827/binjgb.wasm',true):null
+      ]);
+      workerURL=URL.createObjectURL(new Blob([core,'\n',codec,'\n',adapter],{type:'text/javascript'}));
       worker=new Worker(workerURL);
       worker.onerror=()=>fail('The cartridge engine could not start.');
       worker.onmessage=({data})=>{
+        if(data.type==='state'){
+          const reply=stateReplies.get(data.id);
+          if(reply){stateReplies.delete(data.id);data.error?reply.reject(Error(data.error)):reply.resolve(data.packed);}
+          return;
+        }
         clearTimeout(watched);
         if(data.type==='error'){fail(data.unsupported?'This cartridge mapper is unsupported.':'This cartridge could not run.');return;}
-        if(data.type==='loaded'){resume();return;}
+        if(data.type==='loaded'){
+          controls.connect();resume();
+          if(restoreAtStart){restoreAtStart=false;restoreGame();}
+          else refreshSave();
+          return;
+        }
         if(data.type==='frame'){
           pending=false;
-          context.putImageData(new ImageData(new Uint8ClampedArray(data.pixels),256,240),0,0);
+          context.putImageData(new ImageData(new Uint8ClampedArray(data.pixels),canvas.width,canvas.height),0,0);
           scheduleSound(data);
         }
       };
-      arm();worker.postMessage({type:'load',rom:rom.buffer},[rom.buffer]);
+      arm();worker.postMessage({type:'load',rom:rom.buffer,wasm},wasm?[rom.buffer,wasm]:[rom.buffer]);
     }catch(error){fail(download.signal.aborted?'Cartridge download timed out.':error.message);}
     finally{clearTimeout(timer);download.abort();}
   }
-  $('label').textContent='Lantern Run';
-  if(!sample){
+  $('label').textContent=pond?'Pond Post':attached?'Attached cartridge':'Lantern Run';
+  if(pond){
+    $('poster').src='pond-post.png';
+    $('help').textContent='Deliver three letters. Move to a post box and press X or the A button.';
+  }else if(!sample && !attached){
     try{$('label').textContent=decodeURIComponent(cartridgeURL().pathname.split('/').pop()||'Game cartridge').slice(0,90);}
     catch{$('label').textContent='Game cartridge';}
-  }else $('help').textContent='Catch six fireflies. Arrows move · hold X or the A button to dash.';
+  }else if(sample)$('help').textContent='Catch six fireflies. Arrows move · hold X or the A button to dash.';
   let expandedByPage=false;
   function sizeLabel(){$('full').textContent=(expandedByPage || document.fullscreenElement)?'Exit full screen':'Full screen';}
   window.addEventListener('message',event=>{
@@ -217,11 +298,12 @@
     button.onblur=()=>input(button.dataset.key,'button',false);
   }
   document.addEventListener('keydown',e=>{
-    if(e.metaKey||e.altKey||e.ctrlKey||!keys[e.code]||state!=='playing')return;
+    const key=controls.key(e.code);
+    if(e.metaKey||e.altKey||e.ctrlKey||!key||state!=='playing' || $('options').open)return;
     if(e.code==='Enter' && e.target.closest('button'))return;
-    e.preventDefault();input(keys[e.code],e.code,true);
+    e.preventDefault();input(key,e.code,true);
   });
-  document.addEventListener('keyup',e=>input(keys[e.code],e.code,false));
+  document.addEventListener('keyup',e=>input(controls.key(e.code),e.code,false));
   window.addEventListener('blur',pause);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
   window.addEventListener('pagehide',e=>{

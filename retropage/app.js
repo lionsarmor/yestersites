@@ -978,7 +978,9 @@
     preview.append(node('strong',null,'Classic HTML'),classic,node('strong',null,'Text browser'),textView);
     preview.onclick=e=>{if(e.target.closest('a'))e.preventDefault();};
     note.setAttribute('role','status');
-    settings.append(node('summary',null,'Edit older editions'),fields,preview,note);
+    const comparisons=node('div','compat-comparison');
+    comparisons.append(fields,preview);
+    settings.append(node('summary',null,'Edit older editions'),comparisons,note);
     section.append(settings);
     const bbs=node('details','compat-bbs'),draft=node('button',null,'Draft a BBS bulletin'),editor=node('div'),title=node('input'),body=node('textarea'),discard=node('button',null,'Discard draft');
     const label=(name,input)=>{const l=node('label',null,name);l.append(input);return l;};
@@ -1039,7 +1041,7 @@
     refresh();
   }
   function playerDialog(o){richDialog(o,()=>playerSettings(o));}
-  function frameSettings(o,isNew){richDialog(o,()=>frameSettings(o,isNew));}
+  function frameDialog(o,isNew){richDialog(o,()=>frameSettings(o,isNew));}
   function craftDialog(o,isNew=false){richDialog(o,()=>craftSettings(o,isNew));}
   function playerSettings(o) {
     const key=mediaKey(o),m=mediaLibrary[key],pageAtOpen=page();
@@ -1195,9 +1197,7 @@
       if(fileError)throw Error(fileError);
       const values=isFlash?{swf,text:v.text,stageFit:v.stageFit,stageColor:v.stageColor,stageControls:v.transport==='on'}:{text:v.text,markup:v.markup,styles:v.styles};
       RetroCraft.fields({...o,...values});
-      if(insertOnApply){
-        applyObject(o,values,true);
-      }else applyObject(o,values);
+      applyObject(o,values,insertOnApply);
     },insertOnApply?'Insert on page':'Apply');
     const root=$('dialog-fields'),preview=node('div','craft-preview'),feedback=node('small');
     feedback.setAttribute('role','status');

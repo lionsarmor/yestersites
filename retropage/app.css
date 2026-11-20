@@ -959,16 +959,16 @@ dialog.site-preview[open]{display:flex;flex-direction:column}
 
 .cartridge-drop:not([hidden]){display:grid;gap:6px;padding:12px;border:2px dashed #736f59;background:#f7f2db}.cartridge-drop input{max-width:100%}#dialog-fields label[hidden]{display:none}
 
-#dialog:has(.compatibility){width:min(628px,95vw)}
+#dialog:has(.compatibility){width:min(628px,94vw);max-width:94vw}
 .compatibility{border:2px groove #ddd5c2;background:#ebe8da;padding:9px;color:#292625}
 .compatibility h3{font:700 15px Arial,sans-serif;margin:0 0 6px}
 .compat-matrix{display:grid;grid-template-columns:minmax(100px,1fr) 2fr;gap:1px;margin:0 0 6px;background:#aca696;border:1px solid #aaa08c}
 .compat-matrix dt,.compat-matrix dd{padding:3px 5px;margin:0;background:#f7f4e7}
 .compat-matrix dt{font-weight:bold;background:#dedacc}.compatibility summary{cursor:pointer;font-weight:bold;padding:4px}
-.compatibility details[open]:first-of-type{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start;gap:6px}
+.compat-comparison{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start;gap:6px}
 .compatibility summary,.compatibility output{grid-column:1/-1}
 .compat-controls,.compat-samples,.compat-bbs>div:not([hidden]){min-width:0;display:grid;gap:7px}
 .compatibility .compat-samples{border:2px inset #e7e3d5;background:#fffdf3;padding:7px;font:14px/1.3 Georgia,serif;overflow-wrap:anywhere}
 .compat-samples img{max-width:100%;height:auto}.compat-samples strong{font:700 11px Arial,sans-serif;color:#544937;border-bottom:1px dotted #8f8879;padding-bottom:2px}
 .compatibility details+details{border-top:1px solid #a49b88;margin-top:6px;padding-top:3px}
-@media(max-width:480px){.compatibility details[open]:first-of-type{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:480px){.compat-comparison{grid-template-columns:minmax(0,1fr)}}

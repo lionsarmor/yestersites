@@ -150,6 +150,28 @@ const RetroCraft = (() => {
     return '<iframe class="craft-window" sandbox="" title="'+title+'" srcdoc="'+escape(doc)+'"></iframe>';
   }
   const css='.cartridge-stage{display:flex;flex-direction:column;width:100%;height:100%;background:#233832;pointer-events:auto}.cartridge-size{flex:none;align-self:end;color:#fff4d8;background:#243c32;font:bold 14px Arial;cursor:pointer}.cartridge-stage .cartridge-window{flex:1;min-height:0}.cartridge-stage:fullscreen,.cartridge-stage.game-expanded{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;max-height:none;box-sizing:border-box;margin:0;padding:0;border:0;z-index:2147483647}.craft-window{display:block;box-sizing:border-box;width:100%;height:100%;border:0;pointer-events:auto}.phone .craft-window{height:auto;aspect-ratio:4/3}.phone .cartridge-window{aspect-ratio:420/460;min-height:290px}@media(max-width:600px){.board .craft-window{min-height:160px}}';
+  function validStill(bytes){
+    const at=i=>bytes.charCodeAt(i),word=i=>at(i)+256*at(i+1);
+    const width=word(6),height=word(8);
+    if(!/^GIF8[79]a/.test(bytes)||bytes.length>98304||!(width>0&&width<=320&&height>0&&height<=240))return false;
+    const table=flag=>(flag&128)?3*(2<<(flag&7)):0;
+    let pos=13+table(at(10)),frames=0;
+    while(pos<bytes.length){
+      const marker=at(pos++);
+      if(marker===59)return frames===1&&pos===bytes.length;
+      if(marker===33){pos++;} // Extension label, followed by data sub-blocks.
+      else if(marker===44){
+        const left=word(pos),top=word(pos+2),w=word(pos+4),h=word(pos+6);
+        if(++frames>1||!w||!h||left+w>width||top+h>height)return false;
+        pos+=9+table(at(pos+8));
+        const codeSize=at(pos++);if(!(codeSize>=2&&codeSize<=8))return false;
+      }else return false;
+      while(pos<bytes.length&&at(pos)){pos+=1+at(pos);}
+      if(pos>=bytes.length)return false;
+      pos++;
+    }
+    return false;
+  }
   function fallbackFields(o){
     const out={};
     for(const [key,label,limit] of [['fallbackText','Classic caption',500],['fallbackTranscript','Text edition transcript',8000],['fallbackUrl','Classic link',2048],['transcriptUrl','Transcript link',2048]]){
@@ -165,8 +187,7 @@ const RetroCraft = (() => {
     if(poster){
       if(typeof poster!=='string'||poster.length>131094||!/^data:image\/gif;base64,[a-zA-Z0-9+/]+={0,2}$/.test(poster))throw Error('Choose a GIF still of 96 KiB or less.');
       let bytes;try{bytes=atob(poster.slice(22));}catch{throw Error('The poster image could not be read.');}
-      const w=bytes.charCodeAt(6)+256*bytes.charCodeAt(7),h=bytes.charCodeAt(8)+256*bytes.charCodeAt(9);
-      if(!/^GIF8[79]a/.test(bytes)||bytes.length<14||bytes.length>98304||bytes.at(-1)!==';'||!(w>0&&w<=320&&h>0&&h<=240))throw Error('Use a GIF still up to 320 by 240 pixels.');
+      if(!validStill(bytes))throw Error('Use a single-frame GIF still up to 320 by 240 pixels.');
     }
     out.fallbackPoster=poster;
     return out;

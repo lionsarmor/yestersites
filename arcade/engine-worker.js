@@ -1,8 +1,12 @@
 /* JSNES is loaded from the pinned distribution before this worker program. */
 'use strict';
 let nes, frame, samples, sampleCount;
-self.onmessage = ({data}) => {
+self.onmessage = async ({data}) => {
   try {
+    if (data.type==='snapshot' || data.type==='restore'){
+      await stateCommand(data,()=>new TextEncoder().encode(JSON.stringify(nes.toJSON())),bytes=>nes.fromJSON(JSON.parse(new TextDecoder().decode(bytes))));
+      return;
+    }
     if (data.type === 'load') {
       nes = new jsnes.NES({
         sampleRate: 44100,

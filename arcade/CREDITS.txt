@@ -5,3 +5,8 @@ https://github.com/bfirsh/jsnes/releases/tag/v2.1.0
 https://registry.npmjs.org/jsnes/-/jsnes-2.1.0.tgz
 
 Lantern Run is an original YesterSites NROM homebrew game about Pip the moth. Its ROM, art, font, audio and source in the source/ directory may be copied, hosted, modified, and redistributed, including commercially. This permission applies to Lantern Run. Other cartridges have their own authors and permissions.
+
+The Game Boy and Game Boy Color core is binjgb by Ben Smith and contributors, distributed under the MIT license. The pinned JavaScript and WebAssembly distribution and license are in binjgb-6c04827/. Source revision:
+https://github.com/binji/binjgb/tree/6c04827f63d272f32afd86138a8e7262b3800344
+
+Pond Post is an original YesterSites Game Boy homebrew. Its ROM, art, font, audio and source in source/build_pond.py and source/pond-post.asm may be copied, hosted, modified, and redistributed, including commercially. Rebuild from source with RGBDS 1.0.4 by running python3 source/build_pond.py.

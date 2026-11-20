@@ -14,9 +14,10 @@ function installCartridgeStorage(){
   }
   window.addEventListener('message',async event=>{
     const request=event.data?.cartridgeStorage,port=event.ports[0];
-    if(!port || !request || !['get','put'].includes(request.action))return;
+    const gamepad=event.data?.cartridgePad==='connect';
+    if(!port || (!gamepad && (!request || !['get','put'].includes(request.action))))return;
     const standalone=/^\/arcade\/(?:index\.html)?$/.test(location.pathname) && window===window.parent;
-    const button=Array.from(document.querySelectorAll('iframe[src]')).find(f=>{
+    const frame=Array.from(document.querySelectorAll('iframe[src]')).find(f=>{
       if(f.contentWindow!==event.source)return false;
       try{
         const url=new URL(f.getAttribute('src'),document.baseURI);
@@ -24,7 +25,21 @@ function installCartridgeStorage(){
         return url.origin==='https://yestersites.com' && /^\/arcade\/(?:index\.html)?$/.test(url.pathname);
       }catch{return false;}
     });
-    if(!button)return;
+    if(!frame)return;
+    if(gamepad){
+      let active=true,previous='';
+      port.onmessage=()=>{active=false;port.close();};
+      const poll=()=>{
+        if(!active || !frame.isConnected){port.close();return;}
+        let pad;
+        try{pad=Array.from(navigator.getGamepads?.()||[]).find(p=>p && p.connected);}catch{}
+        const current=pad?{name:pad.id.slice(0,90),buttons:pad.buttons.slice(0,32).map(b=>b.pressed),axes:pad.axes.slice(0,2).map(v=>Math.round(v*100)/100)}:null;
+        const signature=JSON.stringify(current);
+        if(signature!==previous){previous=signature;port.postMessage({pad:current});}
+        requestAnimationFrame(poll);
+      };
+      poll();return;
+    }
     const slot=request.slot,isPrefs=slot==='controls-v1';
     if(typeof slot!=='string' || (!isPrefs && !/^state-[0-9a-f]{64}$/.test(slot)))return;
     const limit=isPrefs?4096:1024*1024;

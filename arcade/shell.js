@@ -18,3 +18,11 @@ window.addEventListener('message',event=>{
     game.postMessage({cartridgeExpanded:event.data.cartridgeExpanded},'*');
   }
 });
+
+if(parent===window)installCartridgeStorage();
+else window.addEventListener('message',event=>{
+  if(event.source===document.querySelector('iframe').contentWindow && event.ports.length===1 &&
+    (event.data?.cartridgeStorage || event.data?.cartridgePad==='connect')){
+    parent.postMessage(event.data,'*',[event.ports[0]]);
+  }
+});
