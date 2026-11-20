@@ -1,7 +1,7 @@
 /* Cache only the editor shell. Projects and unpublished image data stay in the page's local storage. */
 const base = new URL('./', self.location.href);
 const prefix = 'roddy-retro-page:' + base.pathname + ':';
-const version = prefix + '0.7.0-web-members-bbs';
+const version = prefix + '0.7.0-web-members-bbs2';
 const resources = [
   ...['bbs','html','film','archive','youtube','rumble','music','radio','clip','audio','menu','art','files','welcome','bulletin'].flatMap(name=>['','-still'].map(suffix=>'./assets/instruments/'+name+suffix+'.gif')),
   './index.html',

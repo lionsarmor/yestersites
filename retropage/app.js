@@ -367,7 +367,7 @@
     } else if (drawer === 'Objects') {
       const groups = node('select', 'stamp-search');
       groups.setAttribute('aria-label', 'Object group');
-      for (const name of ['Basic shapes', 'Web objects']) groups.add(new Option(name));
+      for (const name of ['Basic shapes', 'Web objects', 'Media players']) groups.add(new Option(name));
       groups.value = objectGroup;
       groups.onchange=()=>{objectGroup=groups.value;renderDrawer();};
       root.append(groups);
@@ -382,9 +382,12 @@
           choices.append(b);
         }
       }
-      const builtin = Object.entries({...videoPresets,...window.retroObjects.presets}).filter(([key]) =>
-        RetroMedia.isPanel({widget:key}) ? objectGroup==='Basic shapes' : objectGroup !== 'Basic shapes' && key.startsWith('bbs-') === (objectGroup === 'BBS objects'));
-      const extra = objectGroup === 'Basic shapes' ? palette.shapes : objectGroup === 'BBS objects' ? palette.bbs : palette.web;
+      const builtin=Object.entries({...videoPresets,...window.retroObjects.presets}).filter(([key])=>{
+        if(objectGroup==='Media players')return Object.hasOwn(mediaIcons,key);
+        if(RetroMedia.isPanel({widget:key}))return objectGroup==='Basic shapes';
+        return objectGroup==='Web objects' && !key.startsWith('bbs-');
+      });
+      const extra=objectGroup==='Basic shapes'?palette.shapes:objectGroup==='Web objects'?palette.web:{};
       for (const [key,spec] of [...builtin, ...Object.entries(extra)]) {
         const b=node('button','object-choice');
         const part=spec.parts[0], src=mediaIcons[key]?'assets/instruments/'+mediaIcons[key]+(matchMedia('(prefers-reduced-motion: reduce)').matches?'-still':'')+'.gif':spec.preview || (key==='counter'?counterSource(part.text):part.src);
