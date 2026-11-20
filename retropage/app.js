@@ -887,13 +887,14 @@
       'video-player':['Movie title','Movie file','Projection booth','Start movie on arrival','Loop movie'],
       'media-youtube':['Video title','YouTube watch or share URL','YouTube player','Start video on arrival','Loop video'],
       'media-rumble':['Video title','Rumble video or Share / Embed address','Rumble player'],
-      'media-internet-archive':['Item title','Archive.org movie item or embed address','Archive projectionist']
+      'media-internet-archive':['Item title','Archive.org movie identifier or item URL','Archive projectionist']
     }[key];
     const [name,sourceLabel,section,arrival,loopLabel]=options;
     const fields=[
       {name:'text',label:name,value:o.text,required:true,maxLength:120,section},
       {name:'media',label:sourceLabel,value:o.href,required:true,maxLength:2048,section}
     ];
+    if(key==='media-youtube')fields.push({name:'start',type:'number',label:'Start video at (seconds)',min:0,max:604800,value:RetroMedia.source(o.href,o.widget).start||0,section});
     if(key==='audio-music' || key==='audio-radio')fields.push({name:'secondSrc',label:key==='audio-music'?'Side B · second track (optional)':'Station 2 · second stream (optional)',value:o.secondSrc||'',maxLength:2048,section});
     if(key==='audio-music' || key==='audio-radio')fields.push({name:'secondTitle',label:key==='audio-music'?'Side B label':'Station 2 name',value:o.secondTitle||'',maxLength:120,section});
     if(key==='video-player' || m.voice)fields.push({name:'alternateSrc',label:key==='video-player'?'Alternate movie encoding (optional)':'Backup audio source (optional)',value:o.alternateSrc||'',maxLength:2048,section});
@@ -901,7 +902,16 @@
     if(loopLabel)fields.push({name:'loop',label:loopLabel,type:'checkbox',value:o.loop,section:'Playback'});
     fields.push({name:'playerSkin',label:'Window style',type:'select',options:Object.entries(RetroMedia.skins),value:o.playerSkin||'deck',section:'Appearance'});
     const apply=async v=>{
-      const href=await mediaLink(v.media,o.widget);
+      const entered=key==='media-internet-archive' && /^[a-zA-Z0-9._-]+$/.test(v.media.trim())?'https://archive.org/details/'+v.media.trim():v.media;
+      let href=await mediaLink(entered,o.widget);
+      if(key==='media-youtube'){
+        const ref=RetroMedia.source(href,o.widget);if(!ref.id)throw Error('Enter a YouTube video address.');
+        const seconds=Number(v.start);
+        if(!Number.isInteger(seconds)||seconds<0||seconds>604800)throw Error('Enter a start time between 0 and 604800 seconds.');
+        const typedFreshLink=href!==o.href && seconds===(RetroMedia.source(o.href,o.widget).start||0);
+        const start=typedFreshLink?ref.start:seconds;
+        href='https://www.youtube.com/watch?v='+ref.id+(start?'&t='+start:'');
+      }
       if(!$('dialog').open || dialogAccept!==apply || pageAtOpen!==page())return;
       if(mediaKey({...o,href})!==key)throw Error('Use the '+m.label+' source shown above. Other players are in the Media players drawer.');
       applyObject(o,{text:v.text,href,playerSkin:v.playerSkin,alternateSrc:v.alternateSrc?RetroMedia.source(v.alternateSrc,o.widget).url:'',
@@ -911,10 +921,19 @@
     const pane=node('div','instrument-preview'),form=$('dialog-fields');
     form.prepend(pane);
     const provider=key.startsWith('media-');
+    function silence(){
+      for(const media of pane.querySelectorAll('audio,video'))media.pause();
+    }
     function audition(){
+      silence();
       const draft={...o,href:form.querySelector('[name=media]').value,text:form.querySelector('[name=text]').value,playerSkin:form.querySelector('[name=playerSkin]').value,
         alternateSrc:form.querySelector('[name=alternateSrc]')?.value||'',secondTitle:form.querySelector('[name=secondTitle]')?.value||'',secondSrc:form.querySelector('[name=secondSrc]')?.value||'',autoplay:false,loop:!!form.querySelector('[name=loop]')?.checked};
       try{
+        if(key==='media-internet-archive' && /^[a-zA-Z0-9._-]+$/.test(draft.href.trim()))draft.href='https://archive.org/details/'+draft.href.trim();
+        if(key==='media-youtube'){
+          const ref=RetroMedia.source(draft.href,o.widget);
+          if(ref.id)draft.href='https://www.youtube.com/watch?v='+ref.id+'&t='+(Number(form.querySelector('[name=start]').value)||0);
+        }
         pane.innerHTML=RetroMedia.render(draft,'modern');RetroMedia.mount(pane);
       }catch{pane.textContent='Enter a playable source to preview it here.';}
     }
@@ -923,7 +942,7 @@
       const load=node('button',null,'Preview '+m.label);load.type='button';load.onclick=audition;pane.replaceChildren(load);
     }
     form.addEventListener('change',refreshPreview);refreshPreview();
-    $('dialog').addEventListener('close',()=>{form.removeEventListener('change',refreshPreview);pane.replaceChildren();},{once:true});
+    $('dialog').addEventListener('close',()=>{form.removeEventListener('change',refreshPreview);silence();pane.replaceChildren();},{once:true});
   }
   function frameDialog(o,isNew){
     const p=page(),split=o.widget==='split-frame';
