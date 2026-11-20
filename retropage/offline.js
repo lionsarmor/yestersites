@@ -1,7 +1,7 @@
 /* Cache only the editor shell. Projects and unpublished image data stay in the page's local storage. */
 const base = new URL('./', self.location.href);
 const prefix = 'roddy-retro-page:' + base.pathname + ':';
-const version = prefix + '0.4.3-5a134b4adc73';
+const version = prefix + '0.4.4-web-drawer1';
 const resources = [
   './index.html',
   './app.css',
@@ -13,6 +13,8 @@ const resources = [
   './project.js',
   './presets.js',
   './objects.js',
+  './palette.js',
+  './assets/credits/pixelarticons.txt',
   './templates.js',
   './zip.js',
   './exports.js',

@@ -1,0 +1,31 @@
+Pixelarticons v1.8.0 by Gerrit Halfmann
+Source: https://github.com/halfmage/pixelarticons/tree/0817e28c92dcb9615b39c54776e10d882113e9d5/svg
+
+The following pixel icons are adapted from that revision, recolored and
+rasterized as palette GIFs. The GIF comment also carries the upstream notice.
+
+archive.svg, article.svg, book-open.svg, bookmarks.svg, calendar.svg, chat.svg, clipboard.svg, clock.svg, contact-multiple.svg, deskphone.svg, download.svg, edit.svg, folder.svg, gamepad.svg, image-gallery.svg, logout.svg, membercard.svg, music.svg, radio-on.svg, radio-signal.svg, radio-tower.svg, save.svg, server.svg, trophy.svg, warning-box.svg.
+
+Geometric stamp artwork and preset layouts were drawn for Retro Page.
+
+MIT License
+
+Copyright (c) 2019 Gerrit Halfmann
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

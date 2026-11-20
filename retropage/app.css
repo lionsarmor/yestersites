@@ -327,34 +327,44 @@ main {
   font-size: 12px;
   margin: 9px 0 3px;
 }
-.stamp-grid {
+.stamp-grid,
+.object-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(74px, 100%), 1fr));
   gap: 3px;
 }
-.stamp {
-  display: flex;
+.stamp,
+.object-grid .object-choice {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  justify-items: center;
+  align-items: start;
   min-width: 0;
-  align-items: center;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 2px;
+  margin: 0;
+  padding: 4px;
+  gap: 4px;
+  font: 11px/1.25 var(--font);
+  text-align: center;
   background: var(--paper);
-  font-size: 11px;
-  padding: 4px 1px;
-  min-height: 51px;
-  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .stamp img {
-  max-width: 64px;
-  max-height: 30px;
+  width: 100%;
+  height: clamp(54px, 5.5vw, 76px);
+  object-fit: contain;
   image-rendering: pixelated;
+  background-color: var(--light);
+  border: 1px inset var(--face);
 }
 .stamp span {
-  max-width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
+.object-grid { margin-top: 4px; }
+.object-grid .object-choice { align-content: center; min-height: 55px; }
+.object-grid .object-choice .object-art { width: 44px; height: 30px; }
 .stamp-credits {
   display: block;
   font-size: 11px;
@@ -690,35 +700,62 @@ dialog {
 dialog::backdrop {
   background: #28251e55;
 }
+#dialog {
+  width: min(415px, 94vw);
+  min-width: 0;
+  max-height: min(90dvh, 740px);
+  overflow: hidden;
+  box-shadow: inset 1px 1px white, inset -1px -1px #524f48, 4px 5px #302d2966;
+}
+#dialog.object-dialog { width: min(474px, 94vw); }
+#dialog-form { display: flex; flex-direction: column; max-height: min(calc(90dvh - 10px), 730px); }
+#dialog .panel-head {
+  flex: none;
+  height: 29px;
+  color: white;
+  background: linear-gradient(to right, #42292d, #814451);
+  border: none;
+}
+#dialog .panel-head h2 { font-size: 14px; }
+#dialog .panel-head h2::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: url(assets/paper-pencil.png) center / contain no-repeat;
+}
+#dialog .square { color: var(--ink); }
 #dialog-fields {
   display: grid;
-  gap: 7px;
-  padding: 10px;
+  gap: 8px;
+  padding: 12px;
+  min-height: 0;
+  overflow: auto;
+  font-size: 13px;
 }
-#dialog-fields label {
+#dialog-fields fieldset {
+  margin: 0;
+  min-width: 0;
   display: grid;
-  gap: 3px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+  padding: 6px 9px 9px;
+  border: 2px groove var(--light);
 }
-#dialog-fields label.check {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-#dialog-fields textarea {
-  min-height: 68px;
-  resize: vertical;
-}
-#dialog-fields p {
-  margin: 0 0 3px;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-}
-.dialog-buttons {
-  padding: 0 10px 9px;
-}
-.dialog-buttons button {
-  min-width: 68px;
-}
+#dialog-fields fieldset:has([name=href]) { grid-template-columns: 1fr; }
+#dialog-fields legend { padding: 0 4px; font-weight: bold; }
+#dialog-fields label { display: grid; align-content: start; gap: 3px; }
+#dialog-fields input, #dialog-fields textarea, #dialog-fields select { max-width: 100%; }
+#dialog-fields label.check { display: flex; align-items: center; gap: 4px; }
+#dialog-fields textarea { min-height: 52px; resize: vertical; }
+#dialog-fields p { margin: 0; line-height: 1.4; overflow-wrap: anywhere; }
+#dialog-error { margin: 0 10px; color: #751127; font-size: 13px; }
+#dialog-error:empty { display: none; }
+.dialog-buttons { flex: none; margin: 0; border-top: 2px groove var(--light); padding: 8px 10px; }
+.dialog-buttons button { min-width: 72px; }
+#dialog-submit { font-weight: bold; outline: 1px solid var(--ink); }
 @media (max-width: 880px) {
   main {
     grid-template-columns: 141px minmax(170px, 1fr) 238px;

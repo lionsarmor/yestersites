@@ -63,6 +63,14 @@
       return false;
     }
   }
+  function webAddress(value) {
+    let address = value.trim();
+    if (/^(?:[a-z0-9-]+\.)+[a-z0-9-]+(?::\d+)?(?:[/?#]|$)/i.test(address)) address = 'https://' + address;
+    if (!linkOK(address)) {
+      throw Object.assign(Error('Enter a website such as example.com, a path starting with /, or choose a page from the list.'), {field:'href'});
+    }
+    return address;
+  }
   function check(test, message) {
     if (!test) throw Error(message);
   }
@@ -419,6 +427,7 @@
     lettering,
     terminal,
     linkOK,
+    webAddress,
     readImage,
     dimensions,
   };

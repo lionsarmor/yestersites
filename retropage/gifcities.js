@@ -10,7 +10,7 @@ window.GifCities = (() => {
   }
   function panel(root, choose) {
     let generation = 0, controller, results = [], offset = 0;
-    const pageSize = 8;
+    const pageSize = 24;
     function clear() {
       generation++;
       if (controller) controller.abort();
@@ -36,25 +36,23 @@ window.GifCities = (() => {
       pager.append(prev,element('span',(offset+1)+'–'+Math.min(offset+pageSize,results.length)+' of '+results.length),next);
       const feedback = element('p');
       feedback.setAttribute('role','status');
-      const run = generation;
       for (const item of results.slice(offset,offset+pageSize)) {
         const tile = element('button'), image = element('img');
         tile.type='button'; tile.className='stamp'; tile.title=item.name;
+        if (choose) image.crossOrigin='anonymous';
         image.src=item.url; image.alt=''; image.loading='lazy'; image.referrerPolicy='no-referrer';
         tile.append(image,element('span',item.name)); grid.append(tile);
-        tile.onclick = async () => {
-          tile.disabled=true;
-          feedback.textContent=choose ? 'Loading '+item.name+'…' : '';
-          try {
-            if (choose) await choose(item, () => run === generation && tile.isConnected);
-            else {
-              const large=element('img'); large.src=item.url; large.alt=item.name;
-              large.style.maxWidth='100%'; feedback.replaceChildren(large);
-            }
-            if (choose && run === generation) feedback.textContent='';
-          } catch (error) { feedback.textContent=error.message; }
-          finally { tile.disabled=false; }
-        };
+        image.draggable=false;
+        if (choose) {
+          tile.draggable=true;
+          tile.dataset.archive=item.id;
+          tile.onclick=()=>choose(item);
+        } else {
+          tile.onclick=()=>{
+            const large=element('img'); large.src=item.url; large.alt=item.name;
+            large.style.maxWidth='100%'; feedback.replaceChildren(large);
+          };
+        }
       }
       root.append(pager,grid,feedback);
     }
@@ -78,7 +76,7 @@ window.GifCities = (() => {
             const id=row.checksum;
             if (!/^[A-Z2-7]{32}$/.test(id) || seen.has(id)) continue;
             seen.add(id);
-            matches.push({url:base+id+'.gif',name:(String(row.gif||'').split('/').pop() || row.url_text || term).slice(0,90)});
+            matches.push({id,url:base+id+'.gif',name:(String(row.gif||'').split('/').pop() || row.url_text || term).slice(0,90)});
           }
           if(cache.size>=6) cache.delete(cache.keys().next().value);
           cache.set(term,matches);
@@ -90,5 +88,15 @@ window.GifCities = (() => {
     }
     return {search,clear};
   }
-  return {panel};
+  async function imageData(id) {
+    if (typeof id !== 'string' || !/^[A-Z2-7]{32}$/.test(id)) throw Error('Choose a GifCities result again.');
+    const response = await fetch(base + id + '.gif', {credentials:'omit', signal:AbortSignal.timeout(30000)});
+    if (!response.ok) throw Error('GifCities could not load that GIF. Select it again to retry.');
+    if (Number(response.headers.get('content-length')) > 98304) throw Error('This GIF exceeds the 96 KiB image limit.');
+    const blob = await response.blob();
+    const src = await window.RetroModel.readImage(blob.slice(0, blob.size, 'image/gif'));
+    window.RetroModel.imageType(src);
+    return src;
+  }
+  return {panel, imageData};
 })();

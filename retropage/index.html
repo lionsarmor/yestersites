@@ -12,6 +12,7 @@
     <link rel="icon" href="./assets/paper-pencil.png" />
     <link rel="stylesheet" href="./app.css" />
     <script defer src="./objects.js"></script>
+    <script defer src="./palette.js"></script>
     <script defer src="./presets.js"></script>
     <script defer src="./templates.js"></script>
     <script defer src="./project.js"></script>
@@ -165,13 +166,14 @@
         ><img src="./assets/roddy-wordmark.png" alt="RODDY" width="76"
       /></a>
     </footer>
-    <dialog id="dialog">
+    <dialog id="dialog" aria-labelledby="dialog-title">
       <form id="dialog-form">
         <div class="panel-head">
           <h2 id="dialog-title"></h2>
           <button type="button" class="square" data-action="dialog-close" aria-label="Close">×</button>
         </div>
         <div id="dialog-fields"></div>
+        <p id="dialog-error" role="alert"></p>
         <div class="dialog-buttons">
           <button type="button" data-action="dialog-close">Cancel</button
           ><button type="submit" id="dialog-submit">OK</button>

@@ -49,7 +49,7 @@
   let doc = M.copy(presets.sample),
     active = 'home',
     selected = null,
-    drawer = new URLSearchParams(location.search).get('drawer') === 'gifs' ? 'GIFs' : 'Pages',
+    drawer = new URLSearchParams(location.search).get('drawer') === 'gifs' ? 'GIFs' : 'Objects',
     armed = null,
     gesture = null,
     editing = null,
@@ -228,6 +228,9 @@
     root.replaceChildren();
     $('dialog-title').textContent = title;
     dialogAccept = accept;
+    $('dialog-error').textContent = '';
+    $('dialog').classList.toggle('object-dialog', fields.some(field => field.name === 'font_family' || field.name === 'w'));
+    const sections = new Map();
     for (const f of fields) {
       if (f.note) {
         root.append(node('p', null, f.note));
@@ -266,7 +269,21 @@
       }
       for (const k of ['min', 'max', 'maxLength', 'required', 'readOnly'])
         if (f[k] !== undefined) c[k] = f[k];
-      root.append(label);
+      if (f.name === 'href') {
+        c.placeholder = 'example.com or /path';
+        c.oninput = () => { if (c.value.trim()) root.querySelector('[name=target]').value = ''; };
+      }
+      if (f.name === 'target') c.onchange = () => {
+        if (c.value) root.querySelector('[name=href]').value = '';
+      };
+      const section = f.section;
+      if (section && !sections.has(section)) {
+        const group = node('fieldset');
+        group.append(node('legend', null, section));
+        sections.set(section, group);
+        root.append(group);
+      }
+      (sections.get(section) || root).append(label);
     }
     $('dialog-submit').textContent = submit;
     $('dialog').showModal();
@@ -277,16 +294,17 @@
     const values = {};
     for (const c of $('dialog-fields').querySelectorAll('[name]'))
       values[c.name] = c.type === 'checkbox' ? c.checked : c.value;
+    const cb = dialogAccept;
     try {
-      const cb = dialogAccept;
-      $('dialog').close();
       if (cb) await cb(values);
+      if (dialogAccept === cb && $('dialog').open) $('dialog').close();
     } catch (e) {
-      status(e.message);
-      alert(e.message);
+      $('dialog-error').textContent = e.message;
+      if (e.field) $('dialog-fields').querySelector('[name='+e.field+']')?.focus();
     }
   });
   function setDrawer(value) {
+    if (drawer === 'GIFs') artScroll = $('drawer-content').scrollTop;
     drawer = value;
     renderDrawer();
   }
@@ -318,7 +336,9 @@
     return artLoading;
   }
   let artGroup = artGroups[0], artPage = 0;
-  let objectGroup = 'Web objects';
+  let objectGroup = 'Basic shapes', artPanel, artScroll = 0;
+  const palette = window.retroPalette;
+  const widgets = {...window.retroObjects.presets, ...palette.shapes, ...palette.web, ...palette.bbs};
   function renderDrawer() {
     if (!$('drawer-content')) return;
     $('drawer-title').textContent = drawer === 'GIFs' ? 'GIF Stamps' : drawer;
@@ -327,6 +347,7 @@
       b.classList.toggle('active', b.dataset.drawer === drawer);
     const root = $('drawer-content');
     root.replaceChildren();
+    root.scrollTop = 0;
     if (drawer === 'Pages') {
       for (const [id, p] of M.pages(doc)) {
         const b = node('button', 'drawer-row' + (id === active ? ' selected-row' : ''));
@@ -338,31 +359,34 @@
     } else if (drawer === 'Objects') {
       const groups = node('select', 'stamp-search');
       groups.setAttribute('aria-label', 'Object group');
-      for (const name of ['Web objects', 'BBS objects', 'Basic shapes']) groups.add(new Option(name));
+      for (const name of ['Basic shapes', 'Web objects', 'BBS objects']) groups.add(new Option(name));
       groups.value = objectGroup;
       groups.onchange=()=>{objectGroup=groups.value;renderDrawer();};
       root.append(groups);
+      const choices=node('div','object-grid');
+      root.append(choices);
       if (objectGroup === 'Basic shapes') {
         for (const [kind, name] of Object.entries(M.kinds)) {
           const b = button('', 'add-' + kind, 'object-choice');
           b.append(glyph(kind), document.createTextNode(name));
           b.draggable = true;
           b.dataset.dragType = kind;
-          root.append(b);
+          choices.append(b);
         }
-      } else {
-        for (const [key,spec] of Object.entries(window.retroObjects.presets)) {
-          if (key.startsWith('bbs-') !== (objectGroup === 'BBS objects')) continue;
-          const b=node('button','object-choice');
-          const part=spec.parts[0], src=key==='counter'?counterSource(part.text):part.src;
-          let icon=glyph(part.kind);
-          if(src){
-            icon=node('img','object-art');
-            icon.alt='';icon.src=src;icon.draggable=false;
-          }
-          b.append(icon,document.createTextNode(spec.label));
-          b.draggable=true; b.dataset.widget=key; root.append(b);
+      }
+      const builtin = Object.entries(window.retroObjects.presets).filter(([key]) =>
+        objectGroup !== 'Basic shapes' && key.startsWith('bbs-') === (objectGroup === 'BBS objects'));
+      const extra = objectGroup === 'Basic shapes' ? palette.shapes : objectGroup === 'BBS objects' ? palette.bbs : palette.web;
+      for (const [key,spec] of [...builtin, ...Object.entries(extra)]) {
+        const b=node('button','object-choice');
+        const part=spec.parts[0], src=spec.preview || (key==='counter'?counterSource(part.text):part.src);
+        let icon=glyph(part.kind);
+        if(src){
+          icon=node('img','object-art');
+          icon.alt='';icon.src=src;icon.draggable=false;
         }
+        b.append(icon,document.createTextNode(spec.label));
+        b.draggable=true; b.dataset.widget=key; choices.append(b);
       }
     } else {
       if(!artReady){
@@ -373,6 +397,8 @@
         });
         return;
       }
+      if (artPanel) { root.append(artPanel); root.scrollTop=artScroll; return; }
+      artPanel = node('div', 'art-library');
       const collection = node('select', 'stamp-search');
       collection.setAttribute('aria-label', 'Artwork collection');
       for (const name of artGroups) collection.add(new Option(name));
@@ -385,15 +411,8 @@
       const content = node('div');
       const archiveButton=node('button', 'gifcities-link', 'Search GifCities');
       archiveButton.type='button';
-      const remote=node('div'), lookup=GifCities.panel(remote, async (item, current) => {
-        const response=await fetch(item.url,{credentials:'omit',signal:AbortSignal.timeout(30000)});
-        if(!response.ok) throw Error('This GIF could not be loaded.');
-        if(Number(response.headers.get('Content-Length'))>98304) throw Error('This GIF exceeds the 96 KiB image limit.');
-        const src=await M.readImage(await response.blob());
-        M.imageType(src);
-        await M.dimensions(src);
-        if(current()) place({kind:'image',src,label:item.name,alt:item.name});
-      });
+      const remote=node('div'), lookup=GifCities.panel(remote, item =>
+        place({kind:'image', archive:item.id, label:item.name}));
       function searchArchive(){
         content.hidden=true;
         remote.hidden=false;
@@ -404,7 +423,8 @@
       }
       archiveButton.onclick=searchArchive;
       s.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();searchArchive();}};
-      root.append(collection,s,archiveButton,remote,content);
+      artPanel.append(collection,s,archiveButton,remote,content);
+      root.append(artPanel);
       function fill() {
         content.replaceChildren();
         const query = filter.trim().toLowerCase();
@@ -412,7 +432,7 @@
           (artGroup === artGroups[0] || st.group === artGroup ||
             (artGroup === 'Animated GIFs' && (st.animated || animatedBuiltins.has(st.label)))) &&
           (st.label+' '+st.group+' '+(st.alt || '')).toLowerCase().includes(query));
-        const count = 12;
+        const count = 24;
         const last = Math.max(0, Math.ceil(matching.length/count)-1);
         artPage = Math.min(artPage, last);
         if (!matching.length) content.append(node('p', null, 'No matching artwork.'));
@@ -618,7 +638,7 @@
     document.title = 'Retro Page — ' + (doc.title || 'Untitled homepage');
     $('page-status').textContent = active === 'home' ? 'Home' : page().title;
     $('size-status').textContent = page().width + ' × ' + page().height;
-    renderDrawer();
+    if (drawer === 'Pages' || !$('drawer-content').childElementCount) renderDrawer();
     drawObjects();
     renderLayers();
     renderProperties();
@@ -699,6 +719,7 @@
       const [x, y] = point(e);
       const data = armed;
       armed = null;
+      paper.classList.remove('pick-target');
       insert(data, x, y).catch((er) => status(er.message));
       return;
     }
@@ -753,7 +774,7 @@
   paper.addEventListener('dblclick', (e) => {
     const o = object();
     if (!o || !e.target.closest('[data-object]')) return;
-    ['image', 'rule'].includes(o.kind) ? properties() : editInline();
+    ['image', 'rule', 'link'].includes(o.kind) ? properties() : editInline();
   });
   function place(data) {
     armed = data;
@@ -780,7 +801,7 @@
     return image.toDataURL('image/png');
   }
   function insertWidget(key,x,y) {
-    const p=page(), spec=window.retroObjects.presets[key], parts=spec.parts;
+    const p=page(), spec=widgets[key], parts=spec.parts;
     const gw=Math.max(...parts.map(part=>(part.dx||0)+part.w));
     const gh=Math.max(...parts.map(part=>(part.dy||0)+part.h));
     const scale=Math.min(1,p.width/gw,p.height/gh);
@@ -792,7 +813,7 @@
       const storedWidget = Object.hasOwn(spec,'saveAs') ? spec.saveAs : key;
       if (storedWidget) o.widget = storedWidget;
       if (key==='counter') o.src=counterSource(o.text);
-      if (key==='bbs-menu') o.href='page:'+(M.pages(doc).find(([id])=>id!==active)?.[0]||'home');
+      if (key==='bbs-menu' || (storedWidget==='bbs-menu' && !o.href)) o.href='page:'+(M.pages(doc).find(([id])=>id!==active)?.[0]||'home');
       if (key==='wallpaper') Object.assign(o,{x:0,y:0,w:p.width,h:p.height});
       return o;
     });
@@ -827,6 +848,10 @@
       const replace=first && first.kind==='image' && !first.text.trim() && !first.href && !first.x && !first.y && first.w===p.width && first.h===p.height;
       p.items.splice(0,replace?1:0,o);selected=o.id;record('Applied '+data.label+' as page wallpaper.');return;
     }
+    if (data.archive) {
+      status('Loading ' + data.label + ' from GifCities…');
+      data = {...data, src:await GifCities.imageData(data.archive)};
+    }
     if (data.src) {
       const [w, h] = await M.dimensions(data.src);
       if (active !== id || p !== page()) return;
@@ -838,11 +863,39 @@
       o.src = data.src;
       o.text = data.alt || data.label || 'Image';
     }
+    if (o.kind === 'link') {
+      drawObjects();
+      dialog('Insert link', [
+        {name:'text', label:'Link text', value:o.text, required:true, maxLength:8000},
+        ...linkFields(''),
+      ], values => {
+        const href = linkValue(values);
+        if (!href) throw Object.assign(Error('Enter a web address or choose a page in this site.'), {field:'href'});
+        if (p.items.length >= 64) throw Error('A page supports up to 64 objects.');
+        Object.assign(o, {text:values.text, href});
+        p.items.push(o);
+        selected = o.id;
+        record('Placed link.');
+      }, 'Insert');
+      return;
+    }
+    if (p.items.length >= 64) throw Error('A page supports up to 64 objects.');
     p.items.push(o);
     selected = o.id;
     record('Placed ' + M.kinds[o.kind] + '.');
     if (o.kind === 'text') editInline();
-    if (o.kind === 'link') properties();
+  }
+  function linkFields(href) {
+    const internal = href.startsWith('page:');
+    return [
+      {name:'href', label:'Web address', section:'Link destination', value:internal ? '' : href, maxLength:2048},
+      {name:'target', label:'Or link to page', section:'Link destination', type:'select',
+        options:[['', 'Choose a page…'], ...M.pages(doc).map(([id, p]) => [id, id === 'home' ? 'Home' : p.title])],
+        value:internal ? href.slice(5) : ''},
+    ];
+  }
+  function linkValue(values) {
+    return values.target ? 'page:' + values.target : M.webAddress(values.href);
   }
   function properties() {
     const o = object();
@@ -874,25 +927,7 @@
         max,
         required: true,
       });
-    if (o.kind !== 'rule')
-      fields.push(
-        {
-          name: 'href',
-          label: 'Web address',
-          value: o.href.startsWith('page:') ? '' : o.href,
-          maxLength: 2048,
-        },
-        {
-          name: 'target',
-          label: 'Or link to page',
-          type: 'select',
-          options: [
-            ['', 'None'],
-            ...M.pages(doc).map(([id, p]) => [id, id === 'home' ? 'Home' : p.title]),
-          ],
-          value: o.href.startsWith('page:') ? o.href.slice(5) : '',
-        },
-      );
+    if (o.kind !== 'rule') fields.splice(1, 0, ...linkFields(o.href));
     if (['text', 'link', 'box'].includes(o.kind))
       fields.push(
         {
@@ -925,12 +960,17 @@
       { name: 'color', label: 'Ink', type: 'color', value: o.color },
       { name: 'fill', label: 'Fill (hex or blank for transparent)', value: o.fill },
     );
+    for (const f of fields) {
+      if (['x','y','w','h'].includes(f.name)) f.section = 'Position and size';
+      else if (['href','target'].includes(f.name)) f.section = 'Link destination';
+      else if (f.name !== 'text') f.section = 'Appearance';
+    }
     dialog(
       M.kinds[o.kind] + ' properties',
       fields,
       (v) => {
         if ('target' in v) {
-          v.href = v.target ? 'page:' + v.target : v.href.trim();
+          v.href = linkValue(v);
           delete v.target;
         }
         for (const k of ['x', 'y', 'w', 'h', 'font_size']) if (k in v) v[k] = Number(v[k]);
@@ -1403,6 +1443,7 @@
           'Artwork credits',
           [
             { note: 'Retro Page artwork and Late Night Signal by RODDY.' },
+            { url: 'assets/credits/pixelarticons.txt', label: 'Object drawer icons — Pixelarticons credits and license' },
             { url: 'assets/credits/art-library.txt', label: 'New artwork collections, source credits and permissions' },
             { url: 'assets/credits/art-sources.json', label: 'Archived artwork file-by-file sources' },
             {
@@ -1464,7 +1505,7 @@
       return;
     }
     const widget=e.target.closest('[data-widget]');
-    if(widget){const key=widget.dataset.widget;place({widget:key,label:window.retroObjects.presets[key].label});return;}
+    if(widget){const key=widget.dataset.widget;place({widget:key,label:widgets[key].label});return;}
     const st = e.target.closest('[data-stamp]');
     if (st) {
       place({ kind: 'image', ...stamps[Number(st.dataset.stamp)] });
@@ -1489,12 +1530,12 @@
     if (e.target.closest('[data-layer]')) properties();
   });
   $('drawer-content').addEventListener('dragstart', (e) => {
-    const b = e.target.closest('[data-stamp],[data-drag-type],[data-widget]');
+    const b = e.target.closest('[data-stamp],[data-drag-type],[data-widget],[data-archive]');
     if (b)
       e.dataTransfer.setData(
         'application/x-retro-page-tool',
         JSON.stringify(
-          b.dataset.widget ? {widget:b.dataset.widget} : b.dataset.stamp !== undefined
+          b.dataset.archive ? {kind:'image', archive:b.dataset.archive, label:b.title} : b.dataset.widget ? {widget:b.dataset.widget} : b.dataset.stamp !== undefined
             ? { kind: 'image', stamp: Number(b.dataset.stamp) }
             : { kind: b.dataset.dragType },
         ),
@@ -1515,17 +1556,22 @@
         const raw = e.dataTransfer.getData('application/x-retro-page-tool');
         if (!raw) return;
         data = JSON.parse(raw);
-        if (data.widget && Object.hasOwn(window.retroObjects.presets, data.widget)) {
+        if (data.widget && Object.hasOwn(widgets, data.widget)) {
           armed=null; insertWidget(data.widget,x,y);return;
         }
         if (!Object.hasOwn(M.kinds, data.kind)) return;
-        if ('stamp' in data) Object.assign(data, stamps[data.stamp]);
-        else if (data.kind === 'image') {
+        if (data.archive) {
+          data = {kind:'image', archive:data.archive, label:String(data.label || 'Archive GIF').slice(0,90)};
+        } else if ('stamp' in data) {
+          if (!Number.isInteger(data.stamp) || !stamps[data.stamp]) return;
+          data = {kind:'image', ...stamps[data.stamp]};
+        } else if (data.kind === 'image') {
           $('image-file').click();
           return;
         }
       }
       armed = null;
+      paper.classList.remove('pick-target');
       await insert(data, x, y);
     } catch (err) {
       status(err.message);
