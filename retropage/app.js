@@ -1446,12 +1446,16 @@
     clipboardOffset += 8;
     record('Pasted object.');
   }
-  function save() {
+  async function save() {
     finishInline(true);
     const data = JSON.stringify(M.normalize(doc), null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     if (blob.size > 24 * 1024 * 1024) throw Error('Project exceeds the 24 MiB desktop file limit.');
-    downloadBlob(blob, cleanName(doc.title) + '.yst');
+    const filename = cleanName(doc.title) + '.yst';
+    if (window.retroPageDesktop?.save) {
+      try { await window.retroPageDesktop.save(blob, filename); }
+      catch(error){ if(error.name!=='AbortError')status('Could not save project. '+error.message); return; }
+    } else downloadBlob(blob, filename);
     status('Saved an editable .yst project.');
   }
   function publish() {
@@ -1570,7 +1574,7 @@
         $('open-file').click();
         break;
       case 'save':
-        save();
+        await save();
         break;
       case 'undo':
         undo(-1);
@@ -2039,7 +2043,7 @@
   else if(firstVisit && drawer==='Objects')RetroStudioDrawer.chooseStarter(load,true);
 })();
 
-if ('serviceWorker' in navigator && ['https:', 'http:'].includes(location.protocol)) {
+if (!document.querySelector('script[src="./desktop-window.js"]') && 'serviceWorker' in navigator && ['https:', 'http:'].includes(location.protocol)) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./offline.js').catch(() => {
       // Local saves and the downloadable editor still work where workers are disabled.

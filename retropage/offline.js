@@ -2,7 +2,7 @@
 const base = new URL('./', self.location.href);
 const entry = new URL('index.html',base).href;
 const prefix = 'roddy-retro-page:' + base.pathname + ':';
-const version = prefix + '0.10.2-account-edit';
+const version = prefix + '0.10.3-account-edit';
 const resources = [
   './studio-drawer.js','./studio-drawer.css',
   ...['dial-up','fan-club','late-night','moon-relay','personal-blog','player-two','radio-shack'].map(name=>'./assets/starters/'+name+'.webp'),
