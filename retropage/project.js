@@ -15,7 +15,7 @@
       slug: '',
       byline: '',
       profile: 'classic',
-      listed: false,
+      listed: true,
       width: 640,
       height: 480,
       background: '#ffffff',

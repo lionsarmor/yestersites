@@ -46,7 +46,7 @@
       .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-')
       .trim()
       .slice(0, 80) || 'Homepage';
-  let doc = M.copy(presets.sample),
+  let doc = {...M.copy(presets.sample),listed:true},
     active = 'home',
     selected = null,
     drawer = new URLSearchParams(location.search).get('drawer') === 'gifs' ? 'GIFs' : 'Objects',
@@ -345,6 +345,7 @@
   const videoPresets=Object.fromEntries(['YouTube','Rumble','Internet Archive'].map(label=>[
     'media-'+label.toLowerCase().replace(' ','-'),{...window.retroObjects.presets['video-player'],label:label+' video',saveAs:'video-player'}]));
   for(const [mode,label] of Object.entries(RetroMedia.voices))videoPresets['audio-'+mode]={...window.retroObjects.presets['audio-player'],label,saveAs:'audio-player'};
+  const mediaIcons={'video-player':'film','audio-player':'audio','audio-clip':'clip','audio-music':'music','audio-radio':'radio','media-youtube':'youtube','media-rumble':'rumble','media-internet-archive':'archive'};
   const widgets = {...videoPresets, ...window.retroObjects.presets, ...palette.shapes, ...palette.web, ...palette.bbs};
   function renderDrawer() {
     if (!$('drawer-content')) return;
@@ -386,7 +387,7 @@
       const extra = objectGroup === 'Basic shapes' ? palette.shapes : objectGroup === 'BBS objects' ? palette.bbs : palette.web;
       for (const [key,spec] of [...builtin, ...Object.entries(extra)]) {
         const b=node('button','object-choice');
-        const part=spec.parts[0], src=spec.preview || (key==='counter'?counterSource(part.text):part.src);
+        const part=spec.parts[0], src=mediaIcons[key]?'assets/instruments/'+mediaIcons[key]+(matchMedia('(prefers-reduced-motion: reduce)').matches?'-still':'')+'.gif':spec.preview || (key==='counter'?counterSource(part.text):part.src);
         let icon=glyph(part.kind);
         if(src){
           icon=node('img','object-art');
@@ -661,7 +662,7 @@
     }
   }
   function render() {
-    $('window-title').textContent = 'Retro Page — ' + (doc.title || 'Untitled homepage') + '.yst';
+    $('window-title').textContent = 'Retro Page — ' + (doc.title || 'Untitled homepage');
     document.title = 'Retro Page — ' + (doc.title || 'Untitled homepage');
     $('page-status').textContent = active === 'home' ? 'Home' : page().title;
     $('size-status').textContent = page().width + ' × ' + page().height;
@@ -1264,44 +1265,43 @@
     status('Saved an editable .yst project.');
   }
   function publish() {
-    dialog(
-      'Publish to YesterSites',
-      [
-        { name: 'slug', label: 'Site address', value: doc.slug, maxLength: 40, required: true },
-        {
-          name: 'listed',
-          label: 'List in the YesterSites directory',
-          type: 'checkbox',
-          value: doc.listed,
-        },
-        { note: 'Review all '+M.pages(doc).length+' pages together at the YesterSites publishing desk.' },
-      ],
-      (v) => {
-        const d = M.normalize({ ...doc, slug: v.slug.trim(), listed: v.listed });
-        if (!d.title.trim() || (!d.items.length && !d.bbsScreen?.length))
-          throw Error('Add a title and a page object or BBS block before publishing.');
-        const bytes = new TextEncoder().encode(JSON.stringify(d));
-        if(bytes.length>16*1024*1024)throw Error('Reduce this project below 16 MiB before publishing.');
-        if(bytes.length>850000){
-          doc.slug=d.slug;doc.listed=d.listed;save();
-          const a=node('a');a.href='https://yestersites.com/desktop/publish/';a.target='_blank';a.rel='noopener';a.click();
-          status('Choose the downloaded .yst in the publishing desk.');return;
-        }
-        const chars = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
-        const target =
-          'https://yestersites.com/desktop/publish/#draft=' +
-          btoa(chars).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        doc.slug = d.slug;
-        doc.listed = d.listed;
-        record('Prepared your page for the publishing desk.');
-        const a = node('a');
-        a.href = target;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        a.click();
-      },
-      'Continue',
-    );
+    finishInline(true);
+    const service='https://yestersites-webring.jamesmweeksjr.chatgpt.site';
+    const suggested=doc.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,40).replace(/^-|-$/g,'');
+    dialog('Publish to YesterSites',[
+      {name:'title',label:'Site name',value:doc.title,maxLength:80,required:true},
+      {name:'slug',label:'Site address',value:doc.slug||suggested,maxLength:40,required:true},
+      {name:'listed',label:'List my site in the YesterSites directory',type:'checkbox',value:doc.listed},
+      {note:'Your pages and pictures publish together. New webmasters can create an account when they publish.'}
+    ],v=>{
+      const project=M.normalize({...doc,title:v.title.trim(),slug:v.slug.trim().toLowerCase(),listed:v.listed});
+      if(!project.title || (!project.items.length && !project.bbsScreen?.length))throw Error('Add a title and a page object or BBS block before publishing.');
+      const data=JSON.stringify(project);
+      if(new Blob([data]).size>16*1024*1024)throw Error('Reduce this project below 16 MiB before publishing.');
+      const form=document.createElement('form'),field=document.createElement('textarea');
+      form.method='post';form.enctype='text/plain';form.action=service+'/api/editor/handoff';form.target='_blank';form.rel='noopener';form.hidden=true;
+      field.name='project';field.value=data;form.append(field);document.body.append(form);
+      form.submit();form.remove();
+      Object.assign(doc,{title:project.title,slug:project.slug,listed:project.listed});record('Opened the publishing window.');
+    },'Publish site');
+    const field=$('dialog-fields').querySelector('[name=slug]'),notice=node('output','address-check');
+    notice.setAttribute('aria-live','polite');field.after(notice);
+    let timer;
+    function check(){
+      clearTimeout(timer);
+      const slug=field.value.trim().toLowerCase();
+      if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)){notice.textContent='Use lowercase letters, numbers and hyphens.';return;}
+      const address='yestersites.com/members/'+slug+'/';notice.textContent=address;
+      timer=setTimeout(async()=>{
+        try{
+          const response=await fetch(service+'/api/address?slug='+encodeURIComponent(slug),{credentials:'omit'});
+          if(!response.ok)throw Error();
+          const data=await response.json();
+          if(field.isConnected && field.value.trim().toLowerCase()===slug)notice.textContent=address+' · '+(data.state==='available'?'Available':'Claimed. Only its owner can update it.');
+        }catch{if(field.value.trim().toLowerCase()===slug)notice.textContent=address+' · Will check at publish time.';}
+      },220);
+    }
+    field.addEventListener('input',check);check();
   }
   function bbsCommand() {
     const c = $('bbs-input').value.trim().toUpperCase();
@@ -1365,7 +1365,7 @@
             { name: 'starter', label: 'Starter site', type: 'select', options: Object.keys(window.RetroTemplates) },
             { note: 'Create an editable copy. Save your current project first to keep it.' },
           ],
-          ({ starter }) => load(M.copy(window.RetroTemplates[starter]), 'Created a new project from ' + starter + '.'),
+          ({ starter }) => load({...M.copy(window.RetroTemplates[starter]),listed:true}, 'Created a new project from ' + starter + '.'),
           'Create site',
         );
         break;
@@ -1376,7 +1376,7 @@
           [{ note: 'Replace the current drawing board? Save a .yst copy to keep this project.' }],
           () =>
             load(
-              key === 'new' ? M.blank() : presets.sample,
+              key === 'new' ? M.blank() : {...presets.sample,listed:true},
               key === 'new' ? 'Created a blank project.' : 'Opened Late Night Signal.',
             ),
           'Open',

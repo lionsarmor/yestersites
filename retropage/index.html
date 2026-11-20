@@ -27,8 +27,8 @@
     <header>
       <div class="titlebar">
         <img src="./assets/paper-pencil.png" width="21" height="21" alt="" /><strong id="window-title"
-          >Retro Page — Late Night Signal.yst</strong
-        ><a href="https://yestersites.com/desktop/" class="download-app">Desktop edition</a>
+          >Retro Page — Late Night Signal</strong
+        ><span class="member-nav"><a href="https://yestersites.com/signin/" target="_blank" rel="noopener">Sign in</a> · <a href="https://yestersites.com/signup/" target="_blank" rel="noopener">Join</a> <a href="https://yestersites.com/desktop/" class="download-app">Desktop edition</a></span>
       </div>
       <nav id="menus" class="menubar" aria-label="Editor menus"></nav>
       <div class="toolbar" id="toolbar" aria-label="Editing tools">
@@ -50,7 +50,7 @@
         <div class="toolgroup">
           <button data-action="preview"><i class="toolicon" style="--i: 7"></i>Preview</button>
         </div>
-        <button class="mode-switch" data-action="author-bbs">Edit BBS</button>
+        <div class="toolgroup"><button data-action="author-bbs"><picture class="desk-glyph"><source media="(prefers-reduced-motion: reduce)" srcset="./assets/instruments/bbs-still.gif"><img src="./assets/instruments/bbs.gif" width="36" height="32" alt=""></picture>Edit BBS</button></div>
         <button data-action="publish" class="publish">
           <i class="toolicon" style="--i: 8"></i>Publish
         </button>
@@ -162,24 +162,31 @@
       </aside>
     </main>
     <section id="bbs-workbench" hidden aria-label="BBS editor">
-      <div class="bbs-tools"><button data-action="return-html">◂ HTML editor</button><strong>BBS editor</strong>
-        <button data-action="save">Save project</button><button data-action="undo">Undo</button><button data-action="redo">Redo</button>
-        <button data-action="preview-bbs">Test terminal</button><button data-action="publish">Publish</button></div>
+      <div class="toolbar bbs-tools" aria-label="BBS editing tools">
+        <div class="toolgroup"><button data-action="save"><i class="toolicon" style="--i:2"></i>Save</button><button data-action="undo"><i class="toolicon" style="--i:3"></i>Undo</button><button data-action="redo"><i class="toolicon redo-icon" style="--i:3"></i>Redo</button></div><div class="toolgroup"><button data-action="preview-bbs"><picture class="desk-glyph"><source media="(prefers-reduced-motion: reduce)" srcset="./assets/instruments/bbs-still.gif"><img src="./assets/instruments/bbs.gif" width="36" height="32" alt=""></picture>Test terminal</button><button data-action="return-html"><picture class="desk-glyph"><source media="(prefers-reduced-motion: reduce)" srcset="./assets/instruments/html-still.gif"><img src="./assets/instruments/html.gif" width="36" height="32" alt=""></picture>HTML editor</button></div>
+        <button class="publish" data-action="publish"><i class="toolicon" style="--i:8"></i>Publish</button>
+        <img class="wordmark" src="./assets/retro-page-logo.png" width="157" alt="Retro Page">
+      </div>
       <div class="bbs-layout">
         <section class="panel bbs-controls"><h2>Screen directory</h2>
-          <label>Page <select id="screen-page"></select></label><p id="screen-mode"></p><button id="screen-custom"></button>
-          <fieldset id="block-tools"><legend>Screen blocks</legend>
-            <select id="block-list" size="6" aria-label="Screen blocks"></select>
-            <div><button id="block-up">Move up</button> <button id="block-down">Down</button> <button id="block-remove">Remove</button></div>
-            <label>Add a block <select id="block-preset"></select></label><button id="block-add">Add block</button>
+          <label>Screen <select id="screen-page"></select></label><button data-action="add-page">New screen…</button>
+          <fieldset><legend>Screen blocks</legend><select id="block-list" size="9" aria-label="Screen blocks"></select>
+            <div class="block-order"><button id="block-up" title="Move selected block up">Up</button><button id="block-down" title="Move selected block down">Down</button><button id="block-copy">Copy</button><button id="block-remove">Remove</button></div>
           </fieldset>
+          <p id="screen-mode"></p><button id="screen-custom"></button>
         </section>
-        <section class="panel bbs-design"><h2>Terminal screen</h2>
+        <section class="panel bbs-design"><h2>Terminal monitor</h2>
           <div class="bbs-display"><label>Columns <select id="screen-width"><option>32</option><option>40</option><option>80</option></select></label>
             <label>Phosphor <select id="screen-color"><option>Green</option><option>Amber</option><option>White</option></select></label></div>
-          <div class="crt"><pre id="screen-output"></pre></div>
-          <fieldset id="block-fields"><legend>Block properties</legend><label>Contents <textarea id="block-text" maxlength="8000" rows="5" spellcheck="false"></textarea></label>
-            <label id="block-link-label">Menu destination <select id="block-link"></select></label></fieldset>
+          <div class="monitor-shell"><div class="monitor-strip"><strong id="monitor-title"></strong><span id="monitor-size"></span></div>
+            <div class="crt"><pre id="screen-output" tabindex="0" aria-label="Terminal output"></pre></div>
+            <form id="monitor-command"><label>Command <input id="monitor-input" maxlength="4" size="4" autocomplete="off" aria-label="Terminal command"></label><button>Enter</button><small>1–9 menu · H home · B back</small></form>
+          </div>
+          <fieldset id="block-fields"><legend id="block-caption">Block properties</legend><label>Contents <textarea id="block-text" maxlength="8000" rows="5" spellcheck="false"></textarea></label>
+            <label id="block-link-label">Destination <select id="block-link"></select></label><label id="block-url-label" hidden>Web or file address <input id="block-url" type="url" placeholder="https://"></label></fieldset>
+        </section>
+        <section class="panel bbs-library"><h2>Block library</h2><label>Collection <select id="block-group"></select></label>
+          <div id="bbs-stamps" class="bbs-stamps"></div>
         </section>
       </div>
     </section>
