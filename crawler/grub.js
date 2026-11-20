@@ -148,24 +148,9 @@
     $('network').textContent='Offline card file · the local site index.'; return;
   }
   var seenCursors=Object.create(null),loaded=Object.create(null),loadedCount=0;
-  async function directoryPage(path) {
-    for (var attempt=0; ; attempt++) {
-      try {
-        var options={credentials:'omit',cache:'no-store',headers:{Accept:'application/json'}};
-        if (window.AbortSignal && AbortSignal.timeout) options.signal=AbortSignal.timeout(12000);
-        var res=await fetch(path,options);
-        if (res.ok) return await res.json();
-      } catch (error) {
-        if (attempt>=2) throw error;
-        res=null;
-      }
-      if (res && (attempt>=2 || (res.status<500 && res.status!==429))) throw Error('Directory unavailable');
-      await new Promise(function(resolve){setTimeout(resolve,600*(attempt+1));});
-    }
-  }
   function readDirectory(cursor) {
     var path=memberOrigin+'/api/directory'+(cursor?'?cursor='+encodeURIComponent(cursor):'');
-    return directoryPage(path).then(function (data) {
+    return window.fetchGrubDirectoryPage(path).then(function (data) {
       if (!Array.isArray(data.sites)) throw new Error('directory');
       data.sites.forEach(function (row) {
         var member=published(row);

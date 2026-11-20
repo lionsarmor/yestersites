@@ -297,16 +297,13 @@
   });
   const explicit=clean(new URLSearchParams(location.search).get('url')||'');
   const previous=prefs.launch==='resume' && clean(read('ring-surfer.last-page',''));
-  let releaseFirstPage;
+  let releaseFirstPage,directoryFailed=false;
   const firstPage=new Promise(resolve=>{releaseFirstPage=resolve;});
   (async()=>{
     let cursor;
     do {
       const u=new URL('/api/directory',host);if(cursor)u.searchParams.set('cursor',cursor);
-      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
-      let response;
-      try{response=await fetch(u,{credentials:'omit',signal:controller.signal});}finally{clearTimeout(timer);}if(!response.ok)break;
-      const data=await response.json();
+      const data=await window.fetchGrubDirectoryPage(u.href);
       for(const m of data.sites){
         if(!/^[a-z0-9-]{1,40}$/.test(m.slug))continue;
         const base=host+'/members/'+m.slug+'/';
@@ -319,14 +316,19 @@
       cursor=data.nextCursor;
     }while(cursor);
     update();
-  })().catch(()=>{}).finally(releaseFirstPage);
+  })().catch(()=>{directoryFailed=true;}).finally(releaseFirstPage);
   if(playableMode){
     document.title='Play the neighborhood · Ring Surfer';
     msg('Finding playable member sites…');
     firstPage.then(()=>{
       const start=explicit && playableSites.has(site(explicit)?.base)?explicit:another();
       if(start)navigate(start);
-      else{msg('No playable sites available. Reload to try again.');$('next').disabled=true;}
+      else{
+        msg(directoryFailed?'Could not reach Grub.':'There are no listed playable sites yet.');
+        $('next').disabled=true;
+        const retry=document.createElement('button');retry.textContent='Reload directory';retry.onclick=()=>location.reload();
+        $('view').replaceChildren(retry);
+      }
     });
   }else if(explicit || previous)navigate(explicit || previous);
   else{
