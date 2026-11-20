@@ -15,3 +15,8 @@ header,.info,.pad,.actions,.switches>div{display:flex;align-items:center}header,
 #full{margin-left:auto;margin-right:8px;background:#e0e6c4;color:#253b2e;border:2px outset #cbd6b8;font:bold 12px Verdana;padding:3px 8px}
 @media(pointer:coarse) and (min-width:310px){.cross{grid-template:repeat(3,40px)/repeat(3,40px)}.actions button{width:44px;height:44px}.switches button{min-height:34px}}
 @media(orientation:landscape) and (max-height:540px) and (min-width:550px){.case{display:grid;max-width:none;grid-template-columns:minmax(240px,1fr) minmax(210px,35%);grid-template-rows:auto 1fr auto}.case header{grid-column:1/-1}.bezel{grid-area:2/1}.pad{grid-area:2/2;flex-wrap:wrap;justify-content:space-evenly}.info{grid-area:3/1}#help{grid-area:3/2}}
+:fullscreen .case{max-width:none;width:100%;height:100%;padding:clamp(5px,1vw,14px)}
+@media (orientation:landscape) and (min-width:720px){
+  :fullscreen .case{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,24%);grid-template-rows:auto minmax(0,1fr) auto}
+  :fullscreen header{grid-column:1/-1}:fullscreen .bezel{grid-area:2/1}:fullscreen .pad{grid-area:2/2;flex-direction:column;justify-content:center;gap:16px}:fullscreen .info{grid-area:3/1}:fullscreen #help{grid-area:3/2}
+}
