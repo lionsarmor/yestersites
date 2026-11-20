@@ -295,6 +295,36 @@ const RetroMedia = (() => {
   const css='.retro-player{pointer-events:auto;box-sizing:border-box;display:flex;flex-direction:column;max-width:100%;height:100%;padding:3px;color:#20232a;background:#c8c7c0;border:2px outset #eeeae0;font:12px/1.2 Arial,sans-serif;text-align:left}.retro-player b{display:block;color:#fff6df;background:#22364b;padding:3px 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.retro-player :is(video,audio,iframe){min-height:0;width:100%;max-width:100%;border:0;flex:1;background:#181b20}.retro-player.audio audio{min-height:32px}.retro-player.video{min-height:0}.object .retro-player a,.phone .retro-player a{display:block;width:auto;height:auto;min-height:0;padding:2px 5px;color:#173459;font:11px Arial,sans-serif}.phone .retro-player{width:100%;max-width:30em}.phone .retro-player.video :is(video,iframe){min-height:200px}';
   function installAudioPanels(root=document){
     mountReferencePlayers(root);
+    for(const stage of root.querySelectorAll('.cartridge-stage')){
+      const frame=stage.querySelector('iframe'),button=stage.querySelector('button');
+      if(!frame || !button || stage.dataset.ready)continue;
+      stage.dataset.ready='true';
+      const expanded=()=>document.fullscreenElement===stage || stage.classList.contains('game-expanded');
+      function sync(){
+        button.textContent=expanded()?'Exit full screen':'Full screen';
+        frame.contentWindow?.postMessage({cartridgeExpanded:expanded()},'*');
+      }
+      function fitPage(on){
+        stage.classList.toggle('game-expanded',on);
+        if(stage.showPopover){
+          if(on){stage.setAttribute('popover','manual');stage.showPopover();}
+          else if(stage.hasAttribute('popover')){stage.hidePopover();stage.removeAttribute('popover');}
+        }
+        sync();
+      }
+      async function toggle(){
+        if(document.fullscreenElement===stage){await document.exitFullscreen();return;}
+        if(expanded()){fitPage(false);return;}
+        try{await stage.requestFullscreen();}catch{fitPage(true);}
+      }
+      button.onclick=toggle;stage.addEventListener('fullscreenchange',sync);
+      window.addEventListener('message',event=>{
+        if(event.source!==frame.contentWindow)return;
+        if(event.data?.cartridgeSize==='toggle')toggle();
+        if(event.data?.cartridgeSize==='exit' && stage.classList.contains('game-expanded'))fitPage(false);
+      });
+      stage.addEventListener('keydown',event=>{if(event.key==='Escape' && stage.classList.contains('game-expanded'))fitPage(false);});
+    }
     for(const deck of root.querySelectorAll('.cinema')){
       if(deck.dataset.cinemaReady)continue;
       deck.dataset.cinemaReady='true';

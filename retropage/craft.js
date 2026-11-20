@@ -119,7 +119,7 @@ const RetroCraft = (() => {
     if(o.widget==='game-cartridge'){
       const src=arcade+'#rom='+encodeURIComponent(cartridgeURL(o.romUrl));
       if(old)return '[Game cartridge] '+title+' · <a href="'+escape(src)+'">Open game player</a>';
-      return '<span style="display:flex;flex-direction:column;height:100%;width:100%"><a style="flex:none;background:#243c32;color:#fff4d8;text-align:center;font: bold 14px/24px Arial" href="'+escape(src)+'" target="_blank" rel="noopener">Open full game player ↗</a><iframe style="flex:1;min-height:0" allow="fullscreen *; gamepad *" class="craft-window cartridge-window" title="'+title+'" sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" src="'+escape(src)+'"></iframe></span>';
+      return '<span class="cartridge-stage"><button type="button" class="cartridge-size">Full screen</button><iframe allow="fullscreen *; gamepad *" class="craft-window cartridge-window" title="'+title+'" sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" src="'+escape(src)+'"></iframe></span>';
     }
     if(o.widget==='flash-movie'||o.widget==='flash-book'){
       if(old)return o.widget==='flash-book'?fields(o).scenes.map(s=>'<p><b>'+escape(s.title)+'</b><br>'+escape(s.body).replace(/\n/g,'<br>')+'</p>').join(''):'[Flash movie] '+title;
@@ -142,7 +142,7 @@ const RetroCraft = (() => {
     const doc='<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; style-src &#39;unsafe-inline&#39;; form-action &#39;none&#39;; base-uri &#39;none&#39;"><style>html{overflow-wrap:anywhere}body{margin:4px}'+stylesheet(o.styles)+'</style>'+content.html;
     return '<iframe class="craft-window" sandbox="" title="'+title+'" srcdoc="'+escape(doc)+'"></iframe>';
   }
-  const css='.craft-window{display:block;box-sizing:border-box;width:100%;height:100%;border:0;pointer-events:auto}.phone .craft-window{height:auto;aspect-ratio:4/3}.phone .cartridge-window{aspect-ratio:420/460;min-height:290px}@media(max-width:600px){.board .craft-window{min-height:160px}}';
+  const css='.cartridge-stage{display:flex;flex-direction:column;width:100%;height:100%;background:#233832;pointer-events:auto}.cartridge-size{flex:none;align-self:end;color:#fff4d8;background:#243c32;font:bold 14px Arial;cursor:pointer}.cartridge-stage .cartridge-window{flex:1;min-height:0}.cartridge-stage:fullscreen,.cartridge-stage.game-expanded{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;max-height:none;box-sizing:border-box;margin:0;padding:0;border:0;z-index:2147483647}.craft-window{display:block;box-sizing:border-box;width:100%;height:100%;border:0;pointer-events:auto}.phone .craft-window{height:auto;aspect-ratio:4/3}.phone .cartridge-window{aspect-ratio:420/460;min-height:290px}@media(max-width:600px){.board .craft-window{min-height:160px}}';
   function fallbackFields(o){
     const text=checkedString(o.fallbackText??'',500,'Classic description').trim();
     const url=checkedString(o.fallbackUrl??'',2048,'Classic link').trim();

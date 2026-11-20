@@ -9,3 +9,12 @@ function openCartridge(){
 }
 openCartridge();
 window.addEventListener('hashchange',openCartridge);
+
+window.addEventListener('message',event=>{
+  const game=document.querySelector('iframe').contentWindow;
+  if(event.source===game && ['toggle','exit'].includes(event.data?.cartridgeSize) && parent!==window){
+    parent.postMessage({cartridgeSize:event.data.cartridgeSize},'*');
+  }else if(event.source===parent && parent!==window && typeof event.data?.cartridgeExpanded==='boolean'){
+    game.postMessage({cartridgeExpanded:event.data.cartridgeExpanded},'*');
+  }
+});

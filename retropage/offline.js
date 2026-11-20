@@ -2,7 +2,7 @@
 const base = new URL('./', self.location.href);
 const entry = new URL('index.html',base).href;
 const prefix = 'roddy-retro-page:' + base.pathname + ':';
-const version = prefix + '0.12.0-gamepad';
+const version = prefix + '0.12.1-inline';
 const resources = [
   './assets/member-nav.js','./assets/member-nav.css','./assets/member-key.png',
   './studio-drawer.js','./studio-drawer.css',

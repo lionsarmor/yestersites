@@ -181,15 +181,22 @@
     try{$('label').textContent=decodeURIComponent(cartridgeURL().pathname.split('/').pop()||'Game cartridge').slice(0,90);}
     catch{$('label').textContent='Game cartridge';}
   }else $('help').textContent='Catch six fireflies. Arrows move · hold X or the A button to dash.';
+  let expandedByPage=false;
+  function sizeLabel(){$('full').textContent=(expandedByPage || document.fullscreenElement)?'Exit full screen':'Full screen';}
+  window.addEventListener('message',event=>{
+    if(event.source===parent && typeof event.data?.cartridgeExpanded==='boolean'){expandedByPage=event.data.cartridgeExpanded;sizeLabel();}
+  });
+  document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedByPage)parent.postMessage({cartridgeSize:'exit'},'*');});
   $('full').onclick=async()=>{
+    if(expandedByPage){parent.postMessage({cartridgeSize:'toggle'},'*');return;}
     try{
       if(document.fullscreenElement)await document.exitFullscreen();
       else await document.documentElement.requestFullscreen();
     }catch{
-      $('status').textContent='Open the full player from the game link for a larger screen.';
+      parent.postMessage({cartridgeSize:'toggle'},'*');
     }
   };
-  document.addEventListener('fullscreenchange',()=>{$('full').textContent=document.fullscreenElement?'Exit full screen':'Full screen';});
+  document.addEventListener('fullscreenchange',sizeLabel);
   $('help').textContent+=' Gamepad: press any button, then use the D-pad or left stick.';
   $('play').onclick=launch;
   $('pause').onclick=()=>state==='playing'?pause():resume();
