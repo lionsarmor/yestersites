@@ -143,7 +143,7 @@
     if(!old && page.items.some(o=>o.widget==='html-block'||o.widget==='flash-movie'))css+=RetroCraft.css;
     if(layout==='auto' && hasPlayers)css+='@media(max-width:600px){.board{display:flex;flex-direction:column;gap:8px;padding:8px;box-sizing:border-box}.board>div:first-child{display:none}.board>.object{position:static;width:100%!important;height:auto!important;font-size:16px!important}.board .retro-player.video :is(video,iframe){min-height:220px}.board .object img{width:auto;max-width:100%;height:auto}}';
     if(!old && page.pageStyles)css+=RetroCraft.pageCSS(page.pageStyles);
-    const controls=!old && page.items.some(o=>RetroMedia.isPlayer(o) && (o.playerSkin==='hardware' || o.widget==='audio-player' && o.playerSkin && o.playerSkin!=='deck'))?'<script>'+RetroMedia.script+'</script>':'';
+    const controls=!old && page.items.some(o=>RetroMedia.isPlayer(o) && (o.widget==='video-player' || o.playerSkin && o.playerSkin!=='deck'))?'<script>'+RetroMedia.script+'</script>':'';
     const body=layout==='auto'?(hasPlayers?board():board()+flow('phone')):layout==='modern'?board():flow(layout);
     return '<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+escape(page.title)+'</title>'+(css?'<style>'+css+'</style>':'')+'</head><body'+attrs+'>'+body+sound+footer+controls+'</body></html>';
   }

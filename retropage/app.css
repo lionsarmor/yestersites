@@ -932,7 +932,7 @@ dialog.site-preview[open]{display:flex;flex-direction:column}
 .media-shelf-link{display:flex;align-items:center;gap:5px;margin:5px auto;cursor:pointer}.media-shelf-link img{width:23px;height:20px;image-rendering:pixelated}
 .instrument-poster{display:block;width:100%;height:100%;pointer-events:none;font:12px Arial;text-align:left;overflow:hidden}
 .instrument-preview{width:min(100%,350px);height:124px;pointer-events:auto;margin:0 auto 5px;color:#171619}
-.instrument-preview:has(.video){height:156px}.instrument-preview:has(>button){height:auto}
+.instrument-preview:has(.video){height:clamp(172px,31vh,250px)}.instrument-preview:has(>button){height:auto}
 #dialog-fields:has(.instrument-preview) fieldset{display:grid;grid-template-columns:1fr;min-width:0}
 #dialog-fields:has(.instrument-preview) fieldset input:not([type=checkbox]){width:100%;box-sizing:border-box}
 .object-grid:has([data-widget=audio-music]) .object-art{width:40px;height:35px}

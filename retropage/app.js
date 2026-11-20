@@ -619,7 +619,7 @@
         if(o.widget==='split-frame'){const rail=node('div','editor-frame-menu');rail.append(node('strong',null,'INDEX'),node('span',null,o.text),node('span',null,o.otherLabel));pane.append(rail);}
         pane.append(node('span','editor-frame-content',o.text+'  ▧'));el.append(pane);
       } else if (RetroMedia.isPlayer(o)) {
-        if(o.playerSkin==='hardware'){
+        if(o.widget==='video-player' || o.playerSkin==='hardware'){
           const face=node('div','instrument-poster');face.inert=true;face.innerHTML=RetroMedia.poster(o);el.append(face);
         }else{
         const deck=node('div','player-face');
@@ -911,7 +911,7 @@
     if(key==='video-player' || m.voice)fields.push({name:'alternateSrc',label:key==='video-player'?'Alternate movie encoding (optional)':'Backup audio source (optional)',value:o.alternateSrc||'',maxLength:2048,section});
     if(arrival)fields.push({name:'autoplay',label:arrival,type:'checkbox',value:o.autoplay,section:'Playback'});
     if(loopLabel)fields.push({name:'loop',label:loopLabel,type:'checkbox',value:o.loop,section:'Playback'});
-    fields.push({name:'playerSkin',label:'Window style',type:'select',options:Object.entries(RetroMedia.skins),value:o.playerSkin||'deck',section:'Appearance'});
+    fields.push({name:'playerSkin',label:'Window style',type:'select',options:Object.entries(o.widget==='video-player'?RetroMedia.movieStyles:RetroMedia.skins),value:o.playerSkin||(o.widget==='video-player'?'hardware':'deck'),section:'Appearance'});
     const apply=async v=>{
       const entered=key==='media-internet-archive' && /^[a-zA-Z0-9._-]+$/.test(v.media.trim())?'https://archive.org/details/'+v.media.trim():v.media;
       let href=await mediaLink(entered,o.widget);
@@ -931,7 +931,6 @@
     dialog(m.label+' properties',fields,apply,'Apply');
     const pane=node('div','instrument-preview'),form=$('dialog-fields');
     form.prepend(pane);
-    const provider=key.startsWith('media-');
     function silence(){
       for(const media of pane.querySelectorAll('audio,video'))media.pause();
     }
@@ -948,12 +947,8 @@
         pane.innerHTML=RetroMedia.render(draft,'modern');RetroMedia.mount(pane);
       }catch{pane.textContent='Enter a playable source to preview it here.';}
     }
-    function refreshPreview(){
-      if(!provider){audition();return;}
-      const load=node('button',null,'Preview '+m.label);load.type='button';load.onclick=audition;pane.replaceChildren(load);
-    }
-    form.addEventListener('change',refreshPreview);refreshPreview();
-    $('dialog').addEventListener('close',()=>{form.removeEventListener('change',refreshPreview);silence();pane.replaceChildren();},{once:true});
+    form.addEventListener('change',audition);audition();
+    $('dialog').addEventListener('close',()=>{form.removeEventListener('change',audition);silence();pane.replaceChildren();},{once:true});
   }
   function craftDialog(o){
     const isFlash=o.widget==='flash-movie',label=widgets[o.widget].label;
