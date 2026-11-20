@@ -209,6 +209,11 @@
         if ('widget' in n) {
           check(typeof n.widget === 'string' && Object.hasOwn(window.retroObjects.presets, n.widget), 'Unknown object preset.');
           if (RetroMedia.isPlayer(n)) RetroMedia.source(n.href,n.widget);
+          if(RetroMedia.isFrame(n)){
+            RetroMedia.frameURL(n.href);
+            if(n.widget==='split-frame'){RetroMedia.frameURL(n.otherHref);check(string(n.otherLabel,120),'Add a short menu label.');}
+          }
+          if(RetroMedia.isPlayer(n) && n.alternateSrc)RetroMedia.source(n.alternateSrc,n.widget);
           if (n.widget === 'counter') check(/^[0-9]{1,12}$/.test(n.text), 'Enter 1–12 counter digits.');
         }
         if (n.kind === 'image' && n.src) imageType(n.src);
@@ -232,9 +237,10 @@
     for (const [, p] of pages(doc))
       for (const o of [...p.items,...p.bbsScreen || []])
         check(
-          !o.href.startsWith('page:') || seen.has(o.href.slice(5)),
+          [o.href,o.otherHref||''].every(url=>!url.startsWith('page:') || seen.has(url.slice(5))),
           'A link points to a missing page.',
         );
+    RetroMedia.checkFrames(pages(doc));
     return doc;
   }
   const letterKeys = ['text', 'w', 'h', 'font_size', 'color', 'align', 'italic', 'bold'];

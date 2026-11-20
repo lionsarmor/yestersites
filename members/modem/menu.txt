@@ -1,0 +1,16 @@
+THE BUSY SIGNAL BBS / NODE 01
+Municipal Pigeon Exchange
+Operator: Switch
+
+[M] Main menu     index.html
+[B] Message base  messages.html
+[F] File library  files.html
+[D] Exchange door door.html
+[T] Text edition  text.html
+
+PATCH PANEL MAINTENANCE CARD
+The bakery has flour on its socket.
+The observatory is closed before dusk.
+The radio station's jack hums even when unplugged.
+
+Please replace the cord labels if the operator eats them.

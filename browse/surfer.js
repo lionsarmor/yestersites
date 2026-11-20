@@ -4,19 +4,28 @@
   const catalog=new Map(), localRows=window.GrubMembers;
   const tracks={nightshift:'station-id.wav',modem:'art/hold-music.wav',orbit:'horn.wav'};
   for (const row of localRows) {
-    const base=new URL('../'+row.slug+'/',location.href).href;
+    const base=new URL('../members/'+row.slug+'/',location.href).href;
     catalog.set(base,{base,title:row.title,sound:tracks[row.slug]?base+tracks[row.slug]:''});
   }
+  const theme=$('theme');
+  const chosen=read('ring-surfer.theme','win31');
+  theme.value=['win31','classic','real'].includes(chosen)?chosen:'win31';
+  document.body.dataset.theme=theme.value;
+  theme.onchange=()=>{document.body.dataset.theme=theme.value;store('ring-surfer.theme',theme.value);};
+  let manualMute=false;
   let visits=[],index=-1,bag=[],frame=null,loading=false,stopped=false,currentSound='',soundEnabled=false;
   const msg=t=>{$('status').textContent=t;};
   function read(key,otherwise){try{return JSON.parse(localStorage.getItem(key))??otherwise;}catch{return otherwise;}}
   function store(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}}
   let saved=read('ring-surfer.bookmarks',[]);
   if(!Array.isArray(saved))saved=[];
+  saved=saved.map(entry=>({...entry,url:clean(entry.url)||entry.url}));
   const current=()=>visits[index];
   function clean(raw){
     try {
       const u=new URL(raw,location.origin);u.searchParams.delete('surfer');
+      if(u.origin===location.origin && localRows.some(r=>u.pathname.startsWith('/'+r.slug+'/')))u.pathname='/members'+u.pathname;
+      if(u.origin===location.origin && /^\/members\/[a-z0-9-]+\//.test(u.pathname) && !localRows.some(r=>u.pathname.startsWith('/members/'+r.slug+'/')))return new URL(u.pathname+u.search+u.hash,host).href;
       if(u.username || u.password || !['https:','http:'].includes(u.protocol))return null;
       if (![...catalog.keys()].some(base=>u.href.startsWith(base)) && !(u.origin===host && /^\/members\/[a-z0-9-]+\//.test(u.pathname)))return null;
       return u.href;
@@ -26,7 +35,7 @@
   function setBar(show){$('bar').hidden=!show;$('restore').hidden=show;$('hide').setAttribute('aria-expanded',String(show));$('hide').textContent=show?'Hide bar':'Show bar';}
   function update(){
     const url=current(), row=site(url),marked=saved.some(b=>b.url===url);
-    $('address').value=url||'';$('caption').textContent=row?.title||'Member site';$('prev').disabled=index<1;
+    $('address').value=url?.startsWith(host+'/members/')?'https://yestersites.com'+new URL(url).pathname+(new URL(url).search):url||'';$('caption').textContent=row?.title||'Member site';$('prev').disabled=index<1;
     $('mark').textContent=marked?'★ Saved':'☆ Bookmark';$('mark').setAttribute('aria-pressed',String(marked));
     $('stop').textContent=loading?'Stop':'Reload';
     $('sound').textContent=soundEnabled?'Mute':'Sound on';$('sound').setAttribute('aria-pressed',String(soundEnabled));
@@ -69,13 +78,13 @@
   function frameSound(){
     if(!frame)return;
     if(current()?.startsWith(host+'/')){
-      frame.contentWindow?.postMessage({surfer:'sound',enabled:soundEnabled},host);
+      frame.contentWindow?.postMessage({surfer:'sound',enabled:soundEnabled,muted:manualMute},host);
       return;
     }
     const doc=frame.contentDocument;
     if(!doc)return;
     for(const player of doc.querySelectorAll('audio,video')){
-      player.muted=!soundEnabled;
+      player.muted=manualMute || (player.autoplay && !soundEnabled);
       if(soundEnabled && player.autoplay)player.play().catch(()=>{});
     }
     if(!soundEnabled)for(const embed of doc.querySelectorAll('.retro-player iframe')){
@@ -158,7 +167,7 @@
     if(!navigate(candidate)){msg('Enter a YesterSites URL or a listed site name.');$('address').select();}
   };
   $('sound').onclick=()=>{
-    soundEnabled=!soundEnabled;update();frameSound();
+    soundEnabled=!soundEnabled;manualMute=!soundEnabled;update();frameSound();
     if(!soundEnabled){radio.pause();msg('Sound muted.');}
     else{play();msg(currentSound?'Sound on.':'Sound enabled. This site is silent.');}
   };
@@ -197,6 +206,7 @@
       const response=await fetch(u,{credentials:'omit'});if(!response.ok)return;
       const data=await response.json();
       for(const m of data.sites){if(!/^[a-z0-9-]{1,40}$/.test(m.slug))continue;
+        if(localRows.some(r=>r.slug===m.slug))continue;
         const base=host+'/members/'+m.slug+'/';catalog.set(base,{base,title:m.title,sound:''});}
       cursor=data.nextCursor;
     }while(cursor);

@@ -1,0 +1,28 @@
+html{background:#110b25 url(fan-sky.gif)}
+body.fanzine{margin:0;background:transparent;color:#f2dcb3;font:17px/1.42 Georgia,'Times New Roman',serif}
+.fan-page{max-width:870px;width:96%;margin:14px auto 28px}
+.fan-page a{color:#ffe16d}.fan-page a:hover{color:#fff7d2}
+.owner{text-align:center;font:700 .82rem/1.4 'Courier New',monospace;color:#d1a8e4;letter-spacing:.08em}
+.owner span{color:#fcda6e}.owner i{letter-spacing:0;color:#d6b6dc}
+h1.fan-logo{margin:-1px 0 -4px;line-height:0;text-align:center}
+.fan-logo img{width:81%;max-width:665px;height:auto}
+.strap{text-align:center;margin:0;color:#efabff;font:bold 14px/1.35 'Courier New',monospace;letter-spacing:.11em}
+.strap b{border-bottom:1px dashed #a378ce;display:inline-block;padding-bottom:3px}
+.constellation{position:relative;width:100%;height:auto;aspect-ratio:2.44;min-height:200px;margin:14px auto 22px}
+.keepsake{position:absolute;top:5.5%;left:28%;width:44%;margin:0;background:#ead9ae;padding:6px 6px 3px;box-shadow:5px 6px #11051e;transform:rotate(-3deg)}
+.keepsake:before,.keepsake:after{content:"";position:absolute;z-index:1;top:1px;left:-11px;width:49px;height:15px;background:repeating-linear-gradient(90deg,#bdb796c7 0 4px,#d1c9a8cf 5px 7px);transform:rotate(-29deg);pointer-events:none}
+.keepsake:after{top:auto;left:auto;right:-12px;bottom:15px;transform:rotate(-34deg)}
+.keepsake img{display:block;width:100%;height:auto}
+.keepsake figcaption{color:#3b203a;font:italic bold clamp(.73rem,1.8vw,.98rem)/1.25 'Times New Roman',serif;text-align:center;padding:5px 0 2px}
+.booth{position:absolute;width:25%;display:block;line-height:0;text-align:center}
+.booth img{width:100%;height:auto;max-width:210px}
+.booth:hover img,.booth:focus img{filter:brightness(1.18);transform:translateY(-2px)}
+.cardpack{left:2%;top:0}.courtmap{right:1%;top:3%}.scores{left:3.3%;bottom:3%}.shoot{right:2%;bottom:1%}
+.cutline{text-align:center;color:#ffe5a3;font:bold 14px/1.1 'Courier New',monospace;letter-spacing:.13em;border-block:3px double #a857b6;padding:.4em 0}.cutline span{color:#ff9fd0}
+.pressbox{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:6%;align-items:center;margin:1.15rem 4% .5rem}
+.dispatch h2{color:#f8d859;font:italic bold clamp(1.8rem,4.4vw,2.65rem)/1.03 Georgia,serif;margin:0 0 .3em}.dispatch p{margin:.5em 0}.dispatch .signed{color:#eca9da;font-style:italic}
+.stub{background:#eab95c;color:#31193d!important;transform:rotate(2deg);outline:1px dotted #40243c;outline-offset:-6px;position:relative;border-inline:4px dotted #35223a;text-align:center;padding:.6em .85em;font:700 14px/1.25 'Courier New',monospace}
+.stub .league-stamp{color:#72263a;letter-spacing:.09em;font:bold clamp(19px,3vw,27px)/1.2 Impact,'Arial Black',sans-serif;margin:.15rem}
+.stub table{border-top:1px dashed #704236;border-bottom:1px dashed #704236;margin:.4em 0;width:100%;font-family:'Courier New',monospace}.stub th{text-align:left;font-size:.9rem}.stub td{font-size:1.4rem;text-align:right}.stub small{font-size:.73rem}
+.clippings{display:flex;align-items:start;gap:16px;margin:18px 4%}.clippings>div{width:50%;border-top:1px dashed #ad7dae;padding-top:8px}.clippings img{float:left;margin:4px 10px 2px 0}.clippings p{font:16px/1.35 Georgia,serif;margin:2px}.fan-page footer{text-align:center;border-top:3px double #a857b6;margin-top:15px;padding:8px;font:bold .86rem/1.4 'Courier New',monospace}.fan-page footer p{margin:.6em 0}
+@media(max-width:600px){.fan-page{width:94%}.owner{font-size:.69rem}.owner i{display:block}.fan-logo img{width:100%}.strap{font-size:12px;letter-spacing:.045em}.constellation{display:grid;grid-template-columns:1fr 1fr;align-items:center;justify-items:center;gap:5px 0;aspect-ratio:auto;min-height:0;margin:18px auto}.keepsake{position:relative;inset:auto;grid-column:1/-1;grid-row:1;width:83%;margin-bottom:5px}.booth{position:static;width:88%;max-width:175px}.booth img{max-height:100px;object-fit:contain}.cutline{font-size:.75rem}.pressbox{display:block;margin:1rem 2%}.stub{max-width:290px;margin:22px auto}.clippings{display:block}.clippings>div{display:flow-root;width:100%;margin-bottom:10px}}

@@ -9,7 +9,7 @@
   "background": "#101b24",
   "items": [
     {
-      "id": "025a53b2a618c713cb8eb24d94f04e11",
+      "id": "83d00809c6d947ab47528f71105f6b5b",
       "kind": "box",
       "x": 16,
       "y": 14,
@@ -27,7 +27,7 @@
       "align": "center"
     },
     {
-      "id": "570c5fe6281306a9c4738c3d7fc88345",
+      "id": "0a24c46eede46ba527a7f8cb6e827efc",
       "kind": "text",
       "x": 26,
       "y": 52,
@@ -45,13 +45,13 @@
       "align": "left"
     },
     {
-      "id": "442ec2a57f635b60002f959c21b1bac9",
+      "id": "1db5720d74850429bddce435cbcbc983",
       "kind": "text",
       "x": 28,
       "y": 102,
       "w": 570,
       "h": 68,
-      "text": "Double feature? Make it five. Pick a channel to try the real player, or take the projection booth home as an editable Retro Page project.",
+      "text": "Six booths are open. Pick a channel to try the real player, or take the projection booth home as an editable Retro Page project.",
       "href": "",
       "src": "",
       "color": "#e6dab3",
@@ -63,10 +63,10 @@
       "align": "left"
     },
     {
-      "id": "fbdb75dada15b8b615be1d149836c44c",
+      "id": "5ff7841e08a825ef5c145938d1e75a96",
       "kind": "link",
       "x": 28,
-      "y": 178,
+      "y": 172,
       "w": 580,
       "h": 37,
       "text": "01   YouTube   /   YouTube’s iframe player demonstration",
@@ -81,10 +81,10 @@
       "align": "left"
     },
     {
-      "id": "31317d8457b32e9d1c286cdcf5394e63",
+      "id": "db9547222d5dd674d2c0b190c4a8e878",
       "kind": "link",
       "x": 28,
-      "y": 225,
+      "y": 214,
       "w": 580,
       "h": 37,
       "text": "02   Rumble   /   How to embed a Rumble video",
@@ -99,10 +99,10 @@
       "align": "left"
     },
     {
-      "id": "89c54d58575ec27759818fde6982f6bb",
+      "id": "193b7bc2d2564e2606146968c5926a04",
       "kind": "link",
       "x": 28,
-      "y": 272,
+      "y": 256,
       "w": 580,
       "h": 37,
       "text": "03   Archive   /   A Trip Down Market Street",
@@ -117,10 +117,10 @@
       "align": "left"
     },
     {
-      "id": "69938767f843bfcdc909eac18b90628f",
+      "id": "31b91e03b237a212a57f3595b2ac1918",
       "kind": "link",
       "x": 28,
-      "y": 319,
+      "y": 298,
       "w": 580,
       "h": 37,
       "text": "04   Direct MP4   /   Market Street · film reel",
@@ -135,10 +135,10 @@
       "align": "left"
     },
     {
-      "id": "5c85da187dc57d6fb09607b0e78267b6",
+      "id": "a652fe2304a737c84c2e660a0e9cfe2e",
       "kind": "link",
       "x": 28,
-      "y": 366,
+      "y": 340,
       "w": 580,
       "h": 37,
       "text": "05   Radio   /   Dead Air 730 · station ID",
@@ -153,14 +153,32 @@
       "align": "left"
     },
     {
-      "id": "2f817e7ca6773c4d440068691b30d671",
+      "id": "1c903ec58f486cc1d78fe81d63e71252",
+      "kind": "link",
+      "x": 28,
+      "y": 382,
+      "w": 580,
+      "h": 37,
+      "text": "06   Music   /   Busy Signal · hold music",
+      "href": "page:00000000000000000000000000000006",
+      "src": "",
+      "color": "#98f5cf",
+      "fill": "",
+      "font_family": "Courier New",
+      "font_size": 16,
+      "bold": false,
+      "italic": false,
+      "align": "left"
+    },
+    {
+      "id": "dd2551441954ed5bebe5b6f846e961a4",
       "kind": "link",
       "x": 28,
       "y": 444,
       "w": 540,
       "h": 29,
       "text": "Download the editable .yst project",
-      "href": "https://yestersites.com/screening-room/screening-room.yst",
+      "href": "https://yestersites.com/members/screening-room/screening-room.yst",
       "src": "",
       "color": "#eeb85e",
       "fill": "",
@@ -183,7 +201,7 @@
       "background": "#101b24",
       "items": [
         {
-          "id": "5f74449bec0872792a4728c5d83d8e2e",
+          "id": "9e86c79b396f9a60bc0798da997997bb",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -201,7 +219,7 @@
           "align": "center"
         },
         {
-          "id": "58f5d4fb15e485a4c8d5c6df515ed446",
+          "id": "a9bc854c5c46f9f81b4a0df036c3c80f",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -219,12 +237,12 @@
           "align": "left"
         },
         {
-          "id": "36c7ec02e7067252a946f8413c8bc4b7",
+          "id": "3d52c5d4bcce3b19795567b6af93d7af",
           "kind": "box",
           "x": 28,
           "y": 100,
           "w": 560,
-          "h": 280,
+          "h": 260,
           "text": "YouTube’s iframe player demonstration",
           "href": "https://www.youtube.com/watch?v=M7lc1UVf-VE",
           "src": "",
@@ -236,11 +254,13 @@
           "italic": false,
           "align": "left",
           "widget": "video-player",
+          "playerSkin": "deck",
+          "alternateSrc": "",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "0f8c601b1e884b61ac5fd4703735eaf4",
+          "id": "55a86142bdb3314599ef7a08657e1c1b",
           "kind": "text",
           "x": 28,
           "y": 392,
@@ -258,7 +278,7 @@
           "align": "left"
         },
         {
-          "id": "5cfccafd7c29d4cc843cc002d9eace81",
+          "id": "f497038936ed4e29ed85859254dca1db",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -289,7 +309,7 @@
       "background": "#101b24",
       "items": [
         {
-          "id": "99297375934e7125fbf289201f781f5a",
+          "id": "b645f1b01825ccd3c73d00a18da8ea0d",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -307,7 +327,7 @@
           "align": "center"
         },
         {
-          "id": "832a41cef50c1e527b88bb1d4b1190ff",
+          "id": "c82503bbe9e91d7120c09677c48b5ac1",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -325,12 +345,12 @@
           "align": "left"
         },
         {
-          "id": "7455743ce1395860a823eee8df5dc7ed",
+          "id": "231f6a137e725a3145166eb8dd93bb7c",
           "kind": "box",
           "x": 28,
           "y": 100,
           "w": 560,
-          "h": 280,
+          "h": 260,
           "text": "How to embed a Rumble video",
           "href": "https://rumble.com/embed/v17zczn/",
           "src": "",
@@ -342,11 +362,13 @@
           "italic": false,
           "align": "left",
           "widget": "video-player",
+          "playerSkin": "real",
+          "alternateSrc": "",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "1568b8dabc3ae1fb84ebfdd81a50677a",
+          "id": "02c3bcb900edace716b0b785fd4cb654",
           "kind": "text",
           "x": 28,
           "y": 392,
@@ -364,7 +386,7 @@
           "align": "left"
         },
         {
-          "id": "db071470c133389abe8537c3f6156dd6",
+          "id": "93eb801eb5c986c2a683d4be56aabd25",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -395,7 +417,7 @@
       "background": "#101b24",
       "items": [
         {
-          "id": "b02920ef166edc048a5e99dba9802d13",
+          "id": "409058b9806bbd3029fd6325044953d1",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -413,7 +435,7 @@
           "align": "center"
         },
         {
-          "id": "ecd32a83caa2b5b6ca7579293e90525f",
+          "id": "88d78a649c0b4eca41385cf1f308c05e",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -431,14 +453,14 @@
           "align": "left"
         },
         {
-          "id": "6f42f4fe8d42fefbf7ce2105e8c93c33",
+          "id": "64e1394dfd11bfbd0e72192c6f19e9fb",
           "kind": "box",
           "x": 28,
           "y": 100,
           "w": 560,
-          "h": 280,
+          "h": 260,
           "text": "A Trip Down Market Street",
-          "href": "https://archive.org/details/TripDown1905",
+          "href": "https://yestersites.com/assets/screening/market-street.webm",
           "src": "",
           "color": "#e6dab3",
           "fill": "#c3c0db",
@@ -448,17 +470,37 @@
           "italic": false,
           "align": "left",
           "widget": "video-player",
+          "playerSkin": "win31",
+          "alternateSrc": "https://yestersites.com/assets/screening/market-street.mp4",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "ca10865fd62d85fd6be067dbac852d42",
+          "id": "a711d0e21036960a2f4a12a3903b3aac",
+          "kind": "link",
+          "x": 28,
+          "y": 366,
+          "w": 500,
+          "h": 24,
+          "text": "Full film at the Internet Archive",
+          "href": "https://archive.org/details/TripDown1905",
+          "src": "",
+          "color": "#98f5cf",
+          "fill": "",
+          "font_family": "Courier New",
+          "font_size": 16,
+          "bold": false,
+          "italic": false,
+          "align": "left"
+        },
+        {
+          "id": "30045d588abf13fca1042630a10648ad",
           "kind": "text",
           "x": 28,
           "y": 392,
           "w": 554,
           "h": 50,
-          "text": "A camera rides down Market Street in San Francisco before the 1906 earthquake.",
+          "text": "A 20-second ride down Market Street in 1906. This silent excerpt is from the Prelinger Archives.",
           "href": "",
           "src": "",
           "color": "#e6dab3",
@@ -470,7 +512,7 @@
           "align": "left"
         },
         {
-          "id": "dbb3ca35a12babc1756c7a205117de3c",
+          "id": "b176dfba3298db2c7dc7c4d8b3cac3f7",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -501,7 +543,7 @@
       "background": "#101b24",
       "items": [
         {
-          "id": "3de3b02195783aa2d567d2993ccb549d",
+          "id": "31f8a6c02933ae8eb0d03dd0b89a682e",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -519,7 +561,7 @@
           "align": "center"
         },
         {
-          "id": "1cce642e165f5270de02a62a93e22dbe",
+          "id": "deb91f63c58ca74bc06996732bdc4c5a",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -537,14 +579,14 @@
           "align": "left"
         },
         {
-          "id": "3303200e15e07b76adeb518a9746c86e",
+          "id": "b0d9a116141f33fe273d059ca0ba1356",
           "kind": "box",
           "x": 28,
           "y": 100,
           "w": 560,
-          "h": 280,
+          "h": 260,
           "text": "Market Street · film reel",
-          "href": "https://archive.org/download/TripDown1905/TripDown1905_512kb.mp4",
+          "href": "https://yestersites.com/assets/screening/market-street.mp4",
           "src": "",
           "color": "#e6dab3",
           "fill": "#c3c0db",
@@ -554,11 +596,31 @@
           "italic": false,
           "align": "left",
           "widget": "video-player",
+          "playerSkin": "real",
+          "alternateSrc": "https://yestersites.com/assets/screening/market-street.webm",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "5ae0705916a3961f6a341f647303a011",
+          "id": "822bc36dc19de58b4a2bcca4335d6bbf",
+          "kind": "link",
+          "x": 28,
+          "y": 366,
+          "w": 500,
+          "h": 24,
+          "text": "Full film at the Internet Archive",
+          "href": "https://archive.org/details/TripDown1905",
+          "src": "",
+          "color": "#98f5cf",
+          "fill": "",
+          "font_family": "Courier New",
+          "font_size": 16,
+          "bold": false,
+          "italic": false,
+          "align": "left"
+        },
+        {
+          "id": "d0f21700a37906dd779f11230dfc0200",
           "kind": "text",
           "x": 28,
           "y": 392,
@@ -576,7 +638,7 @@
           "align": "left"
         },
         {
-          "id": "17bb5d43d6482c50d060262974f36a6d",
+          "id": "a9b136376b835ae5d19d8bb38a795fbe",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -607,7 +669,7 @@
       "background": "#101b24",
       "items": [
         {
-          "id": "dc8f888d26b72f74a1e7c7653fe13ce4",
+          "id": "f2d20910a217e5fb0afc32a9aa501140",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -625,7 +687,7 @@
           "align": "center"
         },
         {
-          "id": "cc14fbb0dd548bb3ed029e2d0b5c2164",
+          "id": "93cf74bc3053772ba0e2805eda5509be",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -643,14 +705,14 @@
           "align": "left"
         },
         {
-          "id": "7b222c3fa70999622eb3ebbfa08d5156",
+          "id": "9f0f7272fd91bcc7e08726a7810e05fa",
           "kind": "box",
           "x": 28,
           "y": 100,
           "w": 560,
-          "h": 102,
+          "h": 115,
           "text": "Dead Air 730 · station ID",
-          "href": "https://yestersites.com/nightshift/station-id.wav",
+          "href": "https://yestersites.com/assets/screening/station-id.mp3",
           "src": "",
           "color": "#e6dab3",
           "fill": "#c3c0db",
@@ -660,11 +722,14 @@
           "italic": false,
           "align": "left",
           "widget": "audio-player",
+          "playerSkin": "win31",
+          "audioMode": "radio",
+          "alternateSrc": "https://yestersites.com/members/nightshift/station-id.wav",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "20a205d97f47c49b74104a98b5dcd025",
+          "id": "02d7463468b9aa3d5737a5b93a8dade4",
           "kind": "text",
           "x": 28,
           "y": 392,
@@ -682,7 +747,7 @@
           "align": "left"
         },
         {
-          "id": "2cb17213975df5b6c3aa2633757d8138",
+          "id": "2b1aadfbe07566160fe22c654b715b70",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -701,6 +766,115 @@
         }
       ],
       "page_id": "00000000000000000000000000000005"
+    },
+    {
+      "title": "Busy Signal · hold music",
+      "slug": "",
+      "byline": "",
+      "profile": "classic",
+      "listed": false,
+      "width": 640,
+      "height": 520,
+      "background": "#101b24",
+      "items": [
+        {
+          "id": "b1b514e3fe23cf8c63b7d59c8bc77496",
+          "kind": "box",
+          "x": 16,
+          "y": 14,
+          "w": 608,
+          "h": 28,
+          "text": "Y S   /   F I L M   S O C I E T Y",
+          "href": "",
+          "src": "",
+          "color": "#162e30",
+          "fill": "#acaf92",
+          "font_family": "Courier New",
+          "font_size": 16,
+          "bold": true,
+          "italic": false,
+          "align": "center"
+        },
+        {
+          "id": "103281c210ef6a4c7791af9ade36ce8d",
+          "kind": "text",
+          "x": 26,
+          "y": 52,
+          "w": 570,
+          "h": 42,
+          "text": "Music / Audio booth",
+          "href": "",
+          "src": "",
+          "color": "#f6c663",
+          "fill": "",
+          "font_family": "Georgia",
+          "font_size": 30,
+          "bold": true,
+          "italic": false,
+          "align": "left"
+        },
+        {
+          "id": "c359da7994b856a1ba257327654d0328",
+          "kind": "box",
+          "x": 28,
+          "y": 100,
+          "w": 560,
+          "h": 115,
+          "text": "Busy Signal · hold music",
+          "href": "https://yestersites.com/members/modem/art/hold-music.wav",
+          "src": "",
+          "color": "#e6dab3",
+          "fill": "#c3c0db",
+          "font_family": "Courier New",
+          "font_size": 16,
+          "bold": false,
+          "italic": false,
+          "align": "left",
+          "widget": "audio-player",
+          "playerSkin": "real",
+          "audioMode": "music",
+          "alternateSrc": "",
+          "autoplay": false,
+          "loop": false
+        },
+        {
+          "id": "646cc975b0989e54fdb0288b88f596d5",
+          "kind": "text",
+          "x": 28,
+          "y": 392,
+          "w": 554,
+          "h": 50,
+          "text": "Music from the Busy Signal switchboard.",
+          "href": "",
+          "src": "",
+          "color": "#e6dab3",
+          "fill": "",
+          "font_family": "Courier New",
+          "font_size": 16,
+          "bold": false,
+          "italic": false,
+          "align": "left"
+        },
+        {
+          "id": "9ae2c3d908ed7e2f518fcdd23315b509",
+          "kind": "link",
+          "x": 28,
+          "y": 453,
+          "w": 450,
+          "h": 26,
+          "text": "◂ Back to the film schedule",
+          "href": "page:home",
+          "src": "",
+          "color": "#98f5cf",
+          "fill": "",
+          "font_family": "Courier New",
+          "font_size": 16,
+          "bold": false,
+          "italic": false,
+          "align": "left"
+        }
+      ],
+      "page_id": "00000000000000000000000000000006"
     }
   ]
 }

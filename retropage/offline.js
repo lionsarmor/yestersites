@@ -1,7 +1,7 @@
 /* Cache only the editor shell. Projects and unpublished image data stay in the page's local storage. */
 const base = new URL('./', self.location.href);
 const prefix = 'roddy-retro-page:' + base.pathname + ':';
-const version = prefix + '0.5.0-web-bbs2';
+const version = prefix + '0.6.0-web-frames1';
 const resources = [
   './index.html',
   './app.css',

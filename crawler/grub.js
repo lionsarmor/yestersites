@@ -109,7 +109,7 @@
     try { parsed=new URL(raw.url,memberOrigin+'/'); } catch (e) {return null;}
     if (parsed.origin!==memberOrigin || !/^https?:$/.test(parsed.protocol)) return null;
     return {published:true,slug:raw.slug,title:raw.title,profile:raw.profile,byline:raw.byline || '',
-      url:parsed.href,excerpt:raw.excerpt || raw.snippet || '',keywords:Array.isArray(raw.keywords)?raw.keywords.join(' '):raw.keywords || '',
+      url:'https://yestersites.com/members/'+raw.slug+'/',excerpt:raw.excerpt || raw.snippet || '',keywords:Array.isArray(raw.keywords)?raw.keywords.join(' '):raw.keywords || '',
       links:Array.isArray(raw.links)?raw.links:[]};
   }
   readQuery(); draw(); $('lookup').hidden=false;
@@ -138,7 +138,7 @@
       if (!Array.isArray(data.sites)) throw new Error('directory');
       data.sites.forEach(function (row) {
         var member=published(row);
-        if (!member || loaded[member.url]) return;
+        if (!member || loaded[member.url] || originals.some(function(r){return r.slug===member.slug;})) return;
         loaded[member.url]=true;loadedCount++;records.push(member);
       });
       draw();

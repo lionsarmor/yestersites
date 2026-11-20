@@ -86,11 +86,12 @@
       return text;
     }
     function style(o){return 'text-align:'+o.align+';font-family:'+M.fonts[o.font_family]+';color:'+o.color+';font-weight:'+(o.bold?'bold':'normal')+';font-style:'+(o.italic?'italic':'normal')+';';}
+    const drawPanel=(o,layout)=>RetroMedia.panel(o,layout,key=>names(key,edition));
     function board(){
       let html='<div class="board" style="max-width:'+page.width+'px;background:'+page.background+'"><div style="padding-top:'+100*page.height/page.width+'%"></div>';
       for(const [index,o] of page.items.entries()){
         const css=style(o)+'left:'+100*o.x/page.width+'%;top:'+100*o.y/page.height+'%;width:'+100*o.w/page.width+'%;height:'+100*o.h/page.height+'%;z-index:'+(index+1)+';background:'+(o.kind==='rule'?o.color:o.fill||'transparent')+';font-size:'+o.font_size+'px;font-size:min('+o.font_size+'px,'+100*o.font_size/page.width+'vw);'+(o.kind==='box'?'box-shadow:inset 0 0 0 1px '+o.color:'');
-        html+='<div class="object" style="'+escape(css)+'">'+(RetroMedia.isPlayer(o)?RetroMedia.render(o,'modern'):link(o,content(o,'modern')))+'</div>';
+        html+='<div class="object" style="'+escape(css)+'">'+(RetroMedia.isPanel(o)?drawPanel(o,'modern'):RetroMedia.isPlayer(o)?RetroMedia.render(o,'modern'):link(o,content(o,'modern')))+'</div>';
       }return html+'</div>';
     }
     function flow(layout){
@@ -98,6 +99,7 @@
       for(const row of rows(page,backdrop)){
         const parts=[];
         for(const o of row){
+          if (RetroMedia.isPanel(o)){const html=drawPanel(o,layout);if(html)parts.push([o,html]);continue;}
           if (RetroMedia.isPlayer(o)){parts.push([o,RetroMedia.render(o,layout)]);continue;}
           let body=content(o,layout);
           if(o.kind==='rule'){parts.push([o,'<hr>']);continue;}
@@ -133,11 +135,13 @@
     const sound = !page.soundtrack ? '' : old
       ? '<p><a href="'+escape(page.soundtrack)+'">Listen to this page</a></p>'
       : '<audio controls autoplay loop preload="none" aria-label="Page soundtrack" src="'+escape(page.soundtrack)+'"></audio>';
-    const hasPlayers=page.items.some(RetroMedia.isPlayer);
+    const hasPlayers=page.items.some(o=>RetroMedia.isPlayer(o)||RetroMedia.isFrame(o));
+    if(!old && page.items.some(RetroMedia.isPanel))css+=RetroMedia.panelCss;
     if(!old && hasPlayers)css+=RetroMedia.css;
     if(layout==='auto' && hasPlayers)css+='@media(max-width:600px){.board{display:flex;flex-direction:column;gap:8px;padding:8px;box-sizing:border-box}.board>div:first-child{display:none}.board>.object{position:static;width:100%!important;height:auto!important;font-size:16px!important}.board .retro-player.video :is(video,iframe){min-height:220px}.board .object img{width:auto;max-width:100%;height:auto}}';
+    const controls=!old && page.items.some(o=>o.widget==='audio-player' && o.playerSkin && o.playerSkin!=='deck')?'<script>'+RetroMedia.script+'</script>':'';
     const body=layout==='auto'?(hasPlayers?board():board()+flow('phone')):layout==='modern'?board():flow(layout);
-    return '<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+escape(page.title)+'</title>'+(css?'<style>'+css+'</style>':'')+'</head><body'+attrs+'>'+body+sound+footer+'</body></html>';
+    return '<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+escape(page.title)+'</title>'+(css?'<style>'+css+'</style>':'')+'</head><body'+attrs+'>'+body+sound+footer+controls+'</body></html>';
   }
   function dosCopy(doc,bundle) {
     const ids=M.pages(doc).map(([id])=>id);
@@ -198,6 +202,24 @@
       Object.assign(foot.style,{width:Math.ceil(w*ratio)+'px',height:Math.ceil(h*ratio)+'px'});
       find('output').textContent=w+' × '+h+' CSS px';
     }
+    const previewURLs=new Map();
+    function previewPage(key,ed){
+      const body=render(M.page(doc,key),key,ed,bundle.paths.get(key));
+      if(!M.page(doc,key).items.some(RetroMedia.isFrame)||['text','classic'].includes(ed))return body;
+      const parsed=new DOMParser().parseFromString(body,'text/html');
+      for(const pane of parsed.querySelectorAll('.page-pane')){
+        for(const el of pane.querySelectorAll('iframe, a[target]')){
+          const attr=el.matches('iframe')?'src':'href',link=el.getAttribute(attr);
+          if(!paths.has(link))continue;
+          if(!previewURLs.has(link)){
+            const [child,edition]=paths.get(link);
+            previewURLs.set(link,URL.createObjectURL(new Blob([previewPage(child,edition)],{type:'text/html'})));
+          }
+          el.setAttribute(attr,previewURLs.get(link));
+        }
+      }
+      return '<!doctype html>'+parsed.documentElement.outerHTML;
+    }
     function display(){
       const key=pages.value,p=M.page(doc,key),ed=modes[choose.value][1],bbs=ed==='bbs';
       foot.hidden=bbs;term.hidden=!bbs;
@@ -210,12 +232,12 @@
         find('pre').textContent=help?'TERMINAL HELP\n\n1, 2 ... Open a link\nH        Home\nB        Back\n?        Help':M.terminal(doc,key,cols).lines.join('\n');
         term.style.setProperty('--columns',cols+'ch');find('output').textContent=cols+' columns';
         term.querySelector('[role=status]').textContent='';
-      }else{frame.srcdoc=render(p,key,ed,bundle.paths.get(key));resize();}
+      }else{frame.srcdoc=previewPage(key,ed);resize();}
     }
     frame.addEventListener('load',()=>{
       const inner=frame.contentDocument;
       inner?.addEventListener('click',event=>{
-        const anchor=event.target.closest('a');if(!anchor)return;
+        const anchor=event.target.closest('a');if(!anchor || anchor.closest('.pane-menu'))return;
         const href=anchor.getAttribute('href');event.preventDefault();
         if(paths.has(href)){
           const [key,ed]=paths.get(href);pages.value=key;
@@ -237,7 +259,7 @@
     choose.onchange=pages.onchange=()=>{history.length=0;help=false;display();};
     control('columns').onchange=control('color').onchange=display;control('scale').onchange=resize;
     const observer=new ResizeObserver(resize);
-    dlg.addEventListener('close',()=>{observer.disconnect();dlg.remove();},{once:true});
+    dlg.addEventListener('close',()=>{observer.disconnect();for(const url of previewURLs.values())URL.revokeObjectURL(url);dlg.remove();},{once:true});
     document.body.append(dlg);dlg.showModal();observer.observe(stage);display();
   }
   window.RetroExport={source,download,openPreview};

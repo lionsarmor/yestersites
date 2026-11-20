@@ -344,6 +344,7 @@
   const palette = window.retroPalette;
   const videoPresets=Object.fromEntries(['YouTube','Rumble','Internet Archive'].map(label=>[
     'media-'+label.toLowerCase().replace(' ','-'),{...window.retroObjects.presets['video-player'],label:label+' video',saveAs:'video-player'}]));
+  for(const [mode,label] of Object.entries(RetroMedia.voices))videoPresets['audio-'+mode]={...window.retroObjects.presets['audio-player'],label,saveAs:'audio-player'};
   const widgets = {...videoPresets, ...window.retroObjects.presets, ...palette.shapes, ...palette.web, ...palette.bbs};
   function renderDrawer() {
     if (!$('drawer-content')) return;
@@ -381,7 +382,7 @@
         }
       }
       const builtin = Object.entries({...videoPresets,...window.retroObjects.presets}).filter(([key]) =>
-        objectGroup !== 'Basic shapes' && key.startsWith('bbs-') === (objectGroup === 'BBS objects'));
+        RetroMedia.isPanel({widget:key}) ? objectGroup==='Basic shapes' : objectGroup !== 'Basic shapes' && key.startsWith('bbs-') === (objectGroup === 'BBS objects'));
       const extra = objectGroup === 'Basic shapes' ? palette.shapes : objectGroup === 'BBS objects' ? palette.bbs : palette.web;
       for (const [key,spec] of [...builtin, ...Object.entries(extra)]) {
         const b=node('button','object-choice');
@@ -571,9 +572,14 @@
       });
       if (o.kind === 'box') el.style.boxShadow = 'inset 0 0 0 1px ' + o.color;
       const src = M.appearance(o);
-      if (RetroMedia.isPlayer(o)) {
+      if(RetroMedia.isBorder(o)){el.style.border='6px '+RetroMedia.borderStyles[o.widget]+' '+o.color;el.style.boxShadow='none';}
+      else if(RetroMedia.isFrame(o)){
+        const pane=node('div','editor-frame');
+        if(o.widget==='split-frame'){const rail=node('div','editor-frame-menu');rail.append(node('strong',null,'INDEX'),node('span',null,o.text),node('span',null,o.otherLabel));pane.append(rail);}
+        pane.append(node('span','editor-frame-content',o.text+'  ▧'));el.append(pane);
+      } else if (RetroMedia.isPlayer(o)) {
         const deck=node('div','player-face');
-        deck.append(node('strong',null,(o.widget==='audio-player'?'Wave Deck':'Vision Deck')+' · '+o.text),node('span',null,o.widget==='audio-player'?'▂ ▄ ▆ ▃ ▇ ▅ ▂':'▶'),node('small',null,'▶   ▪   ━━━━━━'));
+        deck.dataset.skin=o.playerSkin||'deck';deck.append(node('strong',null,(o.widget==='audio-player'?RetroMedia.voices[o.audioMode]||'Wave Deck':RetroMedia.skins[o.playerSkin]||'Vision Deck')+' · '+o.text),node('span',null,o.widget==='audio-player'?'▂ ▄ ▆ ▃ ▇ ▅ ▂':'▶'),node('small',null,'▶   ▪   ━━━━━━'));
         el.append(deck);
       } else if (src) {
         const im = node('img');
@@ -796,7 +802,7 @@
   paper.addEventListener('dblclick', (e) => {
     const o = object();
     if (!o || !e.target.closest('[data-object]')) return;
-    (RetroMedia.isPlayer(o) || ['image', 'rule', 'link'].includes(o.kind)) ? properties() : editInline();
+    (RetroMedia.isPanel(o) || RetroMedia.isPlayer(o) || ['image', 'rule', 'link'].includes(o.kind)) ? properties() : editInline();
   });
   function place(data) {
     armed = data;
@@ -851,7 +857,7 @@
       const href=await mediaLink(v.media,o.widget);
       if (!$('dialog').open || dialogAccept!==action || p!==page()) return;
       const hosted=!!RetroMedia.source(href,o.widget).embed;
-      const values={text:v.text,href,autoplay:!hosted && !!v.autoplay,loop:!hosted && !!v.loop};
+      const values={text:v.text,href,alternateSrc:v.alternateSrc?RetroMedia.source(v.alternateSrc,o.widget).url:'',playerSkin:v.playerSkin,audioMode:v.audioMode||'clip',autoplay:!hosted && !!v.autoplay,loop:!hosted && !!v.loop};
       if (!isNew) return applyObject(o,values);
       const candidate={...o,...values}, trial={...p,items:[...p.items,candidate]};
       M.normalize(p===doc?trial:{...doc,pages:doc.pages.map(child=>child===p?trial:child)});
@@ -861,9 +867,12 @@
       ...(hints[preset]?[{note:hints[preset]}]:[]),
       {name:'text',label:'Player title',value:o.text,required:true,maxLength:120},
       {name:'media',label:o.widget==='video-player'?'YouTube, Rumble, Archive movie or HTTPS video file':'HTTPS audio file or live stream',value:o.href,required:true,maxLength:2048},
+      {name:'playerSkin',label:'Player frame',type:'select',options:Object.entries(RetroMedia.skins),value:o.playerSkin||(isNew?'win31':'deck')},
+      ...(o.widget==='audio-player'?[{name:'audioMode',label:'Audio panel',type:'select',options:Object.entries(RetroMedia.voices),value:o.audioMode||(Object.hasOwn(RetroMedia.voices,preset.slice(6))?preset.slice(6):'clip')}]:[]),
+      {name:'alternateSrc',label:'Fallback media file (optional)',value:o.alternateSrc||'',maxLength:2048},
       {name:'autoplay',label:'Start on arrival',type:'checkbox',value:o.autoplay},
       {name:'loop',label:'Repeat clip',type:'checkbox',value:o.loop},
-      {url:'https://yestersites.com/screening-room/',label:'Try the Screening Room examples'},
+      {url:'https://yestersites.com/members/screening-room/',label:'Try the Screening Room examples'},
     ],action,isNew?'Insert':'Apply');
     const field=$('dialog-fields').querySelector('[name=media]');
     const options=['autoplay','loop'].map(name=>$('dialog-fields').querySelector('[name='+name+']'));
@@ -873,6 +882,22 @@
       for (const opt of options)opt.disabled=provider;
     };
     field.oninput=adjust;adjust();
+  }
+  function frameDialog(o,isNew){
+    const p=page(),split=o.widget==='split-frame';
+    const fields=(prefix,label,href)=>[
+      {name:prefix+'Label',label:'Link label',section:label,value:prefix==='first'?o.text:o.otherLabel||'More',required:true},
+      ...linkFields(href||'').map(f=>({...f,section:label,name:prefix+f.name,options:f.options?.filter(([id])=>id!==active)}))];
+    dialog(widgets[o.widget].label,[...fields('first','Opening page',o.href),...(split?fields('next','Second menu link',o.otherHref):[]),
+      {note:'Some websites block embedding. Readers can always use Open page.'}],v=>{
+      const url=prefix=>RetroMedia.frameURL(v[prefix+'target']?'page:'+v[prefix+'target']:M.webAddress(v[prefix+'href']));
+      const values={text:v.firstLabel,href:url('first'),...(split?{otherLabel:v.nextLabel,otherHref:url('next')}:{})};
+      if(!isNew)return applyObject(o,values);
+      if(p.items.length>=64)throw Error('This page supports up to 64 objects.');
+      const candidate={...o,...values};
+      RetroMedia.checkFrames(M.pages(doc).map(([key,page])=>[key,page===p?{...p,items:[...p.items,candidate]}:page]));
+      p.items.push(candidate);selected=o.id;record('Placed '+widgets[o.widget].label+'.');
+    },isNew?'Insert':'Apply');
   }
   function insertWidget(key,x,y) {
     const p=page(), spec=widgets[key], parts=spec.parts;
@@ -891,6 +916,7 @@
       if (key==='wallpaper') Object.assign(o,{x:0,y:0,w:p.width,h:p.height});
       return o;
     });
+    if(RetroMedia.isFrame(objects[0]))return frameDialog(objects[0],true);
     if(RetroMedia.isPlayer(objects[0]))return playerDialog(objects[0],true,key);
     const prior=p.items[0],replace=key==='wallpaper'&&prior?.kind==='image'&&!prior.text.trim()&&!prior.href&&prior.x===0&&prior.y===0&&prior.w===p.width&&prior.h===p.height;
     if (p.items.length + objects.length - Number(!!replace)>64) throw Error('This page supports up to 64 objects.');
@@ -975,6 +1001,7 @@
   function properties() {
     const o = object();
     if (!o) return status('Select an object on the page.');
+    if (RetroMedia.isFrame(o)) return frameDialog(o,false);
     if (RetroMedia.isPlayer(o)) return playerDialog(o,false);
     const fields =
       o.kind === 'rule'
