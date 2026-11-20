@@ -1,7 +1,8 @@
 /* Cache only the editor shell. Projects and unpublished image data stay in the page's local storage. */
 const base = new URL('./', self.location.href);
+const entry = new URL('index.html',base).href;
 const prefix = 'roddy-retro-page:' + base.pathname + ':';
-const version = prefix + 'creator-desk-0.9.5-original-button-art';
+const version = prefix + '0.10.0-youtube-vault';
 const resources = [
   './studio-drawer.js','./studio-drawer.css',
   ...['dial-up','fan-club','late-night','moon-relay','personal-blog','player-two','radio-shack'].map(name=>'./assets/starters/'+name+'.webp'),
@@ -58,12 +59,12 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   const href = url.origin + url.pathname;
-  const isEntry = event.request.mode === 'navigate' && (href === base.href || href === resources[0]);
+  const isEntry = event.request.mode === 'navigate' && (href === base.href || href === entry);
   if (!isEntry && !localFiles.has(href)) return;
   event.respondWith(
     (async () => {
       const cache = await caches.open(version);
-      return (await cache.match(isEntry ? resources[0] : href)) || fetch(event.request);
+      return (await cache.match(isEntry ? entry : href)) || fetch(event.request);
     })(),
   );
 });

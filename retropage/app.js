@@ -326,10 +326,10 @@
   let refreshShelf=()=>{}, vaultPanel;
   function projectArtwork(){
     const result=new Map(),library=new Map(stamps.map(st=>[st.src,st]));
-    for(const [,p] of M.pages(doc))for(const o of p.items){
+    for(const [pageId,p] of M.pages(doc))for(const o of p.items){
       if(o.kind!=='image'||!o.src)continue;
       const ref=o.artRef,st=ref?.group?stamps.find(a=>a.group===ref.group&&a.label===ref.label):library.get(o.src);
-      const row=st || (ref?.archive?{archive:ref.archive,src:o.src,label:ref.label||o.text}:{used:o.id,src:o.src,label:o.text||'Page image'});
+      const row=st || (ref?.archive?{archive:ref.archive,src:o.src,label:ref.label||o.text}:{used:pageId+'/'+o.id,src:o.src,label:o.text||'Page image'});
       const id=st||ref?.archive?shelf.token(row):o.src;
       if(!result.has(id))result.set(id,row);
     }
@@ -417,10 +417,9 @@
       groups.onchange=()=>{vaultPanel?.stopPreview();objectGroup=groups.value;renderDrawer();};
       root.append(groups);
       if(objectGroup==='Video Vault'){
-        vaultPanel ||= RetroStudioDrawer.videoVault((kind,item)=>{
-          const key=kind==='archive'?'media-internet-archive':'media-youtube';
+        vaultPanel ||= RetroStudioDrawer.videoVault(item=>{
           const offset=18*(page().items.filter(RetroMedia.isPlayer).length%4);
-          insertWidget(key,24+offset,48+offset,{href:item.url,text:item.title.slice(0,120)});
+          insertWidget('media-youtube',24+offset,48+offset,{href:item.url,text:item.title.slice(0,120)});
         },'https://yestersites-webring.jamesmweeksjr.chatgpt.site');
         root.append(vaultPanel);return;
       }

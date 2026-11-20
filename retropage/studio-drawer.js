@@ -78,18 +78,16 @@ window.RetroStudioDrawer = (() => {
   }
   function videoVault(place,relay){
     const root=make('section');root.className='video-vault';root.setAttribute('aria-label','Video Vault');
-    const form=make('form'),provider=make('select'),query=make('input'),search=button('Search videos');
-    provider.setAttribute('aria-label','Video source');
-    for(const [v,l] of [['archive','Internet Archive · film date'],['youtube','YouTube · publication date']])provider.add(new Option(l,v));
-    query.type='search';query.required=true;query.maxLength=120;query.placeholder='Find videos through 2010';query.setAttribute('aria-label','Find videos through 2010');
-    search.type='submit';form.append(provider,query,search);const status=make('output');status.setAttribute('aria-live','polite');
+    const form=make('form'),query=make('input'),search=button('Search YouTube');
+    query.type='search';query.required=true;query.maxLength=100;query.placeholder='Find old YouTube videos';query.setAttribute('aria-label','Find YouTube videos published through 2010');
+    search.type='submit';form.append(make('small','Published on YouTube by December 31, 2010'),query,search);const status=make('output');status.setAttribute('aria-live','polite');
     const preview=make('div'),list=make('div'),more=button('More results');list.className='video-results';more.hidden=true;
     root.append(form,status,preview,list,more);
-    let request=0,controller,next=null,lastQuery,lastProvider;
+    let request=0,controller,next=null,lastQuery;
     function clearPreview(){preview.replaceChildren();preview.className='';}
-    function addRow(item,kind){
+    function addRow(item){
       const row=make('article'),pic=make('img');pic.src=item.thumbnail;pic.alt='';pic.loading='lazy';pic.referrerPolicy='no-referrer';
-      const label=make('strong',item.title),date=make('small',(kind==='archive'?'Film dated ':'Published on YouTube ')+item.year);
+      const label=make('strong',item.title),date=make('small','Published on YouTube '+item.year);
       const audition=button('Preview'),use=button('Place on page');
       audition.onclick=()=>{
         clearPreview();preview.className='vault-preview';
@@ -98,47 +96,34 @@ window.RetroStudioDrawer = (() => {
         const close=button('Close preview');close.onclick=clearPreview;preview.append(frame,close);RetroMedia.mount(frame);
         frame.querySelector('.movie-load')?.click();preview.scrollIntoView({block:'nearest'});
       };
-      use.onclick=()=>{try{place(kind,item);status.textContent='Placed '+item.title+'.';}catch(error){status.textContent=error.message;}};
+      use.onclick=()=>{try{place(item);status.textContent='Placed '+item.title+'.';}catch(error){status.textContent=error.message;}};
       const actions=make('div');actions.append(audition,use);row.append(pic,label,date,actions);list.append(row);
     }
-    async function get(term,kind,page){
+    async function get(term,page){
       controller?.abort();controller=new AbortController();
       const run=++request;const abort=controller,timer=setTimeout(()=>abort.abort(),25000);
-      more.disabled=true;status.textContent='Searching '+(kind==='archive'?'Internet Archive':'YouTube')+'…';
+      more.disabled=true;status.textContent='Searching YouTube…';
       try{
-        let url,results,nextPage;
-        if(kind==='archive'){
-          const words=term.match(/[\p{L}\p{N}]+/gu)||[];
-          if(!words.length)throw Error('Enter a title or subject.');
-          const q='mediatype:movies AND date:[* TO 2010-12-31] AND '+words.slice(0,12).map(w=>'(title:"'+w+'" OR subject:"'+w+'")').join(' AND ');
-          const params=new URLSearchParams({q,output:'json',rows:'12',page:String(page||1)});
-          for(const f of ['identifier','title','date'])params.append('fl[]',f);
-          url='https://archive.org/advancedsearch.php?'+params;
-        }else{
-          const params=new URLSearchParams({q:term});if(page)params.set('pageToken',page);
-          url=relay+'/api/video-search?'+params;
+        const params=new URLSearchParams({q:term});if(page)params.set('pageToken',page);
+        const response=await fetch(relay+'/api/video-search?'+params,{credentials:'omit',signal:abort.signal});
+        if(!response.ok){
+          if(response.status===503)throw Error('YouTube search is unavailable right now. You can still paste a link into a YouTube video object.');
+          if(response.status===429)throw Error('YouTube search has reached its request limit. Try again later.');
+          throw Error('YouTube could not complete this search. Try again.');
         }
-        const response=await fetch(url,{credentials:'omit',signal:abort.signal});if(!response.ok)throw Error(kind==='youtube'&&response.status===503?'YouTube search is unavailable. Internet Archive search is available.':'The video service could not complete this search. Try again.');
-        const data=await response.json();
-        if(kind==='archive'){
-          const records=data.response;if(!records || !Array.isArray(records.docs))throw Error('Internet Archive returned an unreadable result.');
-          results=records.docs.filter(r=>/^[\w.-]{1,200}$/.test(r.identifier)).map(r=>({year:Number(String(r.date).slice(0,4)),title:String(r.title||r.identifier),url:'https://archive.org/details/'+r.identifier,thumbnail:'https://archive.org/services/img/'+r.identifier}));
-          nextPage=records.start+records.docs.length<records.numFound && records.docs.length?Number(page||1)+1:null;
-        }else{
-          results=(data.items||[]).filter(r=>/^[A-Za-z0-9_-]{11}$/.test(r.id)).map(r=>({...r,url:'https://www.youtube.com/watch?v='+r.id,year:Number(r.year)}));
-          nextPage=data.nextPageToken;
-        }
+        const data=await response.json();if(!Array.isArray(data.items))throw Error('YouTube returned an unreadable search result.');
+        const results=data.items.filter(r=>/^[A-Za-z0-9_-]{11}$/.test(r.id)).map(r=>({...r,url:'https://www.youtube.com/watch?v='+r.id,year:Number(r.year)}));
+        const nextPage=data.nextPageToken;
         if(run!==request)return;
-        const dated=results.filter(r=>Number.isInteger(r.year)&&r.year>0&&r.year<=2010);
-        for(const item of dated)addRow(item,kind);
+        const dated=results.filter(r=>Number.isInteger(r.year)&&r.year>=2005&&r.year<=2010);
+        for(const item of dated)addRow(item);
         next=nextPage;more.hidden=!next;
-        status.textContent=list.children.length?list.children.length+' videos through 2010.':'No dated matches through 2010.';
+        status.textContent=list.children.length?list.children.length+' videos through 2010.':'No YouTube videos matched through 2010.';
       }catch(error){if(run===request)status.textContent=error.name==='AbortError'?'Search timed out. Try again.':error.message;}
       finally{clearTimeout(timer);if(run===request)more.disabled=false;}
     }
-    form.onsubmit=e=>{e.preventDefault();lastQuery=query.value.trim();if(!lastQuery)return;lastProvider=provider.value;next=null;clearPreview();list.replaceChildren();more.hidden=true;get(lastQuery,lastProvider,null);};
-    provider.onchange=()=>{controller?.abort();request++;next=null;more.hidden=true;clearPreview();list.replaceChildren();status.textContent='';if(query.value.trim())form.requestSubmit();};
-    more.onclick=()=>get(lastQuery,lastProvider,next);
+    form.onsubmit=e=>{e.preventDefault();lastQuery=query.value.trim();if(!lastQuery)return;next=null;clearPreview();list.replaceChildren();more.hidden=true;get(lastQuery,null);};
+    more.onclick=()=>get(lastQuery,next);
     root.stopPreview=clearPreview;
     return root;
   }
