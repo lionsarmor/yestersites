@@ -7,25 +7,23 @@
     const base=host+'/members/'+row.slug+'/';
     catalog.set(base,{base,title:row.title,sound:tracks[row.slug]?base+tracks[row.slug]:''});
   }
-  const theme=$('theme');
-  const chosen=read('ring-surfer.theme','win31');
-  theme.value=['win31','classic','real'].includes(chosen)?chosen:'win31';
-  document.body.dataset.theme=theme.value;
-  theme.onchange=()=>{document.body.dataset.theme=theme.value;store('ring-surfer.theme',theme.value);};
-  let manualMute=false;
+  const prefs=window.RingSurferPreferences;
+  let manualMute=prefs.quiet;
   let visits=[],index=-1,bag=[],frame=null,loading=false,stopped=false,currentSound='',soundEnabled=false;
+  let recent=read('ring-surfer.travel-log',[]);
+  recent=Array.isArray(recent)?recent.filter(entry=>entry && typeof entry.title==='string' && clean(entry.url)).slice(0,40):[];
   const msg=t=>{$('status').textContent=t;};
   function read(key,otherwise){try{return JSON.parse(localStorage.getItem(key))??otherwise;}catch{return otherwise;}}
   function store(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}}
   let saved=read('ring-surfer.bookmarks',[]);
   if(!Array.isArray(saved))saved=[];
-  saved=saved.map(entry=>({...entry,url:clean(entry.url)||entry.url}));
+  saved=saved.filter(entry=>entry && typeof entry.title==='string' && clean(entry.url));
   const current=()=>visits[index];
   function clean(raw){
     try {
       const u=new URL(raw,location.origin);
       const sub=/^([a-z0-9-]{1,40})\.yestersites\.com$/.exec(u.hostname);
-      if(sub && u.protocol==='https:' && !u.username && !u.password && !u.port && !['www','retropage','mail','api','admin'].includes(sub[1])){
+      if(sub && u.protocol==='https:' && !u.username && !u.password && !u.port && !['www','retropage','mail','smtp','pop','imap','ftp','api','admin','accounts','studio','assets','ns1','ns2'].includes(sub[1])){
         return clean('/members/'+sub[1]+u.pathname+u.search+u.hash);
       }
       u.searchParams.delete('surfer');
@@ -51,11 +49,16 @@
   function setBar(show){$('bar').hidden=!show;$('restore').hidden=show;$('hide').setAttribute('aria-expanded',String(show));if(!show && $('bar').contains(document.activeElement))$('restore').focus();}
   function update(){
     const url=current(), row=site(url),marked=saved.some(b=>clean(b.url)===url);
-    $('address').value=publicLink(url);$('caption').textContent=row?.title||'Member site';$('prev').disabled=index<1;
+    for(const id of ['stop','mark','share'])$(id).disabled=!url;
+    if(document.activeElement!==$('address'))$('address').value=publicLink(url);
+    $('caption').textContent=row?.title||'Member site';$('prev').disabled=index<1;
     tool('mark',marked?'saved':'flag',marked?'Saved':'Save',marked?'Remove bookmark':'Bookmark this page');$('mark').setAttribute('aria-pressed',String(marked));
     tool('stop',loading?'stop':'reload',loading?'Stop':'Reload',loading?'Stop loading':'Reload this page');
     tool('sound',soundEnabled?'sound':'mute','Sound',soundEnabled?'Mute site sound':'Turn site sound on');$('sound').setAttribute('aria-pressed',String(soundEnabled));
-    history.replaceState(null,'',location.pathname+'?url='+encodeURIComponent(publicLink(url)));
+    if(url){
+      const next=location.pathname+'?url='+encodeURIComponent(publicLink(url));
+      if(location.pathname+location.search!==next)history.replaceState(null,'',next);
+    }
   }
   window.addEventListener('member-domains-ready',update);
   const radio=$('radio');
@@ -81,7 +84,7 @@
     },{passive:true});
     doc.addEventListener('touchcancel',()=>{start=null;});
     doc.addEventListener('touchend',e=>{
-      if(!start)return;
+      if(!start || !prefs.gestures){start=null;return;}
       const dx=e.changedTouches[0].clientX-start[0], dy=e.changedTouches[0].clientY-start[1];start=null;
       if(Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*2)dx<0?forward():back();
     },{passive:true});
@@ -114,7 +117,7 @@
     track('');stopped=false;loading=true;
     const next=document.createElement('iframe'),u=new URL(url);
     next.title=site(url)?.title||'Member site';
-    next.setAttribute('sandbox','allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox');
+    next.setAttribute('sandbox','allow-same-origin allow-scripts allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox');
     next.setAttribute('allow','autoplay; fullscreen; picture-in-picture');
     const hosted=u.origin===host;
     if(hosted)u.searchParams.set('surfer','1');
@@ -122,11 +125,11 @@
     next.onload=()=>{
       if(next!==frame || stopped)return;
       loading=false;update();msg('Ready');
-      if(hosted)return;
+      if(hosted){remember(current());return;}
       try {
         const doc=next.contentDocument, real=clean(next.contentWindow.location.href);
         if(!doc || !real)return;
-        push(real);update();swipe(doc);frameSound();
+        push(real);remember(real);update();swipe(doc);frameSound();
         next.contentWindow.addEventListener('blur',()=>{const el=doc.activeElement;if(el?.matches('.retro-player iframe'))el.dataset.played='yes';});
         const row=site(real);
         track(row?.sound||'');
@@ -151,22 +154,25 @@
   }
   function another(){
     const row=site(current());
-    if(!bag.length) {
+    bag=bag.filter(url=>url!==row?.base);
+    if(!bag.length){
       bag=[...catalog.keys()].filter(url=>url!==row?.base);
-      for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}
     }
-    return bag.pop();
+    // Sample without replacement. Newly listed sites can join the current round.
+    const picked=Math.floor(Math.random()*bag.length);
+    const base=bag.splice(picked,1)[0]||row?.base;
+    return base && (prefs.edition==='text'?base+'text.html':base);
   }
   function forward(){if(index<visits.length-1){index++;load();}else navigate(another());}
   function back(){if(index>0){index--;load();}}
   window.addEventListener('message',e=>{
     if(e.origin!==host || e.source!==frame?.contentWindow || !e.data || !current()?.startsWith(host+'/'))return;
     const d=e.data;
-    if(d.surfer==='swipe'){d.forward?forward():back();return;}
+    if(d.surfer==='swipe'){if(prefs.gestures)d.forward?forward():back();return;}
     const url=clean(d.url);
     if(!url || !url.startsWith(host+'/members/'))return;
     if(d.surfer==='link')navigate(url);
-    if(d.surfer==='ready'){push(url);frameSound();track(typeof d.sound==='string' && /^https:\/\//.test(d.sound)?d.sound:site(url)?.sound||'');update();}
+    if(d.surfer==='ready'){push(url);remember(url);frameSound();track(typeof d.sound==='string' && /^https:\/\//.test(d.sound)?d.sound:site(url)?.sound||'');update();}
   });
   $('next').onclick=forward;$('prev').onclick=back;
   $('stop').onclick=()=>{
@@ -178,34 +184,74 @@
   $('address-form').onsubmit=e=>{
     e.preventDefault();const v=$('address').value.trim(), row=[...catalog.values()].find(x=>x.title.toLowerCase()===v.toLowerCase()||new URL(x.base).pathname.split('/').filter(Boolean).at(-1)===v);
     if(row || !v.includes(':') && !v.startsWith('/')) {
-      if(row)return navigate(row.base);
+      if(row){$('address').blur();return navigate(row.base);}
     }
     const candidate=/^[\w.-]+\.[a-z]{2,}(?:\/|$)/i.test(v)?'https://'+v:v;
-    if(!navigate(candidate)){msg('Enter a YesterSites URL or a listed site name.');$('address').select();}
+    if(clean(candidate)){$('address').blur();navigate(candidate);}
+    else{msg('Enter a YesterSites URL or a listed site name.');$('address').select();}
   };
   $('sound').onclick=()=>{
     soundEnabled=!soundEnabled;manualMute=!soundEnabled;update();frameSound();
     if(!soundEnabled){radio.pause();msg('Sound muted.');}
-    else{play();msg(currentSound?'Sound on.':'Sound enabled. This site is silent.');}
+    else{play();msg(currentSound?'Sound on.':'Site media sound enabled.');}
   };
   const shelf=$('shelf');
-  function showSaved(){
-    $('saved-list').replaceChildren();$('empty').hidden=!!saved.length;
-    for(const entry of saved){
-      const li=document.createElement('li'),go=document.createElement('button'),remove=document.createElement('button');
-      go.textContent=entry.title;go.onclick=()=>{shelf.close();navigate(entry.url);};
-      remove.textContent='Remove';remove.onclick=()=>{saved=saved.filter(b=>b!==entry);store('ring-surfer.bookmarks',saved);showSaved();update();};
-      li.append(go,remove);$('saved-list').append(li);
+  let librarySection='saved';
+  function pageName(url){
+    const row=site(url);
+    return row?.title||new URL(publicLink(url)).hostname.split('.')[0];
+  }
+  function remember(url){
+    if(!url)return;
+    const display=publicLink(url);
+    if(prefs.launch==='resume')store('ring-surfer.last-page',display);
+    if(!prefs.log)return;
+    const title=pageName(url);
+    if(recent[0]?.url===display && recent[0].title===title)return;
+    recent=[{url:display,title},...recent.filter(entry=>entry.url!==display)].slice(0,40);
+    store('ring-surfer.travel-log',recent);
+  }
+  function showLibrary(section){
+    librarySection=section;
+    const travel=section==='recent',rows=travel?recent:saved;
+    $('show-saved').setAttribute('aria-pressed',String(!travel));
+    $('show-recent').setAttribute('aria-pressed',String(travel));
+    $('clear-recent').hidden=!travel || !rows.length;
+    $('saved-list').replaceChildren();
+    $('empty').hidden=!!rows.length;
+    $('empty').textContent=travel?(prefs.log?'No pages in the travel log yet.':'The travel log is switched off in Settings.'):'No bookmarks yet.';
+    for(const entry of rows){
+      const li=document.createElement('li'),go=document.createElement('button');
+      const title=document.createElement('span'),path=document.createElement('span');
+      title.className='visit-label';title.textContent=entry.title;
+      path.className='visit-path';path.textContent=publicLink(clean(entry.url)).slice(8);
+      go.append(title,path);
+      go.onclick=()=>{shelf.close();navigate(entry.url);};
+      li.append(go);
+      if(!travel){
+        const remove=document.createElement('button');remove.textContent='Remove';
+        remove.setAttribute('aria-label','Remove bookmark for '+entry.title);
+        remove.onclick=()=>{
+          saved=saved.filter(b=>b!==entry);store('ring-surfer.bookmarks',saved);
+          showLibrary('saved');update();
+          ($('saved-list').querySelector('button')||$('show-saved')).focus();
+        };
+        li.append(remove);
+      }
+      $('saved-list').append(li);
     }
   }
+  $('show-saved').onclick=()=>showLibrary('saved');
+  $('show-recent').onclick=()=>showLibrary('recent');
+  $('clear-recent').onclick=()=>{recent=[];store('ring-surfer.travel-log',recent);showLibrary('recent');$('show-recent').focus();};
   $('mark').onclick=()=>{
     const url=current();
     if(saved.some(b=>clean(b.url)===url))saved=saved.filter(b=>clean(b.url)!==url);
-    else saved.push({url:publicLink(url),title:(site(url)?.title || 'Member site')+' · '+new URL(url).pathname.split('/').filter(Boolean).at(-1)});
+    else saved.push({url:publicLink(url),title:pageName(url)});
     if(!store('ring-surfer.bookmarks',saved))msg('Bookmarks only available during this visit.');
     update();
   };
-  $('bookmarks').onclick=()=>{showSaved();shelf.showModal();};
+  $('bookmarks').onclick=()=>{showLibrary(librarySection);shelf.showModal();};
   $('share').onclick=async()=>{
     const url=publicLink(current());
     try{if(navigator.share)return await navigator.share({url,title:site(current())?.title||'Ring Surfer'});
@@ -213,20 +259,55 @@
     catch(error){if(error.name==='AbortError')return;$('share-url').value=url;$('share-box').showModal();$('share-url').select();}
   };
   swipe($('bar'));window.addEventListener('pagehide',()=>radio.pause());
-  window.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,select,button,summary,a,details,[contenteditable]')||document.querySelector('dialog[open]'))return;
+  $('address').addEventListener('keydown',e=>{
+    if(e.key==='Escape'){$('address').value=publicLink(current());$('address').blur();}
+  });
+  window.addEventListener('keydown',e=>{
+    if(e.altKey && e.key.toLowerCase()==='l' && !document.querySelector('dialog[open]')){
+      e.preventDefault();setBar(true);$('address').focus();$('address').select();return;
+    }
+    if(e.ctrlKey || e.altKey || e.metaKey || e.shiftKey)return;
+    if(e.target.closest('input,textarea,select,button,summary,a,details,[contenteditable]')||document.querySelector('dialog[open]'))return;
     if(e.key==='ArrowRight')forward();else if(e.key==='ArrowLeft')back();});
-  navigate(clean(new URLSearchParams(location.search).get('url')||'')||another());
+  window.addEventListener('ring-preference',e=>{
+    if(e.detail==='quiet'){
+      manualMute=prefs.quiet;
+      if(manualMute){soundEnabled=false;radio.pause();}
+      frameSound();update();
+    }
+    if(e.detail==='launch' && prefs.launch==='resume' && current())store('ring-surfer.last-page',publicLink(current()));
+    if(e.detail==='fold' && matchMedia('(max-width: 640px)').matches)setBar(!prefs.fold);
+  });
+  const explicit=clean(new URLSearchParams(location.search).get('url')||'');
+  const previous=prefs.launch==='resume' && clean(read('ring-surfer.last-page',''));
+  let releaseFirstPage;
+  const firstPage=new Promise(resolve=>{releaseFirstPage=resolve;});
   (async()=>{
     let cursor;
     do {
       const u=new URL('/api/directory',host);if(cursor)u.searchParams.set('cursor',cursor);
-      const response=await fetch(u,{credentials:'omit'});if(!response.ok)return;
+      const response=await fetch(u,{credentials:'omit'});if(!response.ok)break;
       const data=await response.json();
-      for(const m of data.sites){if(!/^[a-z0-9-]{1,40}$/.test(m.slug))continue;
-        if(localRows.some(r=>r.slug===m.slug))continue;
-        const base=host+'/members/'+m.slug+'/';catalog.set(base,{base,title:m.title,sound:''});}
+      for(const m of data.sites){
+        if(!/^[a-z0-9-]{1,40}$/.test(m.slug))continue;
+        const base=host+'/members/'+m.slug+'/';
+        if(catalog.has(base))continue;
+        catalog.set(base,{base,title:m.title,sound:''});
+        if(bag.length && site(current())?.base!==base)bag.push(base);
+      }
+      releaseFirstPage();
       cursor=data.nextCursor;
     }while(cursor);
     update();
-  })().catch(()=>{});
+  })().catch(()=>{}).finally(releaseFirstPage);
+  if(explicit || previous)navigate(explicit || previous);
+  else{
+    msg('Finding a member site…');update();
+    // New visitors get the live directory on their first shuffle. A slow/offline
+    // directory still leaves the bundled neighborhood available immediately after.
+    Promise.race([firstPage,new Promise(resolve=>setTimeout(resolve,1000))]).then(()=>{
+      if(!current())navigate(another());
+    });
+  }
+  if(prefs.fold && matchMedia('(max-width: 640px)').matches)setBar(false);
 })();

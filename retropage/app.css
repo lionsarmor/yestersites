@@ -954,3 +954,5 @@ dialog.site-preview[open]{display:flex;flex-direction:column}
 .paint-grid{display:grid;grid-template-columns:repeat(var(--cols),1ch);width:max-content;touch-action:none;user-select:none;font:16px/1.2 monospace;white-space:pre;cursor:crosshair}
 .paint-grid span{height:1.2em}.paint-grid:focus .cursor{outline:1px dashed white;outline-offset:-1px}
 #bbs-painter output{font:11px monospace}#block-fields [hidden]{display:none!important}
+
+.scene-list fieldset{background:#e4e0d5;margin:6px 0;padding:6px;border:2px groove white}.scene-list input,.scene-list textarea{display:block;width:100%;margin:3px 0}.scene-actions{display:flex;gap:5px;margin:5px 0}.scene-list legend{font-weight:bold}

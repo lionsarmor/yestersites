@@ -16,12 +16,14 @@
     try{
       await loadLibrary();
       let bytes;
-      if(data==='demo'){const response=await fetch(base+'comet.swf',{credentials:'omit'});if(!response.ok)throw Error();bytes=new Uint8Array(await response.arrayBuffer());}
+      const book=movie.dataset.book==='true';
+      const parameters=book?{book:new TextDecoder().decode(Uint8Array.from(atob(data),ch=>ch.charCodeAt(0)))}:{};
+      if(data==='demo'||book){const response=await fetch(base+(book?'scene-book.swf':'comet.swf'),{credentials:'omit'});if(!response.ok)throw Error();bytes=new Uint8Array(await response.arrayBuffer());}
       else bytes=Uint8Array.from(atob(data),ch=>ch.charCodeAt(0));
       const player=window.RufflePlayer.newest().createPlayer();
       screen.className='playing';screen.replaceChildren(player);
       const engine=player.ruffle();
-      await engine.load({data:bytes,forceScale:true,scale:movie.dataset.scale,backgroundColor:movie.dataset.matte,swfFileName:'movie.swf',...window.RufflePlayer.config});
+      await engine.load({data:bytes,parameters,forceScale:true,scale:movie.dataset.scale,backgroundColor:movie.dataset.matte,swfFileName:'movie.swf',...window.RufflePlayer.config});
       if(movie.dataset.transport==='true'){
         const bar=document.createElement('div'),pause=document.createElement('button'),restart=document.createElement('button'),info=document.createElement('small');
         bar.id='transport';pause.textContent='Pause';restart.textContent='Restart';info.textContent='Flash stage';

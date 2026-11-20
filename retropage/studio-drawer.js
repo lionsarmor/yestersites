@@ -3,7 +3,7 @@ window.RetroStudioDrawer = (() => {
   const make=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
   const button=(text)=>{const el=make('button',text);el.type='button';return el;};
   const starters=[
-    ['blank','Start blank'],['moon-relay','2001 Anime Shrine'],['player-two','Nintendo Repair Club'],
+    ['blank','Start blank'],['pocket-bog','Pocket Bog · Flash pet club'],['moon-relay','2001 Anime Shrine'],['player-two','Nintendo Repair Club'],
     ['fan-club','1995 Fan Club'],['radio-shack','1999 Radio Shack'],['personal-blog','2002 Personal Blog'],
     ['dial-up','Dial-up BBS'],['late-night','Late Night Signal']
   ];

@@ -1,13 +1,20 @@
 /* Serializable authoring objects. The member host uses the same validation and renderer. */
 const RetroCraft = (() => {
   const player = 'https://yestersites.com/flash/';
+  const arcade='https://yestersites.com/arcade/';
+  function cartridgeURL(value){
+    let u;
+    try{u=new URL(checkedString(value,2048,'ROM address'));}catch{throw Error('Enter a complete HTTPS link to a cartridge file.');}
+    if(u.protocol!=='https:'||u.username||u.password||u.port||!u.hostname.includes('.')||/^\d+(?:\.\d+){3}$/.test(u.hostname)||u.hostname.includes(':')||/\.(?:local|localhost|internal|test|invalid)\.?$/i.test(u.hostname))throw Error('Choose a public HTTPS file address without credentials.');
+    u.hash='';return u.href;
+  }
   const maxBytes = 768 * 1024;
   const tags = new Set('div span p h1 h2 h3 h4 h5 h6 b strong i em u s small big blockquote pre code kbd ol ul li dl dt dd table caption thead tbody tr th td hr br'.split(' '));
   const properties = new Set(('color background-color font-family font-size font-style font-weight font-variant line-height letter-spacing word-spacing text-align text-indent text-decoration text-transform text-shadow white-space overflow-wrap vertical-align '+
     'margin margin-top margin-right margin-bottom margin-left padding padding-top padding-right padding-bottom padding-left border border-top border-right border-bottom border-left border-color border-width border-style border-radius box-shadow border-collapse border-spacing '+
     'display width height max-width min-width max-height min-height box-sizing list-style-type gap grid-template-columns align-items justify-content flex-wrap').split(' '));
   const escape = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const isCraft = o => ['html-block','flash-movie'].includes(o?.widget);
+  const isCraft = o => ['html-block','flash-movie','flash-book','game-cartridge'].includes(o?.widget);
   function checkedString(value,limit,label) {
     if(typeof value!=='string' || value.length>limit)throw Error(label+' is limited to '+limit+' characters.');
     return value;
@@ -90,14 +97,44 @@ const RetroCraft = (() => {
     return length;
   }
   function fields(o) {
-    if(o.widget==='flash-movie'){swfBytes(o.swf);return {swf:o.swf};}
+    if(o.widget==='game-cartridge')return {romUrl:cartridgeURL(o.romUrl)};
+    if(o.widget==='flash-movie'||o.widget==='flash-book'){
+      let content;
+      if(o.widget==='flash-book'){
+        if(!Array.isArray(o.scenes)||!o.scenes.length||o.scenes.length>8)throw Error('Create between one and eight Flash scenes.');
+        content={scenes:o.scenes.map(s=>{
+          const title=checkedString(s?.title,48,'Scene title').trim(),body=checkedString(s?.body,450,'Scene text').trim();
+          if(!title || !body)throw Error('Give each scene a title and some text.');
+          return {title,body};
+        })};
+      }else{swfBytes(o.swf);content={swf:o.swf};}
+      const stageFit=o.stageFit??'showAll',stageColor=o.stageColor??'#17263c';
+      if(!['showAll','noBorder','exactFit'].includes(stageFit)||!/^#[0-9a-f]{6}$/i.test(stageColor))throw Error('Choose a stage scale and a six-digit backdrop color.');
+      return {...content,stageFit,stageColor,stageControls:o.stageControls!==false};
+    }
     markup(o.markup);stylesheet(o.styles);return {markup:o.markup,styles:o.styles};
   }
   function render(o,edition) {
     const old=edition==='classic'||edition==='text',title=escape(o.text);
-    if(o.widget==='flash-movie'){
-      if(old)return '[Flash movie] '+title;
-      return '<iframe class="craft-window" title="'+title+'" sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" src="'+player+'#'+escape(o.swf)+'"></iframe>';
+    if(o.widget==='game-cartridge'){
+      const src=arcade+'#rom='+encodeURIComponent(cartridgeURL(o.romUrl));
+      if(old)return '[Game cartridge] '+title+' · <a href="'+escape(src)+'">Open game player</a>';
+      return '<iframe class="craft-window cartridge-window" title="'+title+'" sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" src="'+escape(src)+'"></iframe>';
+    }
+    if(o.widget==='flash-movie'||o.widget==='flash-book'){
+      if(old)return o.widget==='flash-book'?fields(o).scenes.map(s=>'<p><b>'+escape(s.title)+'</b><br>'+escape(s.body).replace(/\n/g,'<br>')+'</p>').join(''):'[Flash movie] '+title;
+      const cfg=fields(o),params=new URLSearchParams();
+      if(cfg.stageFit!=='showAll')params.set('fit',cfg.stageFit);
+      if(cfg.stageColor!=='#17263c')params.set('matte',cfg.stageColor);
+      if(!cfg.stageControls)params.set('controls','off');
+      let data=o.swf;
+      if(o.widget==='flash-book'){
+        params.set('book','1');
+        const bytes=new TextEncoder().encode(JSON.stringify(cfg.scenes));
+        data=btoa(String.fromCharCode(...bytes));
+      }
+      const src=player+(params.size?'?'+params:'')+'#'+data;
+      return '<iframe class="craft-window" title="'+title+'" sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" src="'+escape(src)+'"></iframe>';
     }
     const content=markup(o.markup);
     if(edition==='text')return escape(content.plain||o.text);
@@ -105,7 +142,7 @@ const RetroCraft = (() => {
     const doc='<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; style-src &#39;unsafe-inline&#39;; form-action &#39;none&#39;; base-uri &#39;none&#39;"><style>html{overflow-wrap:anywhere}body{margin:4px}'+stylesheet(o.styles)+'</style>'+content.html;
     return '<iframe class="craft-window" sandbox="" title="'+title+'" srcdoc="'+escape(doc)+'"></iframe>';
   }
-  const css='.craft-window{display:block;box-sizing:border-box;width:100%;height:100%;border:0;pointer-events:auto}.phone .craft-window{height:220px}@media(max-width:600px){.board .craft-window{min-height:160px}}';
+  const css='.craft-window{display:block;box-sizing:border-box;width:100%;height:100%;border:0;pointer-events:auto}.phone .craft-window{height:auto;aspect-ratio:4/3}.phone .cartridge-window{aspect-ratio:420/460;min-height:290px}@media(max-width:600px){.board .craft-window{min-height:160px}}';
   function fallbackFields(o){
     const text=checkedString(o.fallbackText??'',500,'Classic description').trim();
     const url=checkedString(o.fallbackUrl??'',2048,'Classic link').trim();
@@ -120,5 +157,5 @@ const RetroCraft = (() => {
     const {fallbackText:text,fallbackUrl:url}=fallbackFields(o);
     return url?'<a href="'+escape(url)+'">'+escape(text||url)+'</a>':escape(text);
   }
-  return {fallbackFields,fallback,isCraft,fields,render,markup,stylesheet,pageCSS,swfBytes,maxBytes,player,css};
+  return {fallbackFields,fallback,isCraft,fields,render,markup,stylesheet,pageCSS,swfBytes,maxBytes,player,arcade,css};
 })();

@@ -1,0 +1,162 @@
+/* The frame is the browser's furniture. Member pages keep their own artwork. */
+body[data-theme="win31"], [data-skin="win31"] {
+  --emblem:0;--frame-ink:#263762;--frame-surface:#d4d1c7;--sample-edge:#8c8e8d;
+}
+body[data-theme="classic"], [data-skin="classic"] {
+  --emblem:1;--frame-ink:#345b50;--frame-surface:#d0d5ba;--sample-edge:#778270;
+}
+body[data-theme="real"], [data-skin="real"] {
+  --emblem:2;--frame-ink:#263a4a;--frame-surface:#abb9c3;--sample-edge:#697680;
+}
+body[data-theme="amber"], [data-skin="amber"] {
+  --emblem:3;--frame-ink:#28221e;--frame-surface:#604c3c;--sample-edge:#c89360;
+}
+body[data-theme="bubble"], [data-skin="bubble"] {
+  --emblem:4;--frame-ink:#554598;--frame-surface:#a5d6ef;--sample-edge:#8990c4;
+}
+body[data-theme="atlas"], [data-skin="atlas"] {
+  --emblem:5;--frame-ink:#4b5344;--frame-surface:#e1c086;--sample-edge:#987249;
+}
+body[data-theme="cinema"], [data-skin="cinema"] {
+  --emblem:6;--frame-ink:#582a3f;--frame-surface:#caab71;--sample-edge:#9e6e43;
+}
+body[data-theme="pocket"], [data-skin="pocket"] {
+  --emblem:7;--frame-ink:#4c455d;--frame-surface:#b0a4bc;--sample-edge:#897e92;
+}
+.frame-emblem{width:32px;height:32px;flex:none;display:inline-block;background:url(frame-emblems.png) no-repeat;background-position:calc(-32px * var(--emblem)) 0;image-rendering:pixelated}
+.surfer-title .brand{flex:none;justify-content:center;width:30px;height:28px}
+.status .settings-button{display:inline-flex;gap:3px;align-items:center;padding:2px 6px;font:600 12px/1.2 Tahoma,Arial,sans-serif;min-height:23px}
+.status .settings-button span{font-size:15px;line-height:1}
+#bar .status select{max-width:140px}
+body[data-theme="classic"]{--face:#cdd1bd;--light:#eef0d5;--shade:#7f897b;--line:#445045;--paper:#faf5de;--title:#3b5c50}
+[data-theme="classic"] .surfer-title{background:repeating-linear-gradient(0deg,transparent 0 2px,#ffffff0c 2px 3px),#3b5c50;border-bottom:2px solid #253c32}
+[data-theme="classic"] .surfer-title strong{font:bold 19px Georgia,serif;letter-spacing:.1px}
+[data-theme="classic"] .url-well{border-color:#6a735e;background:linear-gradient(#eeebcc,#fcf9e6)}
+[data-theme="classic"] .toolset button{border-radius:4px 4px 1px 1px;background:linear-gradient(#e9e8d6 0 45%,#c1c4ab)}
+body[data-theme="real"]{--title:#263a4a;--paper:#e3f6e8}
+[data-theme="real"] .surfer-title{background:linear-gradient(#6b7d8c,#344957 35%,#182833);border-bottom:2px solid #758b98}
+[data-theme="real"] .surfer-title strong{font:italic bold 20px Georgia,serif;color:#ffdc94}
+[data-theme="real"] #bar{background:repeating-linear-gradient(0deg,#ffffff12 0 1px,transparent 1px 3px),linear-gradient(#7c8e9b,#bdc9cc 45%,#637985);border-top:2px ridge #dbe1e0}
+[data-theme="real"] .toolset{padding:2px;border:1px solid #4a5a64;background:#566672;border-radius:6px;box-shadow:inset 1px 1px #283d46,1px 1px #d5dddf}
+[data-theme="real"] .toolset button{background:linear-gradient(#e7eff0,#b9c2c8 48%,#9ca9b1 52%,#cad2d7);border-radius:5px;box-shadow:inset 1px 1px #e8eff2,0 2px #2d424b}
+[data-theme="real"] .url-well{background:#dae7cb;box-shadow:inset 1px 1px #6c7c64;border-color:#485746}
+[data-theme="real"] .status::before{content:"";width:33px;height:9px;border:1px solid #111c1e;background:repeating-linear-gradient(90deg,transparent 0 2px,#193233 2px 4px),linear-gradient(90deg,#a2ca85 70%,#dab761 70% 86%,#da8367 86%)}
+/* Amber glass, a vented terminal housing, and square typewriter keys. */
+body[data-theme="amber"]{--face:#544638;--title:#251f19;--light:#ac9271;--shade:#2a261d;--line:#231f19;--paper:#2a231c;color:#ffe3a5}
+[data-theme="amber"] .surfer-title{background:repeating-linear-gradient(0deg,#32291e 0 1px,#29231d 1px 3px);border:1px solid #ae8554;color:#ffd18c}
+[data-theme="amber"] .surfer-title strong,[data-theme="amber"] .surfer-title #caption{font-family:"Courier New",monospace}
+[data-theme="amber"] #view{border:4px ridge #8e785f;border-radius:6px 6px 3px 3px}
+[data-theme="amber"] #bar{background:linear-gradient(#524639,#3e352b);border-top:3px ridge #8c7860}
+[data-theme="amber"] .toolset button,[data-theme="amber"] #hide,[data-theme="amber"] #address-form button{font-family:monospace;color:#ffe0a3;background:linear-gradient(#635441,#423a2d);border:1px solid #201e19;box-shadow:inset 0 1px #ab9677,inset 0 -3px #2b261f}
+[data-theme="amber"] .toolset .glyph{filter:sepia(.85) saturate(1.25) brightness(1.38)}
+[data-theme="amber"] .toolset button:disabled{color:#ae9576}
+[data-theme="amber"] .url-well,[data-theme="amber"] .status{background:#29251f;color:#ffd091;border-color:#1b1815;box-shadow:inset 1px 1px #1c1915,1px 1px #8d7c64}
+[data-theme="amber"] .url-well input{color:#ffd391}
+[data-theme="amber"] .url-well img{filter:sepia(1)}
+[data-theme="amber"] .lamp{background:#f0af4b;border-color:#463a25;box-shadow:inset 1px 1px #ffe4a3}
+[data-theme="amber"] .grip{width:30px;clip-path:none;background:repeating-linear-gradient(90deg,#1a1915 0 2px,#665446 2px 4px)}
+/* Translucent candy shell and oval button caps. */
+body[data-theme="bubble"]{--face:#c7d9f4;--title:#574492;--line:#5b5686;--shade:#8a84bb;--light:#fbf7ff;--paper:#fcf9ff;--signal:#6458a8}
+[data-theme="bubble"] .surfer-title{background:radial-gradient(ellipse at 20% 10%,#9c88ca,transparent 55%),linear-gradient(#8c7db7,#544787 60%,#665495);border-radius:12px 12px 2px 2px}
+[data-theme="bubble"] .surfer-title strong{font:italic 800 19px Verdana,sans-serif;text-shadow:1px 1px #51397f}
+[data-theme="bubble"] #view{border:3px ridge #a49bcd;border-radius:4px}
+[data-theme="bubble"] #bar{padding-inline:8px;background:radial-gradient(ellipse at 15% 0%,#ddfaff,transparent 48%),linear-gradient(#9bc3e4,#c4d7f5 54%,#a7a5d8);border:2px ridge #dedafa;border-radius:16px 16px 8px 8px}
+[data-theme="bubble"] .toolset{border:0;box-shadow:none}
+[data-theme="bubble"] .toolset button,[data-theme="bubble"] #address-form button,[data-theme="bubble"] #hide{border-radius:15px;border-color:#776caa;background:linear-gradient(#fff 0%,#dce8fa 17%,#bbc8ec 54%,#a4add9 56%,#d0d5f2);box-shadow:inset 1px 1px #ffffff,0 1px #a197c1}
+[data-theme="bubble"] .url-well{border-radius:12px;background:#fcfafe}.url-well input{border-radius:inherit}
+[data-theme="bubble"] .status{border:0;box-shadow:none;color:#353356}
+[data-theme="bubble"] .lamp{border-radius:50%;background:#9057b2;border-color:#71529f;box-shadow:inset 1px 1px #ead2fa}
+/* A stitched canvas cover around a chart case with brass corners. */
+body[data-theme="atlas"]{--face:#dfceaa;--light:#fff4ce;--shade:#9d8257;--line:#655340;--paper:#fff7db;--title:#465442}
+[data-theme="atlas"] .surfer-title{background:repeating-linear-gradient(45deg,transparent 0 2px,#c9c48212 2px 3px),#465442;border-block:2px dashed #afac85}
+[data-theme="atlas"] .surfer-title strong{font:italic bold 19px Georgia,serif;color:#fff0c7}
+[data-theme="atlas"] #view{border:4px ridge #b59a64}
+[data-theme="atlas"] #bar{border:2px solid #8a724f;background:repeating-radial-gradient(ellipse at 80% 20%,transparent 0 8px,#7b693326 9px 10px,transparent 11px 15px),#d9c69f}
+[data-theme="atlas"] .toolset button{color:#362c21;border-color:#70583e;border-radius:2px;background:linear-gradient(#fbefcb,#dbbd84);box-shadow:inset 0 0 0 2px #f2ddb2,1px 2px #94774f}
+[data-theme="atlas"] .url-well{background:#fff4d2;box-shadow:inset 1px 1px #c8ae7c}
+[data-theme="atlas"] .status{background:#eddfbd;border-style:dashed;box-shadow:none}
+[data-theme="atlas"] .lamp{border-radius:50%;background:#a15c35;border-color:#795339}
+/* Brass picture frame, film perforations, and clipped box-office tickets. */
+body[data-theme="cinema"]{--face:#dcc89e;--light:#fff0bc;--shade:#a88960;--line:#5e4837;--title:#592c3c;--paper:#fff5de}
+[data-theme="cinema"] .surfer-title{background:repeating-linear-gradient(105deg,transparent 0 13px,#a0535b38 15px,#401c301f 22px),linear-gradient(#803e50,#4e2739);border-block:3px double #e4be76}
+[data-theme="cinema"] .surfer-title strong{font:700 small-caps 21px Georgia,serif;letter-spacing:.6px;color:#ffdd91}
+[data-theme="cinema"] #view{border:4px ridge #b58b54}
+[data-theme="cinema"] #bar{background:linear-gradient(#583343,#3c2233);border-top:3px double #cfab6b;color:#ffe0a2}
+[data-theme="cinema"] .toolset button{background:linear-gradient(#f3dfb9,#dab683);border-color:#4c3440;box-shadow:inset 0 0 0 2px #ead0a3,inset 0 0 0 3px #b28c5f;color:#472b33;clip-path:polygon(3px 0,calc(100% - 3px) 0,100% 3px,100% calc(50% - 2px),calc(100% - 2px) 50%,100% calc(50% + 2px),100% calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,0 calc(100% - 3px),0 calc(50% + 2px),2px 50%,0 calc(50% - 2px),0 3px)}
+[data-theme="cinema"] .url-well{border:2px double #c69f63;background:#ffefd3}
+[data-theme="cinema"] .status{border-block:1px dashed #d3b47d;background:#372632;color:#ffdfa4;box-shadow:none}
+[data-theme="cinema"] .grip{clip-path:none;width:28px;height:7px;background:repeating-linear-gradient(90deg,#d1aa74 0 4px,transparent 4px 7px)}
+/* A molded handheld shell, a green LCD address strip, and plum action pads. */
+body[data-theme="pocket"]{--face:#b5a9bf;--light:#e9dfeb;--shade:#817287;--line:#574b60;--title:#4d485f;--paper:#bcca88}
+[data-theme="pocket"] .surfer-title{background:#4e485e;border-top:3px solid #8c7a91;border-bottom:2px solid #bcacbd}
+[data-theme="pocket"] .surfer-title strong{font:italic 800 19px Verdana,sans-serif;letter-spacing:-1px;color:#f6d7ee}
+[data-theme="pocket"] #view{border:4px solid #706977;border-radius:4px 4px 13px 4px}
+[data-theme="pocket"] #bar{border-radius:6px 6px 16px 6px;background:linear-gradient(#c5b8cc,#aa9cb6);border:2px outset #d4c8d6}
+[data-theme="pocket"] .toolset button{border:1px solid #473749;border-radius:13px;background:linear-gradient(#825472,#603852);color:#fff4d9;box-shadow:inset 0 2px #a97796,0 2px #443447}
+[data-theme="pocket"] .toolset:first-child button{background:linear-gradient(#626071,#464454);box-shadow:inset 0 2px #8b8798,0 2px #494155}
+[data-theme="pocket"] .toolset button:disabled{color:#ddd4e0}
+[data-theme="pocket"] .url-well{background:repeating-linear-gradient(0deg,#a7ba79 0 1px,#b9c785 1px 3px);border-color:#657050}
+[data-theme="pocket"] .url-well input{color:#31402e;font-weight:bold}
+[data-theme="pocket"] .status{border:none;box-shadow:none}
+[data-theme="pocket"] .grip{width:48px;height:10px;clip-path:none;background:repeating-linear-gradient(115deg,transparent 0 4px,#82748a 4px 6px,#d2c2d5 6px 7px)}
+/* Member controls, select menus and preference panels stay legible in every frame. */
+body[data-theme] .status select,.settings-pane select{background:#fffaf0;color:#22252c}
+body[data-theme] .status .settings-button{background:#e4dfd0;color:#25242b;border-color:#756e61;box-shadow:inset 1px 1px #fffbef,inset -1px -1px #a39a88}
+body[data-theme] .toolset button[aria-pressed=true]{outline:1px dotted currentColor;outline-offset:-5px}
+body[data-theme] button:focus-visible,body[data-theme] a:focus-visible,body[data-theme] select:focus-visible{outline:2px dashed #247cb5;outline-offset:-3px}
+dialog::backdrop{background:#15172866}
+#settings,#shelf,#share-box{--face:#dedbd1;--light:#fffbed;--shade:#928b7d;--line:#4b4750;background:#dedbd1;color:#262331;box-shadow:3px 4px 0 #26233478}
+#settings{width:min(580px,94vw);max-height:min(86dvh,740px);padding:4px}
+.window-head{padding:4px 6px;min-height:31px}.window-head .frame-emblem{width:32px;height:28px}
+.window-head button{margin-left:auto;min-width:26px;background:#ddd9d1;color:#222}
+.settings-tabs,.library-nav{display:flex;gap:3px;padding:9px 5px 0}
+.settings-tabs button,.library-nav button{padding:6px 12px;background:#c6c1b5}
+.settings-tabs [aria-selected=true],.library-nav [aria-pressed=true]{background:#faf6e8;font-weight:bold;box-shadow:inset 1px 1px white}
+.settings-pane{margin:0 4px;padding:9px;background:#f4f0e4;border:1px solid #978e7d;box-shadow:inset 1px 1px #fffdfa}
+.settings-pane fieldset{min-width:0;margin:0 0 8px;padding:7px 10px 10px;border:1px solid #aba18e}
+.settings-pane fieldset:last-of-type{margin-bottom:0}.settings-pane legend{font:bold 14px Tahoma,Arial,sans-serif;padding:0 4px}
+.settings-pane fieldset.frame-picker{border:0;padding:0}.frame-picker legend{margin-bottom:7px}
+#frames{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#frames .frame-card{position:relative;display:flex;align-items:stretch;margin:0;padding:2px;border:1px solid #9f9786;box-shadow:inset 1px 1px #fffdf3;background:#f8f4e8;color:#292630;cursor:pointer}
+.frame-card input{position:absolute;width:1px;height:1px;opacity:0;inset:0;margin:0}
+.frame-card:has(input:checked){outline:2px solid #42536a;outline-offset:-2px;background:#e5e9ec!important}
+.frame-card:has(input:focus-visible){outline:2px dashed #00739a;outline-offset:-2px}
+.frame-sample{display:flex;flex:none;width:54px;min-height:43px;align-items:center;justify-content:center;position:relative;background:linear-gradient(0deg,var(--frame-surface) 0 22%,var(--frame-ink) 22% 100%);border:1px solid var(--sample-edge)}
+.frame-sample .frame-emblem{margin-bottom:6px}.frame-detail{position:absolute;bottom:3px;left:5px;right:5px;height:4px;background:repeating-linear-gradient(90deg,var(--sample-edge) 0 4px,transparent 4px 6px)}
+[data-skin="amber"] .frame-sample{background:repeating-linear-gradient(0deg,#30251c 0 2px,#483c2e 2px 3px)}
+[data-skin="bubble"] .frame-sample{border-radius:8px;background:radial-gradient(at 20% 20%,#f1feff,#86add8 45%,#9284bd)}
+[data-skin="atlas"] .frame-sample{background:repeating-radial-gradient(ellipse at top right,#e2ca9f 0 4px,#b8a779 5px 6px,#e2ca9f 7px 9px);border:1px dashed #86714d}
+[data-skin="cinema"] .frame-sample{background:repeating-linear-gradient(105deg,#512f41 0 6px,#7e4456 8px 11px);border-block:3px double #caab71}
+[data-skin="pocket"] .frame-sample{background:#697055;border:3px solid #9a8eaa;border-radius:2px 2px 9px 2px}
+.frame-caption{align-self:center;min-width:0;padding:2px 6px}.frame-caption b,.frame-caption small{display:block}.frame-caption small{font:12px/1.2 Tahoma,Arial,sans-serif;color:#565362;margin-top:2px}
+.settings-pane fieldset>label{display:flex;align-items:center;gap:6px;min-height:26px;margin:2px 0}.settings-pane input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:#545e76}.pref-row{justify-content:space-between}
+.pref-row select{max-width:54%;font-size:14px;padding:3px}.shortcuts{font-size:12px;color:#4c4656;margin:12px 1px 2px}.shortcuts span{padding:0 5px}
+.settings-foot{display:flex;align-items:center;justify-content:space-between;padding:8px 5px 2px;gap:8px}.settings-foot output{font-size:12px;color:#534f54}
+.settings-foot button{min-width:72px;font-weight:bold}.library-nav{padding-top:6px}#clear-recent{margin:2px 6px 6px}.visit-label{display:block;font-weight:bold}.visit-path{display:block;font:12px/1.25 "Courier New",monospace;overflow-wrap:anywhere}#saved-list button{min-width:0}
+@media(max-width:720px){[data-theme="real"] .toolset{padding:1px}[data-theme="bubble"] #bar{padding-inline:3px}.status .settings-button{min-height:28px}.settings-tabs button,.library-nav button,.settings-foot button{min-height:34px}}
+@media(max-width:460px){#bar .status select{max-width:108px}.status{gap:3px}.status .settings-button{padding:1px 4px}.frame-sample{width:36px}.frame-caption{padding:2px 4px}.frame-caption b{font-size:13px}.frame-caption small{font-size:11px}.settings-pane{padding:6px}.pref-row{align-items:flex-start!important;flex-direction:column}.pref-row select{max-width:100%;width:100%}}
+@media(max-width:340px){#bar .grip{display:none}.status label[for="theme"]{display:none}.surfer-title #caption:empty{display:none}}
+/* The cabinet skins have dedicated pixel controls as well as their own housings. */
+:is([data-theme="amber"],[data-theme="bubble"],[data-theme="atlas"],[data-theme="cinema"],[data-theme="pocket"]) .toolset .glyph{background-image:url(frame-controls.png);filter:none;background-position-y:var(--icon-row)}
+[data-theme="amber"]{--icon-row:0px}[data-theme="bubble"]{--icon-row:-24px}[data-theme="atlas"]{--icon-row:-48px}[data-theme="cinema"]{--icon-row:-72px}[data-theme="pocket"]{--icon-row:-96px}
+@media(min-width:980px){
+  /* The receiver has a separate display next to its transport keys. */
+  [data-theme="real"] #bar:not([hidden]){display:grid;grid-template-columns:minmax(400px,1.4fr) minmax(225px,1fr);gap:3px 8px}
+  [data-theme="real"] .controls{grid-row:1/3}[data-theme="real"] .toolset button{min-width:40px;flex-direction:column;gap:0;font-size:12px;padding:3px 5px}
+  [data-theme="real"] #address-form,[data-theme="real"] .status{margin:0}[data-theme="real"] #hide{align-self:stretch;min-width:18px;margin:0;padding:0}
+  /* Its command line sits immediately above the terminal's function keys. */
+  [data-theme="amber"] #bar:not([hidden]){display:grid;grid-template-columns:1fr auto;gap:4px 8px}
+  [data-theme="amber"] #address-form{grid-column:1/-1;grid-row:1;margin:0}[data-theme="amber"] .controls{grid-row:2}
+  [data-theme="amber"] .status{margin:0;min-width:230px}[data-theme="amber"] #hide{min-width:22px;padding:0}
+  [data-theme="amber"] .toolset button{min-width:44px;font-size:13px;gap:2px;padding-inline:4px}
+  /* Atlas controls form the tabs on the upper edge of a paper chart sleeve. */
+  [data-theme="atlas"] .controls .toolset{gap:0;border:0;box-shadow:none}
+  [data-theme="atlas"] .toolset button{border-radius:6px 8px 0 0;transform:skewX(-4deg);border-bottom:3px solid #b19869;box-shadow:inset 0 2px #ffefc7}
+  [data-theme="atlas"] #address-form{margin-top:0;background:#f2dfb6;padding:4px 5px 3px;border:1px solid #a68c65}
+  /* A handheld has a small physical control cluster next to its LCD display. */
+  [data-theme="pocket"] #bar:not([hidden]){display:grid;grid-template-columns:minmax(360px,1fr) minmax(240px,1fr);gap:2px 14px;padding:5px 10px}
+  [data-theme="pocket"] .controls{grid-row:1/3}[data-theme="pocket"] .toolset{border:0;box-shadow:none;gap:3px}
+  [data-theme="pocket"] .toolset button{flex-direction:column;gap:1px;min-width:38px;padding:3px 5px;font:bold 12px Tahoma,Arial,sans-serif}
+  [data-theme="pocket"] #hide{min-width:18px;padding:0}[data-theme="pocket"] #address-form,[data-theme="pocket"] .status{margin:0}
+}
+[data-theme="pocket"] .toolset .glyph{background-color:#baca87;box-shadow:inset 1px 1px #88986b,inset -1px -1px #d0dd9c;border-radius:3px}

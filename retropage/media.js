@@ -33,7 +33,7 @@ const RetroMedia = (() => {
   const isFrame=o=>frameKinds.includes(o?.widget);
   const isBorder=o=>Object.hasOwn(borderStyles,o?.widget || '');
   const isPanel=o=>isFrame(o)||isBorder(o);
-  const skins={original:'Original illustrated faceplate',hardware:'Instrument cabinet',win31:'Windows 3.1',real:'RealPlayer style',deck:'Original deck'};
+  const skins={original:'Original illustrated faceplate',hardware:'Instrument cabinet',win31:'DeskMate Media',real:'Slipstream Player',deck:'Original deck'};
   const voices={clip:'Sound clip player',music:'Cassette deck',radio:'Radio tuner'};
   function frameURL(value){
     if(/^page:(?:home|[0-9a-f]{32})$/.test(value))return value;
@@ -202,7 +202,7 @@ const RetroMedia = (() => {
       }
     }
   }
-  const movieStyles={original:'Market Street · Original movie window',hardware:'Source cabinet',win31:'Windows 3.1 · Media window',real:'Streamline · Silver and blue',deck:'Vision Deck · Studio monitor',channel:'Channel TV · Cable television',archive:'Cinégraph · Film library'};
+  const movieStyles={original:'Market Street · Original movie window',hardware:'Source cabinet',win31:'DeskMate · Media window',real:'Streamline · Silver and blue',deck:'Vision Deck · Studio monitor',channel:'Channel TV · Cable television',archive:'Cinégraph · Film library'};
   const movieCabinets={
     streamline:['Streamline','Digital video'],
     channel:['Channel TV','Web video'],

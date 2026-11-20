@@ -207,7 +207,7 @@
         if ('widget' in n) {
           check(typeof n.widget === 'string' && Object.hasOwn(window.retroObjects.presets, n.widget), 'Unknown object preset.');
           if ('fallbackText' in n || 'fallbackUrl' in n)Object.assign(n,RetroCraft.fallbackFields(n));
-          if (n.widget==='html-block'||n.widget==='flash-movie')RetroCraft.fields(n);
+          if (RetroCraft.isCraft(n))Object.assign(n,RetroCraft.fields(n));
           if (RetroMedia.isPlayer(n)) RetroMedia.source(n.href,n.widget);
           if(RetroMedia.isFrame(n)){
             RetroMedia.frameURL(n.href);
