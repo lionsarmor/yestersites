@@ -7,6 +7,8 @@
     const base=host+'/members/'+row.slug+'/';
     catalog.set(base,{base,title:row.title,sound:tracks[row.slug]?base+tracks[row.slug]:''});
   }
+  const playableMode=new URLSearchParams(location.search).get('mode')==='playable';
+  const playableSites=new Set();
   const prefs=window.RingSurferPreferences;
   let manualMute=prefs.quiet;
   let visits=[],index=-1,bag=[],frame=null,loading=false,stopped=false,currentSound='',soundEnabled=false;
@@ -71,7 +73,7 @@
     tool('stop',loading?'stop':'reload',loading?'Stop':'Reload',loading?'Stop loading':'Reload this page');
     tool('sound',soundEnabled?'sound':'mute','Sound',soundEnabled?'Mute site sound':'Turn site sound on');$('sound').setAttribute('aria-pressed',String(soundEnabled));
     if(url){
-      const next=location.pathname+'?url='+encodeURIComponent(publicLink(url));
+      const next=location.pathname+'?'+(playableMode?'mode=playable&':'')+'url='+encodeURIComponent(publicLink(url));
       if(location.pathname+location.search!==next)history.replaceState(null,'',next);
     }
   }
@@ -171,12 +173,12 @@
     const row=site(current());
     bag=bag.filter(url=>url!==row?.base);
     if(!bag.length){
-      bag=[...catalog.keys()].filter(url=>url!==row?.base);
+      bag=[...(playableMode?playableSites:catalog.keys())].filter(url=>url!==row?.base);
     }
     // Sample without replacement. Newly listed sites can join the current round.
     const picked=Math.floor(Math.random()*bag.length);
-    const base=bag.splice(picked,1)[0]||row?.base;
-    return base && (prefs.edition==='text'?base+'text.html':base);
+    const base=bag.splice(picked,1)[0]||(!playableMode || playableSites.has(row?.base)?row?.base:null);
+    return base && (!playableMode && prefs.edition==='text'?base+'text.html':base);
   }
   function forward(){if(index<visits.length-1){index++;load();}else navigate(another());}
   function back(){if(index>0){index--;load();}}
@@ -301,21 +303,32 @@
     let cursor;
     do {
       const u=new URL('/api/directory',host);if(cursor)u.searchParams.set('cursor',cursor);
-      const response=await fetch(u,{credentials:'omit'});if(!response.ok)break;
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+      let response;
+      try{response=await fetch(u,{credentials:'omit',signal:controller.signal});}finally{clearTimeout(timer);}if(!response.ok)break;
       const data=await response.json();
       for(const m of data.sites){
         if(!/^[a-z0-9-]{1,40}$/.test(m.slug))continue;
         const base=host+'/members/'+m.slug+'/';
+        if((m.capabilities||[]).includes('playable'))playableSites.add(base);
         if(catalog.has(base))continue;
         catalog.set(base,{base,title:m.title,sound:''});
-        if(bag.length && site(current())?.base!==base)bag.push(base);
+        if(bag.length && (!playableMode || playableSites.has(base)) && site(current())?.base!==base)bag.push(base);
       }
-      releaseFirstPage();
+      if(!playableMode || (explicit?playableSites.has(site(explicit)?.base):playableSites.size))releaseFirstPage();
       cursor=data.nextCursor;
     }while(cursor);
     update();
   })().catch(()=>{}).finally(releaseFirstPage);
-  if(explicit || previous)navigate(explicit || previous);
+  if(playableMode){
+    document.title='Play the neighborhood · Ring Surfer';
+    msg('Finding playable member sites…');
+    firstPage.then(()=>{
+      const start=explicit && playableSites.has(site(explicit)?.base)?explicit:another();
+      if(start)navigate(start);
+      else{msg('No playable sites available. Reload to try again.');$('next').disabled=true;}
+    });
+  }else if(explicit || previous)navigate(explicit || previous);
   else{
     msg('Finding a member site…');update();
     // New visitors get the live directory on their first shuffle. A slow/offline

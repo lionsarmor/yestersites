@@ -29,7 +29,7 @@ header h1 .desktop-logo { width: 235px; max-width: 100%; height: auto; margin-to
   .editor-download img { width: 20px; height: 20px; }
 }
 
-.launchpad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:13px 0 5px;text-align:left}
+.launchpad{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:13px 0 5px;text-align:left}
 .launchpad a{display:flex;align-items:center;gap:6px;min-width:0;padding:8px 5px;border:2px outset #fff4d8;background:#e4ddcb;text-decoration:none;color:#29203e;box-shadow:1px 1px #645e66}
 .launchpad .browse-launch{background:#4b3e68;color:#fff2cf;border-color:#ab96c0 #342448 #342448 #ab96c0}
 .launchpad a:hover{background:#fcf0c4;color:#3d2548}.launchpad a:active{border-style:inset}
