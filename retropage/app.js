@@ -165,6 +165,8 @@
       ['Link', 'add-link'],
       ['Box', 'add-box'],
       ['Horizontal rule', 'add-rule'],
+      ['HTML & CSS block…','craft-html'],
+      ['Flash movie…','craft-flash'],
       null,
       ['GIF stamps', 'stamps'],
       ['Properties…', 'properties'],
@@ -181,7 +183,8 @@
     ],
     View: [
       ['View in browser', 'preview', 'F5'],
-      ['HTML source…', 'source'],
+      ['HTML source & page CSS…', 'source'],
+      ['Edit HTML & CSS block…','craft-html'],
       ['BBS preview', 'preview-bbs'],
       null,
       ['Zoom…', 'zoom'],
@@ -399,7 +402,7 @@
         }
       }
       const builtin=Object.entries({...window.retroObjects.presets,...mediaPresets}).filter(([key])=>{
-        if(objectGroup==='Media players')return Object.hasOwn(mediaLibrary,key);
+        if(objectGroup==='Media players')return Object.hasOwn(mediaLibrary,key)||key==='flash-movie';
         if(Object.hasOwn(mediaLibrary,key) || key==='audio-player')return false;
         if(RetroMedia.isPanel({widget:key}))return objectGroup==='Basic shapes';
         return objectGroup==='Web objects' && !key.startsWith('bbs-');
@@ -538,7 +541,7 @@
       eye.append(glyph(off ? 'closed' : 'eye'));
       name.dataset.layer = o.id;
       const media=RetroMedia.isPlayer(o)?mediaLibrary[mediaKey(o)]:null;
-      const src=media?'assets/instruments/'+media.icon+'-still.gif':o.kind==='image'?o.src:'';
+      const src=RetroCraft.isCraft(o)?widgets[o.widget].preview:media?'assets/instruments/'+media.icon+'-still.gif':o.kind==='image'?o.src:'';
       if (src) {
         const thumb = node('img');
         thumb.src = src;
@@ -546,7 +549,7 @@
         name.append(thumb);
       } else name.append(glyph(o.kind));
       const text = o.text.trim().replace(/\s+/g, ' ');
-      name.append(node('span', null, (media?.label||M.kinds[o.kind]) + (text ? ': ' + text : '')));
+      name.append(node('span', null, (media?.label||(RetroCraft.isCraft(o)?widgets[o.widget].label:M.kinds[o.kind])) + (text ? ': ' + text : '')));
       row.append(eye, name);
       root.append(row);
     }
@@ -555,7 +558,7 @@
   function renderProperties() {
     const o = object();
     const media=RetroMedia.isPlayer(o)?mediaLibrary[mediaKey(o)]:null;
-    $('properties-title').textContent=o?(media?.label||M.kinds[o.kind])+' Properties':'Properties';
+    $('properties-title').textContent=o?(media?.label||(RetroCraft.isCraft(o)?widgets[o.widget].label:M.kinds[o.kind]))+' Properties':'Properties';
     $('properties').querySelector('[data-action=properties]').textContent=media?'Edit '+media.label.toLowerCase()+'…':'Edit object…';
     for (const k of ['x', 'y', 'w', 'h', 'text']) {
       const c = $('prop-' + k);
@@ -580,11 +583,14 @@
   function drawObjects() {
     const paper = $('paper');
     paper.replaceChildren();
+    if(page().pageStyles){
+      const css=node('style');css.textContent=RetroCraft.pageCSS(page().pageStyles,'#paper');paper.append(css);
+    }
     paper.style.width = page().width + 'px';
     paper.style.height = page().height + 'px';
     paper.style.backgroundColor = page().background;
     for (const [i, o] of page().items.entries()) {
-      const el = node('div', 'canvas-object');
+      const el = node('div', 'canvas-object rp-'+o.kind);
       el.dataset.object = o.id;
       el.title = o.kind === 'image' ? o.text : '';
       el.hidden = hidden.has(layerKey(o.id));
@@ -602,7 +608,12 @@
       });
       if (o.kind === 'box') el.style.boxShadow = 'inset 0 0 0 1px ' + o.color;
       const src = M.appearance(o);
-      if(RetroMedia.isBorder(o)){el.style.border='6px '+RetroMedia.borderStyles[o.widget]+' '+o.color;el.style.boxShadow='none';}
+      if(RetroCraft.isCraft(o)){
+        const face=node('div','craft-face');face.inert=true;
+        if(o.widget==='html-block')face.innerHTML=RetroCraft.render(o,'modern');
+        else {const icon=node('img');icon.src='assets/instruments/flash-still.gif';icon.alt='';face.classList.add('flash-face');face.append(icon,node('strong',null,o.text),node('small',null,'Flash movie · Ruffle'));}
+        el.append(face);
+      }else if(RetroMedia.isBorder(o)){el.style.border='6px '+RetroMedia.borderStyles[o.widget]+' '+o.color;el.style.boxShadow='none';}
       else if(RetroMedia.isFrame(o)){
         const pane=node('div','editor-frame');
         if(o.widget==='split-frame'){const rail=node('div','editor-frame-menu');rail.append(node('strong',null,'INDEX'),node('span',null,o.text),node('span',null,o.otherLabel));pane.append(rail);}
@@ -836,7 +847,7 @@
   paper.addEventListener('dblclick', (e) => {
     const o = object();
     if (!o || !e.target.closest('[data-object]')) return;
-    (RetroMedia.isPanel(o) || RetroMedia.isPlayer(o) || ['image', 'rule', 'link'].includes(o.kind)) ? properties() : editInline();
+    (RetroCraft.isCraft(o) || RetroMedia.isPanel(o) || RetroMedia.isPlayer(o) || ['image', 'rule', 'link'].includes(o.kind)) ? properties() : editInline();
   });
   function place(data) {
     armed = data;
@@ -944,6 +955,50 @@
     form.addEventListener('change',refreshPreview);refreshPreview();
     $('dialog').addEventListener('close',()=>{form.removeEventListener('change',refreshPreview);silence();pane.replaceChildren();},{once:true});
   }
+  function craftDialog(o){
+    const isFlash=o.widget==='flash-movie',label=widgets[o.widget].label;
+    const fields=[{name:'text',label:isFlash?'Movie title and classic-browser description':'Block title',value:o.text,required:true,maxLength:120}];
+    if(isFlash)fields.push({note:'Import a self-contained SWF. Each page holds up to 768 KiB. Visitors choose when to play.'});
+    else fields.push({name:'markup',label:'HTML fragment',type:'textarea',maxLength:8192,value:o.markup},
+      {name:'styles',label:'CSS for this block',type:'textarea',maxLength:4096,value:o.styles});
+    let swf=o.swf,reading=false,fileError='',sequence=0;
+    dialog(label+' properties',fields,v=>{
+      if(reading)throw Error('Wait for the selected file to finish loading.');
+      if(fileError)throw Error(fileError);
+      const values=isFlash?{swf,text:v.text}:{text:v.text,markup:v.markup,styles:v.styles};
+      RetroCraft.fields({...o,...values});applyObject(o,values);
+    },'Apply');
+    const root=$('dialog-fields'),preview=node('div','craft-preview'),feedback=node('small');
+    feedback.setAttribute('role','status');
+    const refresh=()=>{
+      const v={...o,text:root.querySelector('[name=text]').value,swf};
+      if(!isFlash){v.markup=root.querySelector('[name=markup]').value;v.styles=root.querySelector('[name=styles]').value;}
+      try{preview.innerHTML=RetroCraft.render(v,'modern');feedback.textContent='';}catch(error){feedback.textContent=error.message;}
+    };
+    if(isFlash){
+      const label=node('label',null,'SWF file'),input=node('input'),info=node('output');
+      info.textContent=swf==='demo'?'Original sample: Comet flyby':'Imported movie · '+Math.ceil(RetroCraft.swfBytes(swf)/1024)+' KiB';
+      input.type='file';input.accept='.swf,application/x-shockwave-flash';label.append(input,info);root.append(label);
+      input.onchange=async()=>{
+        const file=input.files[0],current=++sequence;if(!file){reading=false;return;}
+        reading=true;
+        try{
+          if(file.size>RetroCraft.maxBytes)throw Error('Choose a SWF of 768 KiB or less.');
+          const buf=new Uint8Array(await file.arrayBuffer());let raw='';
+          for(let i=0;i<buf.length;i+=8192)raw+=String.fromCharCode(...buf.subarray(i,i+8192));
+          const data=btoa(raw);RetroCraft.swfBytes(data);if(current!==sequence||!root.contains(input))return;
+          fileError='';swf=data;info.textContent=file.name+' · '+Math.ceil(file.size/1024)+' KiB';refresh();
+        }catch(error){input.value='';fileError=error.message;feedback.textContent=fileError;}finally{if(current===sequence)reading=false;}
+      };
+    }else{
+      const help=node('details'),head=node('summary',null,'Supported HTML and CSS');
+      help.append(head,node('p',null,'Use headings, paragraphs, spans, divs, lists, tables and text formatting. Use quoted class and style attributes. CSS supports element and class selectors, typography, colors, spacing, borders, shadows, flex and grid. Use literal values such as 2px, 90% or #ffd866.'));
+      root.append(help);
+      for(const field of root.querySelectorAll('textarea')){field.spellcheck=false;field.oninput=refresh;}
+    }
+    root.append(feedback,preview);refresh();
+    $('dialog').addEventListener('close',()=>{preview.replaceChildren();},{once:true});
+  }
   function frameDialog(o,isNew){
     const p=page(),split=o.widget==='split-frame';
     const fields=(prefix,label,href)=>[
@@ -978,7 +1033,7 @@
       return o;
     });
     if(RetroMedia.isFrame(objects[0]))return frameDialog(objects[0],true);
-    if(RetroMedia.isPlayer(objects[0])){
+    if(RetroMedia.isPlayer(objects[0]) || RetroCraft.isCraft(objects[0])){
       const candidate={...p,items:[...p.items,...objects]};
       M.normalize(p===doc?candidate:{...doc,pages:doc.pages.map(child=>child===p?candidate:child)});
       p.items.push(...objects);selected=objects[0].id;
@@ -1067,6 +1122,7 @@
   function properties() {
     const o = object();
     if (!o) return status('Select an object on the page.');
+    if (RetroCraft.isCraft(o)) return craftDialog(o);
     if (RetroMedia.isFrame(o)) return frameDialog(o,false);
     if (RetroMedia.isPlayer(o)) return playerDialog(o);
     const fields =
@@ -1608,22 +1664,25 @@
         await RetroExport.download(doc);
         status('Exported your website ZIP.');
         break;
-      case 'source':
-        dialog(
-          'HTML source',
-          [
-            {
-              name: 'html',
-              label: page().title,
-              type: 'textarea',
-              value: await RetroExport.source(doc, active),
-              readOnly: true,
-            },
-          ],
-          null,
-          'Close',
-        );
+      case 'craft-html':
+      case 'craft-flash':{
+        const kind=key==='craft-html'?'html-block':'flash-movie';
+        if(object()?.widget!==kind)insertWidget(kind,24,32);
+        craftDialog(object());break;
+      }
+      case 'source':{
+        const target=page();
+        dialog('HTML source & page CSS',[
+          {name:'pageStyles',label:'Page stylesheet',type:'textarea',value:target.pageStyles||'',maxLength:4096},
+          {note:'Style .page, .text, .link, .image, .box or .rule. For example: .link { color: #ce315b; font-weight: bold; }'},
+          {name:'html',label:'Generated HTML · '+target.title,type:'textarea',value:await RetroExport.source(doc,active),readOnly:true}
+        ],v=>{
+          RetroCraft.pageCSS(v.pageStyles);
+          if(v.pageStyles.trim())target.pageStyles=v.pageStyles;else delete target.pageStyles;
+          record('Applied page stylesheet.');
+        },'Apply stylesheet');
         break;
+      }
       case 'publish':
         publish();
         break;
@@ -1695,7 +1754,7 @@
     }
     const widget=e.target.closest('[data-widget]');
     if(widget){const key=widget.dataset.widget;
-      if(mediaLibrary[key]){
+      if(mediaLibrary[key] || RetroCraft.isCraft({widget:key})){
         armed=null;const offset=18*(page().items.filter(RetroMedia.isPlayer).length%4);
         try{insertWidget(key,24+offset,48+offset);}catch(error){status(error.message);}return;
       }

@@ -79,6 +79,7 @@
       return href ? '<a href="'+escape(href)+'">'+(body||escape(o.text||href))+'</a>':body;
     }
     function content(o,layout) {
+      if(o.widget==='html-block'||o.widget==='flash-movie')return RetroCraft.render(o,layout);
       const text=escape(o.text).replace(/\r?\n/g,'<br>');
       if(o.widget==='bbs-art'||o.widget==='bbs-files')return '<tt>'+text.replace(/ /g,'&nbsp;')+'</tt>';
       if(layout==='text'&&o.kind==='image')return text?'[Image: '+text+']':'';
@@ -91,7 +92,7 @@
       let html='<div class="board" style="max-width:'+page.width+'px;background:'+page.background+'"><div style="padding-top:'+100*page.height/page.width+'%"></div>';
       for(const [index,o] of page.items.entries()){
         const css=style(o)+'left:'+100*o.x/page.width+'%;top:'+100*o.y/page.height+'%;width:'+100*o.w/page.width+'%;height:'+100*o.h/page.height+'%;z-index:'+(index+1)+';background:'+(o.kind==='rule'?o.color:o.fill||'transparent')+';font-size:'+o.font_size+'px;font-size:min('+o.font_size+'px,'+100*o.font_size/page.width+'vw);'+(o.kind==='box'?'box-shadow:inset 0 0 0 1px '+o.color:'');
-        html+='<div class="object" style="'+escape(css)+'">'+(RetroMedia.isPanel(o)?drawPanel(o,'modern'):RetroMedia.isPlayer(o)?RetroMedia.render(o,'modern'):link(o,content(o,'modern')))+'</div>';
+        html+='<div class="object rp-'+o.kind+'" style="'+escape(css)+'">'+(RetroMedia.isPanel(o)?drawPanel(o,'modern'):RetroMedia.isPlayer(o)?RetroMedia.render(o,'modern'):link(o,content(o,'modern')))+'</div>';
       }return html+'</div>';
     }
     function flow(layout){
@@ -99,10 +100,11 @@
       for(const row of rows(page,backdrop)){
         const parts=[];
         for(const o of row){
+          if(o.widget==='html-block'||o.widget==='flash-movie'){parts.push([o,RetroCraft.render(o,layout)]);continue;}
           if (RetroMedia.isPanel(o)){const html=drawPanel(o,layout);if(html)parts.push([o,html]);continue;}
           if (RetroMedia.isPlayer(o)){parts.push([o,RetroMedia.render(o,layout)]);continue;}
           let body=content(o,layout);
-          if(o.kind==='rule'){parts.push([o,'<hr>']);continue;}
+          if(o.kind==='rule'){parts.push([o,layout==='phone'?'<hr class="rp-rule">':'<hr>']);continue;}
           if(!body&&!o.href)continue;
           if(layout==='classic'){
             const levels=[10,13,16,18,24,32,48],delta=levels.map(s=>Math.abs(s-o.font_size));
@@ -110,7 +112,7 @@
             body='<font color="'+o.color+'" face="'+escape(M.fonts[o.font_family])+'" size="'+(1+delta.indexOf(Math.min(...delta)))+'">'+(body||escape(o.href))+'</font>';
           }
           body=link(o,body);
-          if(layout==='phone')body='<span style="'+escape(style(o)+'font-size:'+Math.max(16,Math.min(56,o.font_size))+'px;background:'+(o.fill||'transparent'))+'">'+body+'</span>';
+          if(layout==='phone')body='<span class="rp-'+o.kind+'" style="'+escape(style(o)+'font-size:'+Math.max(16,Math.min(56,o.font_size))+'px;background:'+(o.fill||'transparent'))+'">'+body+'</span>';
           parts.push([o,body]);
         }
         if(row.length>1&&row.some(o=>o.href)&&row.every(o=>o.href||navSigns.has(o.text.trim())))html+='<p class="navlinks">'+parts.map(p=>p[1]).join(' ')+'</p>';
@@ -135,10 +137,12 @@
     const sound = !page.soundtrack ? '' : old
       ? '<p><a href="'+escape(page.soundtrack)+'">Listen to this page</a></p>'
       : '<audio controls autoplay loop preload="none" aria-label="Page soundtrack" src="'+escape(page.soundtrack)+'"></audio>';
-    const hasPlayers=page.items.some(o=>RetroMedia.isPlayer(o)||RetroMedia.isFrame(o));
+    const hasPlayers=page.items.some(o=>RetroMedia.isPlayer(o)||RetroMedia.isFrame(o)||o.widget==='flash-movie'||o.widget==='html-block');
     if(!old && page.items.some(RetroMedia.isPanel))css+=RetroMedia.panelCss;
     if(!old && hasPlayers)css+=RetroMedia.css;
+    if(!old && page.items.some(o=>o.widget==='html-block'||o.widget==='flash-movie'))css+=RetroCraft.css;
     if(layout==='auto' && hasPlayers)css+='@media(max-width:600px){.board{display:flex;flex-direction:column;gap:8px;padding:8px;box-sizing:border-box}.board>div:first-child{display:none}.board>.object{position:static;width:100%!important;height:auto!important;font-size:16px!important}.board .retro-player.video :is(video,iframe){min-height:220px}.board .object img{width:auto;max-width:100%;height:auto}}';
+    if(!old && page.pageStyles)css+=RetroCraft.pageCSS(page.pageStyles);
     const controls=!old && page.items.some(o=>RetroMedia.isPlayer(o) && (o.playerSkin==='hardware' || o.widget==='audio-player' && o.playerSkin && o.playerSkin!=='deck'))?'<script>'+RetroMedia.script+'</script>':'';
     const body=layout==='auto'?(hasPlayers?board():board()+flow('phone')):layout==='modern'?board():flow(layout);
     return '<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+escape(page.title)+'</title>'+(css?'<style>'+css+'</style>':'')+'</head><body'+attrs+'>'+body+sound+footer+controls+'</body></html>';

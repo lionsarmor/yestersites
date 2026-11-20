@@ -936,3 +936,5 @@ dialog.site-preview[open]{display:flex;flex-direction:column}
 #dialog-fields:has(.instrument-preview) fieldset{display:grid;grid-template-columns:1fr;min-width:0}
 #dialog-fields:has(.instrument-preview) fieldset input:not([type=checkbox]){width:100%;box-sizing:border-box}
 .object-grid:has([data-widget=audio-music]) .object-art{width:40px;height:35px}
+
+.craft-face,.craft-face iframe,.craft-preview iframe{box-sizing:border-box;width:100%;height:100%;border:0}.craft-face{overflow:hidden;pointer-events:none}.flash-face{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;background:#1a283f;color:#ffe6a8;border:3px ridge #98a8c0;text-decoration:none;font:15px Tahoma,Arial}.flash-face img{width:38px!important;height:32px!important;object-fit:contain;image-rendering:pixelated}.craft-preview{height:145px;border:2px inset silver}.craft-preview iframe{display:block}#dialog-fields:has(.craft-preview) textarea{font:13px/1.35 monospace;min-height:75px}#dialog-fields:has(.craft-preview) output{font-size:12px}

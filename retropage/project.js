@@ -166,6 +166,7 @@
           typeof d.listed === 'boolean',
         'Invalid page size, color or format.',
       );
+      if(d.pageStyles!==undefined)RetroCraft.pageCSS(d.pageStyles);
       if (d.soundtrack !== undefined) check(typeof d.soundtrack === 'string' && (!d.soundtrack ||
         (d.soundtrack.startsWith('https://') && linkOK(d.soundtrack))), 'Use a direct HTTPS audio or stream address.');
       if ('bbsScreen' in d) {
@@ -208,6 +209,7 @@
         );
         if ('widget' in n) {
           check(typeof n.widget === 'string' && Object.hasOwn(window.retroObjects.presets, n.widget), 'Unknown object preset.');
+          if (n.widget==='html-block'||n.widget==='flash-movie')RetroCraft.fields(n);
           if (RetroMedia.isPlayer(n)) RetroMedia.source(n.href,n.widget);
           if(RetroMedia.isFrame(n)){
             RetroMedia.frameURL(n.href);
@@ -220,6 +222,8 @@
         if (n.kind === 'image' && n.src) imageType(n.src);
         return n;
       });
+      const flashSize=d.items.filter(o=>o.widget==='flash-movie').reduce((n,o)=>n+(o.swf==='demo'?0:o.swf.length),0);
+      check(flashSize<=1048576,'A page supports 768 KiB of imported Flash movies.');
       const players=d.items.filter(RetroMedia.isPlayer);
       check(players.length<=4,'A page supports up to four players.');
       check(players.filter(o=>o.autoplay).length+Number(!!d.soundtrack)<=1,'Choose one automatic soundtrack or player per page.');
