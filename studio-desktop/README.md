@@ -1,4 +1,4 @@
-# Retro Page 0.4.2
+# Retro Page 0.4.3
 
 Arrange text, links, pictures, boxes and rules on a desktop canvas. Your local `.yst` file holds the editable page and its pictures. You can build, preview and export a page offline.
 
@@ -7,7 +7,7 @@ Arrange text, links, pictures, boxes and rules on a desktop canvas. Your local `
 From the folder containing the download, run the following command. Apt also installs Tk and Pillow.
 
 ```sh
-sudo apt install ./Retro-Page-0.4.2-all.deb
+sudo apt install ./Retro-Page-0.4.3-all.deb
 ```
 
 Open **Retro Page** from the applications menu or run `retro-page`. Double-click a `.yst` project to reopen it. Projects saved by YesterSites Studio 0.1.0 also open in Retro Page.
@@ -47,3 +47,7 @@ Choose **BBS Preview → Options → Author this BBS screen** to place a welcome
 Use the Pages drawer to switch pages. The **+** in its header adds another page. Choose an internal destination in the Link object's properties. Links survive page renames and work in both exported editions. **View → HTML Source** shows the generated markup, and BBS Preview accepts a link number or **H** for Home.
 
 Each page supports up to 64 objects and imports GIF, JPEG, and PNG up to 96 KiB per image. Browser preview and export preserve embedded GIF animation. Publish the complete project from the publishing desk. Its version selector restores earlier publications at the same address. Select directory listing to join Grub. The terminal preview runs inside the editor.
+
+The Objects drawer also includes a What’s New log, radio schedule, and club member roll. BBS objects include a message of the day, sysop hours, and an editable ASCII room map.
+
+In the GIFs drawer, enter a term and press Enter or Search GifCities to browse archive thumbnails in place. Select a GIF, then click the canvas. Selected art travels with the saved project. The 96 KiB image limit applies.

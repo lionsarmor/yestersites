@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
-from urllib.parse import urlencode
+from gifcities import GifPanel
 from uuid import uuid4
 import webbrowser
 import tkinter as tk
@@ -46,7 +46,7 @@ from project import (
 BASE = Path(__file__).resolve().parent
 ASSETS = BASE / "assets"
 NAME = "Retro Page"
-VERSION = "0.4.2"
+VERSION = "0.4.3"
 PROFILE_NAMES = {
     "classic": "1990s graphical",
     "millennium": "Early 2000s",
@@ -472,9 +472,12 @@ class Studio:
         search_row = ttk.Frame(gallery, style="Paper.TFrame")
         search_row.pack(fill="x", pady=(1, 3))
         ttk.Label(search_row, text="Find", style="Paper.TLabel").pack(side="left")
-        ttk.Entry(search_row, textvariable=self.stamp_search, width=9).pack(side="left", fill="x", expand=True)
+        search_entry = ttk.Entry(search_row, textvariable=self.stamp_search, width=9)
+        search_entry.pack(side="left", fill="x", expand=True)
+        search_entry.bind("<Return>", lambda _event: self.open_gifcities())
         self.stamp_search.trace_add("write", lambda *_: self.show_stamps(0))
         ttk.Button(gallery, text="Search GifCities", command=self.open_gifcities).pack(fill="x", pady=(0, 3))
+        self.remote_gifs = GifPanel(gallery, self)
         self.stamp_grid = ttk.Frame(gallery, style="Paper.TFrame")
         self.stamp_grid.pack(fill="x")
         for column in range(2):
@@ -493,14 +496,14 @@ class Studio:
         self.show_drawer()
 
     def open_gifcities(self):
-        query = self.stamp_search.get().strip()
-        url = "https://gifcities.org/"
-        if query:
-            url += "search?" + urlencode({"q": query})
-        if not webbrowser.open(url):
-            self.status.set("Open in your browser: " + url)
+        self.stamp_grid.pack_forget()
+        self.stamp_pager.pack_forget()
+        self.remote_gifs.search(self.stamp_search.get())
 
     def show_stamps(self, page):
+        self.remote_gifs.clear()
+        self.remote_gifs.pack_forget()
+        self.stamp_grid.pack(fill="x")
         group = self.stamp_collection.get()
         query = self.stamp_search.get().strip().casefold()
         stamps = [(path, label) for _, path, label, pack, animated, keywords in self.stamp_index

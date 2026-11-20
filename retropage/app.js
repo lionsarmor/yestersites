@@ -365,15 +365,6 @@
         }
       }
     } else {
-      const archiveLink = node('a', 'gifcities-link', 'Search GifCities');
-      archiveLink.target = '_blank';
-      archiveLink.rel = 'noopener noreferrer';
-      function updateArchiveLink() {
-        const query = filter.trim();
-        archiveLink.href = query ? 'https://gifcities.org/search?' + new URLSearchParams({q: query}) : 'https://gifcities.org/';
-      }
-      updateArchiveLink();
-      root.append(archiveLink);
       if(!artReady){
         const message=node('p',null,'Opening the artwork library…');root.append(message);
         loadArtwork().then(()=>{if(drawer==='GIFs')renderDrawer();}).catch(error=>{
@@ -392,7 +383,28 @@
       s.setAttribute('aria-label', 'Find a stamp');
       s.value = filter;
       const content = node('div');
-      root.append(collection, s, archiveLink, content);
+      const archiveButton=node('button', 'gifcities-link', 'Search GifCities');
+      archiveButton.type='button';
+      const remote=node('div'), lookup=GifCities.panel(remote, async (item, current) => {
+        const response=await fetch(item.url,{credentials:'omit',signal:AbortSignal.timeout(30000)});
+        if(!response.ok) throw Error('This GIF could not be loaded.');
+        if(Number(response.headers.get('Content-Length'))>98304) throw Error('This GIF exceeds the 96 KiB image limit.');
+        const src=await M.readImage(await response.blob());
+        M.imageType(src);
+        await M.dimensions(src);
+        if(current()) place({kind:'image',src,label:item.name,alt:item.name});
+      });
+      function searchArchive(){
+        content.hidden=true;
+        remote.hidden=false;
+        lookup.search(s.value);
+      }
+      function showLocal(){
+        lookup.clear();remote.hidden=true;content.hidden=false;
+      }
+      archiveButton.onclick=searchArchive;
+      s.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();searchArchive();}};
+      root.append(collection,s,archiveButton,remote,content);
       function fill() {
         content.replaceChildren();
         const query = filter.trim().toLowerCase();
@@ -423,8 +435,8 @@
         }
         content.append(button('Artwork credits','credits','stamp-credits'));
       }
-      collection.onchange = () => {artGroup=collection.value;artPage=0;fill();};
-      s.oninput = () => {filter=s.value;updateArchiveLink();artPage=0;fill();};
+      collection.onchange = () => {showLocal();artGroup=collection.value;artPage=0;fill();};
+      s.oninput = () => {showLocal();filter=s.value;artPage=0;fill();};
       fill();
     }
   }
@@ -775,8 +787,10 @@
     x=M.clamp(x,0,p.width-Math.floor(gw*scale));
     y=M.clamp(y,0,p.height-Math.floor(gh*scale));
     const objects=parts.map(({dx=0,dy=0,...part})=>{
-      const o={...M.item(part.kind,0,0,p),...part,widget:key,
+      const o={...M.item(part.kind,0,0,p),...part,
         x:x+Math.floor(scale*dx),y:y+Math.floor(scale*dy),w:Math.max(1,Math.floor(scale*part.w)),h:Math.max(1,Math.floor(scale*part.h))};
+      const storedWidget = Object.hasOwn(spec,'saveAs') ? spec.saveAs : key;
+      if (storedWidget) o.widget = storedWidget;
       if (key==='counter') o.src=counterSource(o.text);
       if (key==='bbs-menu') o.href='page:'+(M.pages(doc).find(([id])=>id!==active)?.[0]||'home');
       if (key==='wallpaper') Object.assign(o,{x:0,y:0,w:p.width,h:p.height});

@@ -52,6 +52,9 @@
     });
     return {score:score, page:best};
   }
+  var gifPanel = window.GifCities.panel($('gif-matches'));
+  $('gifcities').onclick = function () { gifPanel.search(query.value); };
+  query.addEventListener('input',gifPanel.clear);
   function draw() {
     var raw = query.value.trim(), kind = profile.value, tokens=words(raw), bySlug=Object.create(null);
     var hits = [];
@@ -111,7 +114,7 @@
   }
   readQuery(); draw(); $('lookup').hidden=false;
   $('lookup').addEventListener('submit',function (event) {
-    event.preventDefault(); updateSearch();
+    event.preventDefault(); gifPanel.clear(); updateSearch();
   });
   function updateSearch() {
     var path=searchURL(query.value.trim(),profile.value);
@@ -123,7 +126,7 @@
   profile.addEventListener('change',updateSearch);
   window.addEventListener('popstate',function () { readQuery(); draw(); });
   if (!window.fetch || !/^https?:$/.test(location.protocol)) {
-    $('network').textContent='Offline card file · the five original member sites.'; return;
+    $('network').textContent='Offline card file · the local site index.'; return;
   }
   var seenCursors=Object.create(null),loaded=Object.create(null),loadedCount=0;
   function readDirectory(cursor) {
@@ -147,6 +150,6 @@
     });
   }
   readDirectory('').catch(function () {
-    $('network').textContent=loadedCount?'The member index stopped partway through. Showing the cards received.':'The member index is unavailable. Searching the five original sites.';
+    $('network').textContent=loadedCount?'The member index stopped partway through. Showing the cards received.':'The member index is unavailable. Searching the local site index.';
   });
 }());

@@ -45,7 +45,10 @@ def place_widget(key, page, x, y, make_item, destination="home"):
     result = []
     for part in parts:
         obj = make_item(part["kind"], 0, 0, width, height)
-        obj.update({k: v for k, v in part.items() if k not in ("dx", "dy")}, widget=key)
+        obj.update({k: v for k, v in part.items() if k not in ("dx", "dy")})
+        stored_widget = PRESETS[key].get("saveAs", key)
+        if stored_widget:
+            obj["widget"] = stored_widget
         obj.update(
             x=x + int(part.get("dx", 0) * scale),
             y=y + int(part.get("dy", 0) * scale),
