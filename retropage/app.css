@@ -840,3 +840,6 @@ dialog.site-preview[open]{display:flex;flex-direction:column}
 .site-preview [hidden]{display:none!important}
 
 .object-choice .object-art{width:29px;height:18px;object-fit:contain;image-rendering:pixelated}
+
+.art-pager{display:flex;justify-content:space-between;align-items:center;gap:3px;margin:4px 0;font-size:12px}
+.art-pager button{min-width:26px}.stamp-search + .stamp-search{margin-top:3px}

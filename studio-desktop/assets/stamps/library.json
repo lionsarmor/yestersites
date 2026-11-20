@@ -1,5 +1,1179 @@
 [
   {
+    "name": "After dark",
+    "assets": [
+      {
+        "file": "afterdark/afterdark-vapor.gif",
+        "label": "Vapor skull",
+        "alt": "An ivory skull breaks into spiraling wisps. The face disappears completely before the smoke reforms its features.",
+        "stamp_width": 116,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-furnace.gif",
+        "label": "Furnace fiend",
+        "alt": "A floating horned head opens its plated jaws to reveal a flickering furnace.",
+        "stamp_width": 118,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-sentry.gif",
+        "label": "Slime sentry",
+        "alt": "A green floating eye peers from a luminous sac, blinking above four twitching tendrils.",
+        "stamp_width": 110,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-carapace.gif",
+        "label": "Carapace stalker",
+        "alt": "An armored alien flexes silver mandibles beneath its cyan eyes and flashing orange throat.",
+        "stamp_width": 112,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-smoking.gif",
+        "label": "Smokin’ skull",
+        "alt": "A cracked ivory skull grips a lit cigarette. Gray smoke curls up from its glowing tip.",
+        "stamp_width": 120,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-chrome.gif",
+        "label": "Chrome skull",
+        "alt": "A polished chrome skull turns from side to side, blue highlights catching on the brow.",
+        "stamp_width": 110,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-danger.gif",
+        "label": "DANGER marquee",
+        "alt": "Red and amber bulbs chase around an illuminated DANGER sign.",
+        "stamp_width": 166,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-drum.gif",
+        "label": "Toxic spill",
+        "alt": "A dented chemical barrel leaks glowing green sludge into a puddle.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-inferno.gif",
+        "label": "Hellfire divider",
+        "alt": "Orange and gold flames flicker along a steel divider.",
+        "stamp_width": 240,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-eyes.gif",
+        "label": "Eyes in the dark",
+        "alt": "Two red eyes look sideways and blink from the shadows.",
+        "stamp_width": 124,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-crypt.gif",
+        "label": "Graveyard mist",
+        "alt": "Wisps of fog drift around a cracked headstone and dark grass.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "afterdark/afterdark-voltage.gif",
+        "label": "High voltage",
+        "alt": "Blue electrical sparks jump around a yellow lightning-bolt warning sign.",
+        "stamp_width": 102,
+        "animated": true
+      }
+    ]
+  },
+  {
+    "name": "Night critters",
+    "assets": [
+      {
+        "file": "mascots/cat.gif",
+        "label": "Fence cat",
+        "alt": "A black cat watches a moth while its tail curls.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/frog.gif",
+        "label": "Lily-pad frog",
+        "alt": "A green frog springs from its lily pad.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/snail.gif",
+        "label": "Honey-shell snail",
+        "alt": "A snail glides and waves its feelers.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/bat.gif",
+        "label": "Velvet bat",
+        "alt": "A little plum-colored bat beats its wings.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/owl.gif",
+        "label": "Midnight owl",
+        "alt": "An owl blinks from its leafy perch.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/fish.gif",
+        "label": "Tangerine fish",
+        "alt": "A striped fish paddles past rising bubbles.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/firefly-jar.gif",
+        "label": "Firefly jar",
+        "alt": "Three fireflies glow inside a blue glass jar.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/mushroom.gif",
+        "label": "Dancing toadstool",
+        "alt": "A spotted red toadstool bobs between twinkles.",
+        "stamp_width": 96,
+        "animated": true
+      }
+    ]
+  },
+  {
+    "name": "Space oddities",
+    "assets": [
+      {
+        "file": "mascots/saucer.gif",
+        "label": "Tractor-beam saucer",
+        "alt": "A saucer hovers with a green tractor beam and flashing running lights.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/rocket.gif",
+        "label": "Postcard rocket",
+        "alt": "A red-tipped rocket trails a dancing flame.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/saturn.gif",
+        "label": "Ringed planet",
+        "alt": "A tiny moon orbits a gold-ringed striped planet.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/comet.gif",
+        "label": "Blue-tail comet",
+        "alt": "A turquoise comet sheds bright ribbons of ice.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/capsule.gif",
+        "label": "Solar satellite",
+        "alt": "A satellite with blue solar panels blinks as it drifts.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/astronaut.gif",
+        "label": "Tethered astronaut",
+        "alt": "A tethered astronaut waves a white glove.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/telescope.gif",
+        "label": "Backyard telescope",
+        "alt": "A brass-rimmed telescope scans the sky.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/moon.gif",
+        "label": "Sleepy crescent",
+        "alt": "A golden crescent dozes beneath twinkling stars.",
+        "stamp_width": 96,
+        "animated": true
+      }
+    ]
+  },
+  {
+    "name": "Desktop curios",
+    "assets": [
+      {
+        "file": "mascots/monitor.gif",
+        "label": "Phosphor terminal",
+        "alt": "A green command prompt blinks on a beige monitor.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/diskette.gif",
+        "label": "Sliding floppy",
+        "alt": "The metal shutter on a labeled diskette slides back and forth.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/cassette.gif",
+        "label": "Mixtape reels",
+        "alt": "Two reels turn inside a cream-labeled cassette.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/phone.gif",
+        "label": "Ringing telephone",
+        "alt": "A red rotary telephone rattles as it rings.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/boombox.gif",
+        "label": "Pocket boombox",
+        "alt": "A portable radio pulses to its dancing level meter.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/camera.gif",
+        "label": "Flash camera",
+        "alt": "A chunky camera fires its flash.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/teacup.gif",
+        "label": "Webmaster's tea",
+        "alt": "Steam curls above a heart-patterned mug.",
+        "stamp_width": 96,
+        "animated": true
+      },
+      {
+        "file": "mascots/printer.gif",
+        "label": "Dot-matrix printer",
+        "alt": "A beige printer feeds a striped sheet of paper.",
+        "stamp_width": 96,
+        "animated": true
+      }
+    ]
+  },
+  {
+    "name": "88×31 button press",
+    "assets": [
+      {
+        "file": "trim/button-owl.gif",
+        "label": "Night Owl Radio",
+        "alt": "An owl blinks beside the Night Owl Radio Club lettering.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-home.gif",
+        "label": "Homepage Builder",
+        "alt": "A little house sends puffs of chimney smoke over a handmade homepage button.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-guest.gif",
+        "label": "Sign the Ledger",
+        "alt": "A feather writes on the open pages of a guestbook.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-dial.gif",
+        "label": "Dial-up Survivor",
+        "alt": "Status lights travel across a squat dial-up modem.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-ring.gif",
+        "label": "Next Webring Stop",
+        "alt": "Two interlocking rings carry a traveling sparkle.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-audio.gif",
+        "label": "Wave Lab",
+        "alt": "An equalizer bounces above a pair of stereo headphones.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-disk.gif",
+        "label": "Disk Library",
+        "alt": "A floppy disk sports a moving read light.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-sky.gif",
+        "label": "Star Cartographer",
+        "alt": "A twinkling constellation joins the stars on a hand-drawn sky map.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-club.gif",
+        "label": "Fan Club Pennant",
+        "alt": "A tiny striped pennant ripples above its gold stand.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-mail.gif",
+        "label": "Write Me a Letter",
+        "alt": "The flag goes up on a blue metal mailbox.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-rpg.gif",
+        "label": "Dungeon Guild",
+        "alt": "A glint runs the length of a silver dungeon sword.",
+        "stamp_width": 88,
+        "animated": true
+      },
+      {
+        "file": "trim/button-cafe.gif",
+        "label": "Midnight Byte Cafe",
+        "alt": "Steam curls above a coffee cup at the midnight Byte Cafe.",
+        "stamp_width": 88,
+        "animated": true
+      }
+    ]
+  },
+  {
+    "name": "Animated dividers",
+    "assets": [
+      {
+        "file": "trim/rule-comet.gif",
+        "label": "Comet Express",
+        "alt": "A gold comet crosses a navy ribbon of tiny stars.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-vine.gif",
+        "label": "Twisting Ivy",
+        "alt": "Paired ivy leaves wind around a copper stem as drops of dew glisten.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-scope.gif",
+        "label": "Oscilloscope",
+        "alt": "A rolling green waveform traces across phosphor grid lines.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-pearls.gif",
+        "label": "Pearl String",
+        "alt": "Clam pink pearls catch a traveling highlight between indigo knots.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-royal.gif",
+        "label": "Jeweled Finial",
+        "alt": "A sapphire shines from a symmetrical filigree rule of gold and ruby.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-tracks.gif",
+        "label": "Tiny Night Train",
+        "alt": "A smoking blue locomotive travels along a miniature railroad.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-ocean.gif",
+        "label": "Kelp Bed",
+        "alt": "Bubbles rise through ribbons of teal kelp at the ocean floor.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-melody.gif",
+        "label": "Midnight Melody",
+        "alt": "A row of musical notes lights up along a five-line staff.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-road.gif",
+        "label": "Roadworks",
+        "alt": "Orange construction lights chase along a yellow hazard-striped divider.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-chain.gif",
+        "label": "Chromed Chain",
+        "alt": "A bright reflection runs along a row of interlocking steel links.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-bats.gif",
+        "label": "Bats at Dusk",
+        "alt": "Bats flap between silhouetted treetops in front of a golden moon.",
+        "stamp_width": 192,
+        "animated": true
+      },
+      {
+        "file": "trim/rule-ribbon.gif",
+        "label": "Prism Ribbon",
+        "alt": "Two pixel ribbons braid over and under one another in a wave of color.",
+        "stamp_width": 192,
+        "animated": true
+      }
+    ]
+  },
+  {
+    "name": "Wallpaper tiles",
+    "assets": [
+      {
+        "file": "trim/tile-velvet.gif",
+        "label": "Velvet Constellations",
+        "alt": "Tiny lilac constellations and pinprick stars repeat on midnight blue.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-ledger.gif",
+        "label": "Graph Notebook",
+        "alt": "Blue ruled squares, red margin lines and a faint pencil squiggle on ivory paper.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-rose.gif",
+        "label": "Trellis Roses",
+        "alt": "Miniature pink roses and leaves climb a diagonal green trellis.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-chip.gif",
+        "label": "Copper Traces",
+        "alt": "Copper tracks, through-holes and a small chip on a green circuit board.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-pool.gif",
+        "label": "Pool Mosaic",
+        "alt": "Teal and turquoise glazed blocks form a repeating poolside mosaic.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-moon.gif",
+        "label": "Lunar Regolith",
+        "alt": "Crescent highlights cast shadows across a stippled field of moon craters.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-cloud.gif",
+        "label": "Apricot Cloudbank",
+        "alt": "Apricot-lit cotton clouds drift across an evening-blue repeat.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-argyle.gif",
+        "label": "Arcade Argyle",
+        "alt": "Wine and indigo knit diamonds crossed by gold dashed lines.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-wave.gif",
+        "label": "Blue Wave Print",
+        "alt": "Layered scallops of deep blue and seafoam form a rolling wave pattern.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-keys.gif",
+        "label": "Skeleton Keys",
+        "alt": "A pair of old brass keys repeats across dark mulberry velvet.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-citrus.gif",
+        "label": "Citrus Picnic",
+        "alt": "Lemon and orange slices rest on a sun-washed pink gingham cloth.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      },
+      {
+        "file": "trim/tile-robot.gif",
+        "label": "Robot Parts Bin",
+        "alt": "Little springs, hex nuts and brass gears on a steel-blue workbench.",
+        "stamp_width": 48,
+        "animated": false,
+        "wallpaper": true
+      }
+    ]
+  },
+  {
+    "name": "Pixel postcards",
+    "assets": [
+      {
+        "file": "scenes/midnight-observatory.gif",
+        "label": "Midnight observatory",
+        "alt": "A mountaintop telescope looks into a violet spiral of stars.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/stormwatch-light.gif",
+        "label": "Stormwatch light",
+        "alt": "A lighthouse shines over rocks and stormy green water.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/after-hours-arcade.gif",
+        "label": "After-hours arcade",
+        "alt": "Three arcade cabinets glow under the red light of a brick basement.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/mesa-gas-stop.gif",
+        "label": "Mesa gas stop",
+        "alt": "A desert gas station sits beneath orange mesas.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/jellyfish-cathedral.gif",
+        "label": "Jellyfish cathedral",
+        "alt": "Glowing jellyfish float beneath submerged stone arches.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/attic-computer-den.gif",
+        "label": "Attic computer den",
+        "alt": "A computer glows on an amber-lit desk in a cozy attic.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/rain-train.gif",
+        "label": "Rain train",
+        "alt": "A night train pulls into a rain-slick blue station.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/lava-lagoon.gif",
+        "label": "Lava lagoon",
+        "alt": "Orange lava lights a palm-lined island lagoon.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/winter-radio-cabin.gif",
+        "label": "Winter radio cabin",
+        "alt": "An antenna rises over a snow-covered cabin in the mountains.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/pond-dragonfly.gif",
+        "label": "Pond dragonfly",
+        "alt": "A jewel-colored dragonfly perches above water lilies.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/red-light-studio.gif",
+        "label": "Red light studio",
+        "alt": "A microphone and tape reels sit beside a mixing desk.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/alien-greenhouse.gif",
+        "label": "Alien greenhouse",
+        "alt": "Otherworldly pitcher plants fill a sunlit greenhouse.",
+        "stamp_width": 192,
+        "animated": false
+      }
+    ]
+  },
+  {
+    "name": "Ray-traced clip art",
+    "assets": [
+      {
+        "file": "scenes/chrome-ringworld.gif",
+        "label": "Chrome ringworld",
+        "alt": "A shiny metallic planet with golden rings and two moons.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/cd-rom-stack.gif",
+        "label": "CD-ROM stack",
+        "alt": "Three iridescent compact discs piled on black.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/glass-dolphin.gif",
+        "label": "Glass dolphin",
+        "alt": "A clear teal dolphin jumps over a purple glass wave.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/tin-robot.gif",
+        "label": "Tin robot",
+        "alt": "A red wind-up toy robot with a brass key.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/amber-nautilus.gif",
+        "label": "Amber nautilus",
+        "alt": "Light shines through a spiral amber shell.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/trackball-mouse.gif",
+        "label": "Trackball mouse",
+        "alt": "A red trackball catches the light in a blue mouse.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/brass-armillary.gif",
+        "label": "Brass armillary",
+        "alt": "Several gold rings circle the center of a brass astronomical instrument.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/crater-sprout.gif",
+        "label": "Crater sprout",
+        "alt": "A neon green and pink alien plant grows out of a miniature crater.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/wooden-rocket.gif",
+        "label": "Wooden rocket",
+        "alt": "A painted wooden toy rocket stands on red fins.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/green-screen-micro.gif",
+        "label": "Green-screen micro",
+        "alt": "A beige vintage computer with a green screen and keyboard.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/castle-snow-globe.gif",
+        "label": "Castle snow globe",
+        "alt": "A purple castle sits inside a glass globe.",
+        "stamp_width": 192,
+        "animated": false
+      },
+      {
+        "file": "scenes/checkerboard-orbs.gif",
+        "label": "Checkerboard orbs",
+        "alt": "Chrome torus hovering over checkerboard spheres.",
+        "stamp_width": 192,
+        "animated": false
+      }
+    ]
+  },
+  {
+    "name": "Pixel picture shows",
+    "assets": [
+      {
+        "file": "archives/dusty-town.gif",
+        "label": "Dusty town",
+        "alt": "A small traveller shuffles along a dusty street.",
+        "stamp_width": 144,
+        "animated": true
+      },
+      {
+        "file": "archives/ball-pit.gif",
+        "label": "Ball-pit diver",
+        "alt": "A tiny animal dives into multicolored balls and reappears among them.",
+        "stamp_width": 144,
+        "animated": true
+      },
+      {
+        "file": "archives/tree-lights.gif",
+        "label": "Christmas tree",
+        "alt": "A little visitor sits beside a lit Christmas tree.",
+        "stamp_width": 144,
+        "animated": true
+      },
+      {
+        "file": "archives/wishing-well.gif",
+        "label": "Wishing well",
+        "alt": "Something spirals out of a stone well and into the sky.",
+        "stamp_width": 144,
+        "animated": true
+      },
+      {
+        "file": "archives/power-core.gif",
+        "label": "Power-core robot",
+        "alt": "A robot holds a glowing blue energy core between its hands.",
+        "stamp_width": 100,
+        "animated": true
+      },
+      {
+        "file": "archives/rooftop-jump.gif",
+        "label": "Moonlit rooftops",
+        "alt": "A figure leaps between rooftops beneath a crescent moon.",
+        "stamp_width": 144,
+        "animated": true
+      },
+      {
+        "file": "archives/sand-snake.gif",
+        "label": "Knotty snake",
+        "alt": "A bright green snake ties itself in a knot on golden ground.",
+        "stamp_width": 108,
+        "animated": true
+      }
+    ]
+  },
+  {
+    "name": "Animated desk toys",
+    "assets": [
+      {
+        "file": "archives/arcade-attract.gif",
+        "label": "Arcade cabinet",
+        "alt": "A tiny face blinks on a blue upright arcade cabinet.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/sketch-pad.gif",
+        "label": "Sketch pad",
+        "alt": "A purple-haired artist sketches on an easel.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/battery-charge.gif",
+        "label": "Charging battery",
+        "alt": "A line-art battery fills and drains next to a lightning bolt.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/ringing-bell.gif",
+        "label": "Ringing bell",
+        "alt": "A little white bell rings.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/flash-camera.gif",
+        "label": "Instant camera",
+        "alt": "A rainbow-striped instant camera flashes.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/coffee-steam.gif",
+        "label": "Coffee break",
+        "alt": "Steam curls above a smiling coffee mug.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/toaster-oven.gif",
+        "label": "Coming soon oven",
+        "alt": "Bread bakes in a mint-green countertop oven.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/game-controller.gif",
+        "label": "Purple gamepad",
+        "alt": "Colored buttons press on a purple game controller.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/headphone-music.gif",
+        "label": "Headphone music",
+        "alt": "Blue and pink headphones bounce to floating music notes.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/flickering-candle.gif",
+        "label": "Flickering candle",
+        "alt": "A small candle flame flickers.",
+        "stamp_width": 84,
+        "animated": true
+      }
+    ]
+  },
+  {
+    "name": "Animated web signals",
+    "assets": [
+      {
+        "file": "archives/flashlight-search.gif",
+        "label": "404 flashlight",
+        "alt": "A lost visitor sweeps a flashlight across a 404 message.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/lost-signpost.gif",
+        "label": "Lost signpost",
+        "alt": "A signpost points in several directions beneath a question mark.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/locked-door.gif",
+        "label": "Private page",
+        "alt": "A chain and padlock secure a closed door.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/request-gauge.gif",
+        "label": "Traffic gauge",
+        "alt": "A gauge needle swings across the dial.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/server-offline.gif",
+        "label": "Server offline",
+        "alt": "A small server stack shows crossed-out eyes.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/favorite-click.gif",
+        "label": "Click to favorite",
+        "alt": "An arrow clicks a heart-shaped favorite control.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/paper-shredder.gif",
+        "label": "Paper shredder",
+        "alt": "A document feeds through a small paper shredder.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/parachute-download.gif",
+        "label": "Incoming download",
+        "alt": "A package descends beneath a striped parachute.",
+        "stamp_width": 84,
+        "animated": true
+      },
+      {
+        "file": "archives/fallen-robot.gif",
+        "label": "System error",
+        "alt": "A little robot tips its head sideways with crossed-out eyes.",
+        "stamp_width": 84,
+        "animated": true
+      }
+    ]
+  },
+  {
+    "name": "Mosaic file cabinet",
+    "assets": [
+      {
+        "file": "archives/alert-document.gif",
+        "label": "Read this first",
+        "alt": "A red exclamation mark on a folded white document.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/binary-document.gif",
+        "label": "Binary file",
+        "alt": "A folded document marked with rows of binary digits.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/solid-model.gif",
+        "label": "Solid model",
+        "alt": "A green three-dimensional solid on a document.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/torn-document.gif",
+        "label": "Broken link",
+        "alt": "A file torn in two with a jagged break.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/more-dots.gif",
+        "label": "More to see",
+        "alt": "Three shaded gray dots in a row.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/hardware-screw.gif",
+        "label": "Hardware file",
+        "alt": "A small metallic screw standing on a drawing.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/script-document.gif",
+        "label": "Shell script",
+        "alt": "A script document with a black hash mark.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/rendered-sphere.gif",
+        "label": "Rendered sphere",
+        "alt": "A red shaded sphere on a drawing sheet.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/page-layout.gif",
+        "label": "Page layout",
+        "alt": "Text and a tiny color image arranged on a document.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/software-patch.gif",
+        "label": "Software patch",
+        "alt": "A red square patch with black stitching.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/picture-files.gif",
+        "label": "Picture files",
+        "alt": "Overlapping red, green and blue shapes on a file icon.",
+        "stamp_width": 20,
+        "animated": false
+      },
+      {
+        "file": "archives/mystery-file.gif",
+        "label": "Mystery file",
+        "alt": "A dark question mark on a folded document.",
+        "stamp_width": 20,
+        "animated": false
+      }
+    ]
+  },
+  {
+    "name": "Pixel village",
+    "assets": [
+      {
+        "file": "archives/painted-sign.gif",
+        "label": "Wayside sign",
+        "alt": "A wooden signpost points the way. No destination is written on it.",
+        "stamp_width": 45,
+        "animated": false
+      },
+      {
+        "file": "archives/bird-clock.gif",
+        "label": "Cuckoo clock",
+        "alt": "A tiny house-shaped clock with a pendulum.",
+        "stamp_width": 39,
+        "animated": false
+      },
+      {
+        "file": "archives/saguaro.gif",
+        "label": "Desert cactus",
+        "alt": "A green saguaro with two raised arms.",
+        "stamp_width": 42,
+        "animated": false
+      },
+      {
+        "file": "archives/gold-hoard.gif",
+        "label": "Gold hoard",
+        "alt": "A cache of gold beside a mound of coins.",
+        "stamp_width": 123,
+        "animated": false
+      },
+      {
+        "file": "archives/arch-window.gif",
+        "label": "Round window",
+        "alt": "A dark four-paned round window in a brown frame.",
+        "stamp_width": 48,
+        "animated": false
+      },
+      {
+        "file": "archives/camp-tent.gif",
+        "label": "Forest tent",
+        "alt": "A pitched green canvas tent.",
+        "stamp_width": 99,
+        "animated": false
+      },
+      {
+        "file": "archives/plum-bunch.gif",
+        "label": "Purple grapes",
+        "alt": "A little bunch of purple grapes.",
+        "stamp_width": 36,
+        "animated": false
+      },
+      {
+        "file": "archives/mystic-stone.gif",
+        "label": "Rune stone",
+        "alt": "A pale blue glyph set in a smooth gray stone.",
+        "stamp_width": 45,
+        "animated": false
+      },
+      {
+        "file": "archives/spring-fern.gif",
+        "label": "Forest trees",
+        "alt": "A cluster of deciduous and evergreen trees.",
+        "stamp_width": 126,
+        "animated": false
+      },
+      {
+        "file": "archives/fireplace.gif",
+        "label": "Brick fireplace",
+        "alt": "Orange embers glow under a brick arch.",
+        "stamp_width": 54,
+        "animated": false
+      },
+      {
+        "file": "archives/supper-set.gif",
+        "label": "Supper setting",
+        "alt": "A roasted dinner on a plate beside a small white teapot and bowl.",
+        "stamp_width": 141,
+        "animated": false
+      },
+      {
+        "file": "archives/hanging-pans.gif",
+        "label": "Hanging pans",
+        "alt": "Two iron pans hanging from a wooden kitchen rack.",
+        "stamp_width": 54,
+        "animated": false
+      },
+      {
+        "file": "archives/candle-holder.gif",
+        "label": "Candleholder",
+        "alt": "A little silver three-armed candleholder.",
+        "stamp_width": 45,
+        "animated": false
+      },
+      {
+        "file": "archives/apothecary.gif",
+        "label": "Potion shelf",
+        "alt": "Two bright potions on a wooden apothecary shelf.",
+        "stamp_width": 54,
+        "animated": false
+      },
+      {
+        "file": "archives/wash-pump.gif",
+        "label": "Water pump",
+        "alt": "A hand pump trickles blue water into a waiting bucket.",
+        "stamp_width": 87,
+        "animated": false
+      },
+      {
+        "file": "archives/bookshelf.gif",
+        "label": "Library shelf",
+        "alt": "A wooden shelf packed with colorful books.",
+        "stamp_width": 54,
+        "animated": false
+      },
+      {
+        "file": "archives/little-scroll.gif",
+        "label": "Paper scroll",
+        "alt": "A small rolled parchment scroll.",
+        "stamp_width": 39,
+        "animated": false
+      },
+      {
+        "file": "archives/mirror-glass.gif",
+        "label": "Looking glass",
+        "alt": "A blue looking glass in a little wooden frame.",
+        "stamp_width": 39,
+        "animated": false
+      },
+      {
+        "file": "archives/anvil.gif",
+        "label": "Smithy anvil",
+        "alt": "A compact gray iron anvil.",
+        "stamp_width": 48,
+        "animated": false
+      },
+      {
+        "file": "archives/trunk-stump.gif",
+        "label": "Old tree stump",
+        "alt": "A freshly cut tree stump with roots.",
+        "stamp_width": 45,
+        "animated": false
+      },
+      {
+        "file": "archives/hanging-herbs.gif",
+        "label": "Drying herbs",
+        "alt": "A bunch of herbs hangs from a timber beam.",
+        "stamp_width": 54,
+        "animated": false
+      },
+      {
+        "file": "archives/stacked-casks.gif",
+        "label": "Oak casks",
+        "alt": "Three wooden barrels stacked together.",
+        "stamp_width": 75,
+        "animated": false
+      }
+    ]
+  },
+  {
     "name": "Mosaic icons",
     "assets": [
       {

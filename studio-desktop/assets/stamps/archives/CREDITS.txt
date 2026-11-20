@@ -1,0 +1,20 @@
+Retro Page contributor art
+
+Pixel picture shows
+Pixel art Gifs by kazerlelutin. The artist marks the original pack CC0 1.0 and permits commercial use. These loops come from the creator’s gallery.
+https://kazerlelutin.itch.io/pixel-art-gifs
+
+Animated desk toys and Animated web signals
+VibeGIF by Direct-Img. Assets in this collection are released under CC0 1.0. The selected GIFs are from revision ef26188153b32144219d58bc236b228c59c606ad.
+https://github.com/direct-img/vibegif.direct-img.link/blob/ef26188153b32144219d58bc236b228c59c606ad/LICENSE
+
+Mosaic file cabinet
+Public-domain NCSA Mosaic icons by Kevin Hughes, with color tuning and additional artwork by Andy Polyakov, redistributed with Apache httpd. Source revision f1ac44b3066f4654dbdebdc73a922955faf6bf96.
+https://github.com/apache/httpd/blob/f1ac44b3066f4654dbdebdc73a922955faf6bf96/docs/icons/README
+
+See MOSAIC-NOTICE.txt and CC0-1.0.txt for the upstream notices. The sources.json manifest records the creator, source URL and checksum of each GIF.
+
+Pixel village
+Roguelike/RPG pack by Kenney Vleugels (Kenney), with 16px artwork by Lynn Evers, released in 2015 under CC0 1.0. Selected sprites have been arranged, enlarged and converted to transparent GIFs for Retro Page. Tile coordinates are recorded in sources.json. See KENNEY-NOTICE.txt for the original pack notice.
+https://opengameart.org/content/roguelikerpg-pack-1700-tiles
+https://opengameart.org/sites/default/files/Roguelike%20pack.zip

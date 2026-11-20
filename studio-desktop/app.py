@@ -45,7 +45,7 @@ from project import (
 BASE = Path(__file__).resolve().parent
 ASSETS = BASE / "assets"
 NAME = "Retro Page"
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 PROFILE_NAMES = {
     "classic": "1990s graphical",
     "millennium": "Early 2000s",
@@ -451,11 +451,28 @@ class Studio:
             ]
             for art in collection["assets"]:
                 self.stamp_defaults[ASSETS / "stamps" / art["file"]] = art
-        self.stamp_collection = tk.StringVar(value="Retro Page")
+        self.stamp_index = []
+        for name, entries in self.stamp_packs.items():
+            for position, (path, label) in enumerate(entries):
+                meta = self.stamp_defaults.get(ASSETS / path, {})
+                animated = meta.get("animated")
+                if animated is None:
+                    with Image.open(ASSETS / path) as image:
+                        animated = getattr(image, "is_animated", False)
+                keywords = " ".join((label, name, meta.get("alt", ""))).casefold()
+                self.stamp_index.append((position, path, label, name, animated, keywords))
+        self.stamp_index.sort(key=lambda entry: entry[0])
+        self.stamp_collection = tk.StringVar(value="All artwork")
         packs = ttk.Combobox(gallery, textvariable=self.stamp_collection, state="readonly",
-                             width=13, values=list(self.stamp_packs))
-        packs.pack(fill="x", pady=(1, 4))
+                             width=13, values=["All artwork", "Animated GIFs", *self.stamp_packs])
+        packs.pack(fill="x", pady=1)
         packs.bind("<<ComboboxSelected>>", lambda _e: self.show_stamps(0))
+        self.stamp_search = tk.StringVar()
+        search_row = ttk.Frame(gallery, style="Paper.TFrame")
+        search_row.pack(fill="x", pady=(1, 3))
+        ttk.Label(search_row, text="Find", style="Paper.TLabel").pack(side="left")
+        ttk.Entry(search_row, textvariable=self.stamp_search, width=9).pack(side="left", fill="x", expand=True)
+        self.stamp_search.trace_add("write", lambda *_: self.show_stamps(0))
         self.stamp_grid = ttk.Frame(gallery, style="Paper.TFrame")
         self.stamp_grid.pack(fill="x")
         for column in range(2):
@@ -474,13 +491,19 @@ class Studio:
         self.show_drawer()
 
     def show_stamps(self, page):
-        stamps = self.stamp_packs[self.stamp_collection.get()]
+        group = self.stamp_collection.get()
+        query = self.stamp_search.get().strip().casefold()
+        stamps = [(path, label) for _, path, label, pack, animated, keywords in self.stamp_index
+                  if (group in ("All artwork", pack) or (group == "Animated GIFs" and animated))
+                  and query in keywords]
         per_page = 10
         last_page = (len(stamps) - 1) // per_page
         self.stamp_page = max(0, min(page, last_page))
         for widget in self.stamp_grid.winfo_children():
             widget.destroy()
         self.thumbs.clear()
+        if not stamps:
+            ttk.Label(self.stamp_grid, text="No matching artwork.", style="Paper.TLabel").grid(columnspan=2)
         start = self.stamp_page * per_page
         for index, (file, label) in enumerate(stamps[start:start + per_page]):
             with Image.open(ASSETS / file) as img:
@@ -873,6 +896,25 @@ class Studio:
             return self.error(e)
         if kind == "image" and path and (stamp := self.stamp_defaults.get(Path(path))):
             obj["text"] = stamp.get("alt", stamp["label"])
+            if stamp.get("wallpaper"):
+                w, h = self.doc["width"], self.doc["height"]
+                if w*h > 6000000 or h > 4096:
+                    return self.error("Use a page of up to six megapixels and 4096 pixels high for tiled wallpaper.")
+                with Image.open(path) as source:
+                    tile = source.convert("RGB")
+                panel = Image.new("RGB", (w, h))
+                for top in range(0, h, tile.height):
+                    for left in range(0, w, tile.width):
+                        panel.paste(tile, (left, top))
+                data = BytesIO()
+                panel.save(data, "PNG", optimize=True)
+                if data.tell() > 96*1024:
+                    return self.error("The repeated wallpaper exceeds 96 KiB. Choose a smaller page or a simpler tile.")
+                obj.update(x=0,y=0,w=w,h=h,text="",widget="wallpaper",
+                           src="data:image/png;base64,"+base64.b64encode(data.getvalue()).decode())
+                set_wallpaper(self.doc["items"], obj)
+                self.draw(obj["id"]); self.commit()
+                return
             width = min(stamp.get("stamp_width", obj["w"]), obj["w"])
             obj["h"] = max(1, round(obj["h"] * width / obj["w"]))
             obj["w"] = width

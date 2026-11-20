@@ -49,7 +49,7 @@
   let doc = M.copy(presets.sample),
     active = 'home',
     selected = null,
-    drawer = 'Pages',
+    drawer = new URLSearchParams(location.search).get('drawer') === 'gifs' ? 'GIFs' : 'Pages',
     armed = null,
     gesture = null,
     editing = null,
@@ -290,6 +290,34 @@
     drawer = value;
     renderDrawer();
   }
+  const stamps = [...presets.stamps];
+  const animatedBuiltins = new Set();
+  let artOrder = stamps, artGroups = ['All artwork','Animated GIFs'], artLoading, artReady=false;
+  function loadArtwork() {
+    if(artLoading)return artLoading;
+    artLoading=new Promise((resolve,reject)=>{
+      const script=document.createElement('script');script.src='./art-library.js';
+      script.onerror=()=>{script.remove();reject(Error('The artwork library could not be loaded.'));};
+      script.onload=()=>{
+        stamps.push(...window.retroStampArt.stamps);
+        for(const label of window.retroStampArt.animatedBuiltins)animatedBuiltins.add(label);
+        const groups=new Map();
+        for(const st of [...window.retroStampArt.stamps,...presets.stamps]){
+          if(!groups.has(st.group))groups.set(st.group,[]);
+          groups.get(st.group).push(st);
+        }
+        artGroups.push(...groups.keys());
+        artOrder=[];
+        for(let i=0;i<Math.max(...Array.from(groups.values(),group=>group.length));i++){
+          for(const group of groups.values())if(i<group.length)artOrder.push(group[i]);
+        }
+        artReady=true;resolve();
+      };
+      document.head.append(script);
+    }).catch(error=>{artLoading=null;throw error;});
+    return artLoading;
+  }
+  let artGroup = artGroups[0], artPage = 0;
   let objectGroup = 'Web objects';
   function renderDrawer() {
     if (!$('drawer-content')) return;
@@ -337,55 +365,57 @@
         }
       }
     } else {
+      if(!artReady){
+        const message=node('p',null,'Opening the artwork library…');root.append(message);
+        loadArtwork().then(()=>{if(drawer==='GIFs')renderDrawer();}).catch(error=>{
+          message.textContent=error.message;
+          const retry=node('button',null,'Retry');retry.onclick=renderDrawer;message.append(' ',retry);
+        });
+        return;
+      }
+      const collection = node('select', 'stamp-search');
+      collection.setAttribute('aria-label', 'Artwork collection');
+      for (const name of artGroups) collection.add(new Option(name));
+      collection.value = artGroup;
       const s = node('input', 'stamp-search');
       s.type = 'search';
-      s.placeholder = 'Find a stamp';
+      s.placeholder = 'Find artwork';
       s.setAttribute('aria-label', 'Find a stamp');
       s.value = filter;
-      root.append(s);
       const content = node('div');
-      root.append(content);
+      root.append(collection, s, content);
       function fill() {
         content.replaceChildren();
-        const groups = Map.groupBy
-          ? Map.groupBy(
-              presets.stamps.filter((x) => x.label.toLowerCase().includes(filter.toLowerCase())),
-              (x) => x.group,
-            )
-          : new Map();
-        if (!Map.groupBy)
-          for (const x of presets.stamps.filter((x) =>
-            x.label.toLowerCase().includes(filter.toLowerCase()),
-          )) {
-            if (!groups.has(x.group)) groups.set(x.group, []);
-            groups.get(x.group).push(x);
-          }
-        for (const [name, items] of groups) {
-          content.append(node('h3', 'category', name));
-          const g = node('div', 'stamp-grid');
-          content.append(g);
-          for (const st of items) {
-            const b = node('button', 'stamp'),
-              im = node('img');
-            b.draggable = true;
-            b.dataset.stamp = presets.stamps.indexOf(st);
-            b.title = st.alt || st.label;
-            im.src = st.src;
-            im.alt = '';
-            im.loading = 'lazy';
-            im.draggable = false;
-            b.append(im, node('span', null, st.label));
-            g.append(b);
+        const query = filter.trim().toLowerCase();
+        const matching = artOrder.filter(st =>
+          (artGroup === artGroups[0] || st.group === artGroup ||
+            (artGroup === 'Animated GIFs' && (st.animated || animatedBuiltins.has(st.label)))) &&
+          (st.label+' '+st.group+' '+(st.alt || '')).toLowerCase().includes(query));
+        const count = 12;
+        const last = Math.max(0, Math.ceil(matching.length/count)-1);
+        artPage = Math.min(artPage, last);
+        if (!matching.length) content.append(node('p', null, 'No matching artwork.'));
+        else {
+          const grid = node('div','stamp-grid'), pager = node('div','art-pager');
+          const back = node('button', null, '‹'), next = node('button', null, '›');
+          back.type = next.type = 'button';
+          back.setAttribute('aria-label','Previous artwork'); next.setAttribute('aria-label','Next artwork');
+          back.disabled = artPage === 0; next.disabled = artPage === last;
+          back.onclick = () => {artPage--;fill();}; next.onclick = () => {artPage++;fill();};
+          pager.append(back,node('span',null,(artPage*count+1)+'–'+Math.min((artPage+1)*count,matching.length)+' of '+matching.length),next);
+          content.append(pager,grid);
+          for (const st of matching.slice(artPage*count,(artPage+1)*count)) {
+            const b = node('button','stamp'), im = node('img');
+            b.draggable = true; b.dataset.stamp = stamps.indexOf(st);
+            b.title = (st.wallpaper?'Apply as page wallpaper. ':'')+(st.alt || st.label);
+            im.src = st.src; im.alt = ''; im.draggable = false;
+            b.append(im,node('span',null,st.label));grid.append(b);
           }
         }
-        if (!groups.size) content.append(node('p', null, 'No matching stamps.'));
-        const more = button('Artwork credits', 'credits', 'stamp-credits');
-        content.append(more);
+        content.append(button('Artwork credits','credits','stamp-credits'));
       }
-      s.oninput = () => {
-        filter = s.value;
-        fill();
-      };
+      collection.onchange = () => {artGroup=collection.value;artPage=0;fill();};
+      s.oninput = () => {filter=s.value;artPage=0;fill();};
       fill();
     }
   }
@@ -762,6 +792,18 @@
       .map((v) => parseInt(v, 16));
     if (rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114 < 100 && ['text', 'link'].includes(o.kind))
       o.color = o.kind === 'link' ? '#ffdf78' : '#fff2be';
+    if (data.wallpaper) {
+      const tile = new Image();tile.src=data.src;await tile.decode();
+      if (active!==id || p!==page()) return;
+      if (p.width*p.height>6000000 || p.height>4096) throw Error('Use a page of up to six megapixels and 4096 pixels high for tiled wallpaper.');
+      const sheet=document.createElement('canvas');sheet.width=p.width;sheet.height=p.height;
+      const ctx=sheet.getContext('2d');ctx.fillStyle=ctx.createPattern(tile,'repeat');ctx.fillRect(0,0,p.width,p.height);
+      const src=sheet.toDataURL('image/png');M.imageType(src);
+      Object.assign(o,{x:0,y:0,w:p.width,h:p.height,src,text:'',widget:'wallpaper'});
+      const first=p.items[0];
+      const replace=first && first.kind==='image' && !first.text.trim() && !first.href && !first.x && !first.y && first.w===p.width && first.h===p.height;
+      p.items.splice(0,replace?1:0,o);selected=o.id;record('Applied '+data.label+' as page wallpaper.');return;
+    }
     if (data.src) {
       const [w, h] = await M.dimensions(data.src);
       if (active !== id || p !== page()) return;
@@ -1338,6 +1380,8 @@
           'Artwork credits',
           [
             { note: 'Retro Page artwork and Late Night Signal by RODDY.' },
+            { url: 'assets/credits/art-library.txt', label: 'New artwork collections, source credits and permissions' },
+            { url: 'assets/credits/art-sources.json', label: 'Archived artwork file-by-file sources' },
             {
               url: 'assets/credits/LICENSE-AND-CREDITS.txt',
               label: 'Mosaic icons — original credits and terms',
@@ -1400,7 +1444,7 @@
     if(widget){const key=widget.dataset.widget;place({widget:key,label:window.retroObjects.presets[key].label});return;}
     const st = e.target.closest('[data-stamp]');
     if (st) {
-      place({ kind: 'image', ...presets.stamps[Number(st.dataset.stamp)] });
+      place({ kind: 'image', ...stamps[Number(st.dataset.stamp)] });
       return;
     }
     const eye = e.target.closest('[data-eye]');
@@ -1452,7 +1496,7 @@
           armed=null; insertWidget(data.widget,x,y);return;
         }
         if (!Object.hasOwn(M.kinds, data.kind)) return;
-        if ('stamp' in data) Object.assign(data, presets.stamps[data.stamp]);
+        if ('stamp' in data) Object.assign(data, stamps[data.stamp]);
         else if (data.kind === 'image') {
           $('image-file').click();
           return;
