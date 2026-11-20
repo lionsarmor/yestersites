@@ -302,7 +302,7 @@
   (async()=>{
     let cursor;
     do {
-      const u=new URL('/api/directory',host);if(cursor)u.searchParams.set('cursor',cursor);
+      const u=new URL('/api/directory',host);if(playableMode)u.searchParams.set('cap','playable');if(cursor)u.searchParams.set('cursor',cursor);
       const data=await window.fetchGrubDirectoryPage(u.href);
       for(const m of data.sites){
         if(!/^[a-z0-9-]{1,40}$/.test(m.slug))continue;
