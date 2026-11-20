@@ -310,7 +310,8 @@
   }
   const stamps = [...presets.stamps];
   const animatedBuiltins = new Set();
-  let artOrder = stamps, artGroups = ['All artwork','Animated GIFs'], artLoading, artReady=false;
+  let artOrder = [...presets.stamps], artLoading, browsedLocalArt = false;
+  const artGroups = ['All artwork','Animated GIFs', ...new Set(presets.stamps.map(st => st.group))];
   function loadArtwork() {
     if(artLoading)return artLoading;
     artLoading=new Promise((resolve,reject)=>{
@@ -324,12 +325,13 @@
           if(!groups.has(st.group))groups.set(st.group,[]);
           groups.get(st.group).push(st);
         }
-        artGroups.push(...groups.keys());
+        for (const group of groups.keys()) if (!artGroups.includes(group)) artGroups.push(group);
         artOrder=[];
         for(let i=0;i<Math.max(...Array.from(groups.values(),group=>group.length));i++){
           for(const group of groups.values())if(i<group.length)artOrder.push(group[i]);
         }
-        artReady=true;resolve();
+        if (browsedLocalArt) artOrder = [...presets.stamps, ...artOrder.filter(st => !presets.stamps.includes(st))];
+        resolve();
       };
       document.head.append(script);
     }).catch(error=>{artLoading=null;throw error;});
@@ -389,14 +391,6 @@
         b.draggable=true; b.dataset.widget=key; choices.append(b);
       }
     } else {
-      if(!artReady){
-        const message=node('p',null,'Opening the artwork library…');root.append(message);
-        loadArtwork().then(()=>{if(drawer==='GIFs')renderDrawer();}).catch(error=>{
-          message.textContent=error.message;
-          const retry=node('button',null,'Retry');retry.onclick=renderDrawer;message.append(' ',retry);
-        });
-        return;
-      }
       if (artPanel) { root.append(artPanel); root.scrollTop=artScroll; return; }
       artPanel = node('div', 'art-library');
       const collection = node('select', 'stamp-search');
@@ -457,7 +451,26 @@
       }
       collection.onchange = () => {showLocal();artGroup=collection.value;artPage=0;fill();};
       s.oninput = () => {showLocal();filter=s.value;artPage=0;fill();};
+      content.addEventListener('pointerdown', () => { browsedLocalArt = true; });
+      const libraryStatus=node('div', 'library-status');
+      libraryStatus.setAttribute('role','status');
+      artPanel.append(libraryStatus);
+      function expandLibrary() {
+        libraryStatus.textContent='Loading more artwork…';
+        loadArtwork().then(()=>{
+          for (const name of artGroups) {
+            if (![...collection.options].some(option => option.value === name)) collection.add(new Option(name));
+          }
+          libraryStatus.hidden=true;
+          fill();
+        }).catch(()=>{
+          const retry=node('button',null,'Retry artwork download');
+          retry.onclick=expandLibrary;
+          libraryStatus.replaceChildren(retry);
+        });
+      }
       fill();
+      expandLibrary();
     }
   }
   function select(id) {
