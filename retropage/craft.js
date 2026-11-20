@@ -97,7 +97,14 @@ const RetroCraft = (() => {
     return length;
   }
   function fields(o) {
-    if(o.widget==='game-cartridge')return {romUrl:cartridgeURL(o.romUrl)};
+    if(o.widget==='game-cartridge'){
+      if(!o.romData)return {romUrl:cartridgeURL(o.romUrl),romData:''};
+      if(typeof o.romData!=='string' || o.romData.length>699052 || !/^[A-Za-z0-9+/]+={0,2}$/.test(o.romData))throw Error('Upload an uncompressed cartridge up to 512 KiB.');
+      const bytes=Uint8Array.from(atob(o.romData),ch=>ch.charCodeAt(0));
+      if(bytes.length>524288)throw Error('Upload limit is 512 KiB.');
+      CartridgeFormat.inspect(bytes);
+      return {romData:o.romData,romUrl:''};
+    }
     if(o.widget==='flash-movie'||o.widget==='flash-book'){
       let content;
       if(o.widget==='flash-book'){
@@ -117,7 +124,7 @@ const RetroCraft = (() => {
   function render(o,edition) {
     const old=edition==='classic'||edition==='text',title=escape(o.text);
     if(o.widget==='game-cartridge'){
-      const src=arcade+'#rom='+encodeURIComponent(cartridgeURL(o.romUrl));
+      const src=o.romData?arcade+'#data='+o.romData:arcade+'#rom='+encodeURIComponent(cartridgeURL(o.romUrl));
       if(old)return '[Game cartridge] '+title+' · <a href="'+escape(src)+'">Open game player</a>';
       return '<span class="cartridge-stage"><button type="button" class="cartridge-size">Full screen</button><iframe allow="fullscreen *; gamepad *" class="craft-window cartridge-window" title="'+title+'" sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" src="'+escape(src)+'"></iframe></span>';
     }
@@ -144,18 +151,40 @@ const RetroCraft = (() => {
   }
   const css='.cartridge-stage{display:flex;flex-direction:column;width:100%;height:100%;background:#233832;pointer-events:auto}.cartridge-size{flex:none;align-self:end;color:#fff4d8;background:#243c32;font:bold 14px Arial;cursor:pointer}.cartridge-stage .cartridge-window{flex:1;min-height:0}.cartridge-stage:fullscreen,.cartridge-stage.game-expanded{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;max-height:none;box-sizing:border-box;margin:0;padding:0;border:0;z-index:2147483647}.craft-window{display:block;box-sizing:border-box;width:100%;height:100%;border:0;pointer-events:auto}.phone .craft-window{height:auto;aspect-ratio:4/3}.phone .cartridge-window{aspect-ratio:420/460;min-height:290px}@media(max-width:600px){.board .craft-window{min-height:160px}}';
   function fallbackFields(o){
-    const text=checkedString(o.fallbackText??'',500,'Classic description').trim();
-    const url=checkedString(o.fallbackUrl??'',2048,'Classic link').trim();
-    if(url){
-      let parsed;
-      try{parsed=new URL(url);}catch{throw Error('Use a complete HTTP or HTTPS address for the classic link.');}
-      if(!['http:','https:'].includes(parsed.protocol)||parsed.username||parsed.password)throw Error('Use an HTTP or HTTPS link without credentials.');
+    const out={};
+    for(const [key,label,limit] of [['fallbackText','Classic caption',500],['fallbackTranscript','Text edition transcript',8000],['fallbackUrl','Classic link',2048],['transcriptUrl','Transcript link',2048]]){
+      const value=checkedString(o[key]??'',limit,label).trim();
+      if(value && key.endsWith('Url')){
+        let url;
+        try{url=new URL(value);}catch{throw Error('Use a complete HTTP or HTTPS address for the '+label.toLowerCase()+'.');}
+        if(!['http:','https:'].includes(url.protocol)||url.username||url.password||/[\\\s\x00-\x1f]/.test(value))throw Error('Use an HTTP or HTTPS link without credentials or spaces.');
+      }
+      out[key]=value;
     }
-    return {fallbackText:text,fallbackUrl:url};
+    const poster=o.fallbackPoster??'';
+    if(poster){
+      if(typeof poster!=='string'||poster.length>131094||!/^data:image\/gif;base64,[a-zA-Z0-9+/]+={0,2}$/.test(poster))throw Error('Choose a GIF still of 96 KiB or less.');
+      let bytes;try{bytes=atob(poster.slice(22));}catch{throw Error('The poster image could not be read.');}
+      const w=bytes.charCodeAt(6)+256*bytes.charCodeAt(7),h=bytes.charCodeAt(8)+256*bytes.charCodeAt(9);
+      if(!/^GIF8[79]a/.test(bytes)||bytes.length<14||bytes.length>98304||bytes.at(-1)!==';'||!(w>0&&w<=320&&h>0&&h<=240))throw Error('Use a GIF still up to 320 by 240 pixels.');
+    }
+    out.fallbackPoster=poster;
+    return out;
   }
-  function fallback(o){
-    const {fallbackText:text,fallbackUrl:url}=fallbackFields(o);
-    return url?'<a href="'+escape(url)+'">'+escape(text||url)+'</a>':escape(text);
+  function hasFallback(o,edition){
+    const shared=o.fallbackText||o.fallbackUrl;
+    const text=o.fallbackTranscript||o.transcriptUrl,still=o.fallbackPoster||o.posterMedia;
+    return !!(shared||(edition==='text'?text:edition==='classic'?still:text||still));
   }
-  return {fallbackFields,fallback,isCraft,fields,render,markup,stylesheet,pageCSS,swfBytes,maxBytes,player,arcade,css};
+  function fallback(o,edition='classic',poster=''){
+    const classic=edition==='classic';
+    const caption=(classic?o.fallbackText:o.fallbackTranscript||o.fallbackText)||o.text||'';
+    const url=(classic?o.fallbackUrl:o.transcriptUrl||o.fallbackUrl)||'';
+    const parts=[];
+    if(classic&&poster)parts.push('<img src="'+escape(poster)+'" alt="'+escape(o.fallbackText||o.text||'Still image')+'" border="0">');
+    if(caption)parts.push(escape(caption).replace(/\r?\n/g,'<br>'));
+    if(url)parts.push('<a href="'+escape(url)+'">'+(!classic&&o.transcriptUrl?'Transcript link':'Related link')+'</a>');
+    return parts.join('<br>');
+  }
+  return {hasFallback,fallbackFields,fallback,isCraft,fields,render,markup,stylesheet,pageCSS,swfBytes,maxBytes,player,arcade,css};
 })();

@@ -275,7 +275,7 @@ const RetroMedia = (() => {
   }
   function render(o,layout) {
     const {url,id,start,provider,embed}=source(o.href,o.widget),href=escape(url),title=escape(o.text||'Media player');
-    if(layout==='classic'||layout==='text')return '<a href="'+href+'">'+title+'</a>';
+    if(layout==='classic'||layout==='text')return title+' · <a href="'+href+'">Media source link</a>';
     const tag=o.widget==='audio-player'?'audio':'video',skin=Object.hasOwn(skins,o.playerSkin)?o.playerSkin:'deck',voice=Object.hasOwn(voices,o.audioMode)?o.audioMode:'clip',brand=tag==='audio'?(skin==='deck' && !o.audioMode?'Wave Deck':voices[voice]):skin==='real'?'Cinema player':skin==='win31'?'Media Player':'Vision Deck';
     let player;
     if(id) {
@@ -294,6 +294,7 @@ const RetroMedia = (() => {
   }
   const css='.retro-player{pointer-events:auto;box-sizing:border-box;display:flex;flex-direction:column;max-width:100%;height:100%;padding:3px;color:#20232a;background:#c8c7c0;border:2px outset #eeeae0;font:12px/1.2 Arial,sans-serif;text-align:left}.retro-player b{display:block;color:#fff6df;background:#22364b;padding:3px 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.retro-player :is(video,audio,iframe){min-height:0;width:100%;max-width:100%;border:0;flex:1;background:#181b20}.retro-player.audio audio{min-height:32px}.retro-player.video{min-height:0}.object .retro-player a,.phone .retro-player a{display:block;width:auto;height:auto;min-height:0;padding:2px 5px;color:#173459;font:11px Arial,sans-serif}.phone .retro-player{width:100%;max-width:30em}.phone .retro-player.video :is(video,iframe){min-height:200px}';
   function installAudioPanels(root=document){
+    if(root.querySelector('.cartridge-stage') && typeof installCartridgeStorage==='function')installCartridgeStorage();
     mountReferencePlayers(root);
     for(const stage of root.querySelectorAll('.cartridge-stage')){
       const frame=stage.querySelector('iframe'),button=stage.querySelector('button');
@@ -442,7 +443,7 @@ const RetroMedia = (() => {
       if(movie)deck.querySelector('.movie-gate').after(state,controls);else audio.after(state,controls);audio.controls=false;audio.hidden=audio.tagName==='AUDIO';sync();
     }
   }
-  const script='(()=>{'+mountReferencePlayers.toString()+';('+installAudioPanels.toString()+')()})()';
+  const script='(()=>{'+(typeof installCartridgeStorage==='function'?installCartridgeStorage.toString()+';':'')+mountReferencePlayers.toString()+';('+installAudioPanels.toString()+')()})()';
   const transportCss='.retro-player .deck-clock{display:block;box-sizing:border-box;background:#152124;color:#c1eea6;border:2px inset #9aa;margin:2px 1px;padding:2px 6px;font:12px/1.2 monospace;letter-spacing:1px;white-space:nowrap}.voice-radio .deck-clock{background:repeating-linear-gradient(90deg,transparent 0 8px,#be9656 9px 10px) bottom left/100% 3px no-repeat,#27201a;color:#f4c76d}.voice-music .deck-clock:after{content:"◉ ━ ◉";float:right;color:#c3d4ba}.transport{display:flex;align-items:center;gap:3px;padding:1px}.transport button{cursor:pointer;border:2px outset #eee;background:silver;color:#13151d;font:12px/1.15 Arial;min-height:22px;white-space:nowrap}.transport button:active{border-style:inset}.transport input{min-width:15px;flex:1;accent-color:#526d80}.skin-real .transport button{border-radius:3px;background:#cad8df}.retro-player.audio audio[hidden]{display:none}';
   const faceCss='.retro-player.skin-win31{background:#c0c0c0;border:3px ridge #eee;color:#111}.skin-win31 b{background:#000080;color:white;text-align:center;font:bold 13px Arial;padding:2px}.retro-player.skin-real{background:linear-gradient(#526d83,#24384b 48%,#182937);border:3px ridge #a9bec9;border-radius:7px;color:white;padding:5px}.skin-real b{color:#ffca62;background:#19252d;letter-spacing:.04em}.object .skin-real a,.phone .skin-real a{color:#fff}.retro-player.audio:not(.skin-deck){justify-content:space-between}.retro-player.audio:not(.skin-deck) b:before{content:"REC";display:inline-block;font:bold 10px monospace;color:#fff;background:#9a2429;margin-right:7px;padding:2px 4px}.retro-player.voice-music:not(.skin-deck) b:before{content:"♫  STEREO";background:#284c3b}.retro-player.voice-radio:not(.skin-deck) b:before{content:"FM";background:#673a1d}.retro-player.audio audio{width:100%;background:transparent;flex:1 1 36px}.retro-player video{object-fit:contain}';
   const hardwareCss=`

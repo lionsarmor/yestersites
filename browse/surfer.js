@@ -95,7 +95,7 @@
   function swipe(doc){
     let start;
     doc.addEventListener('touchstart',e=>{
-      start=!e.target.closest?.('a,button,input,textarea,select,audio,video,.retro-player,.ref-deck,[role=button],[contenteditable=true]') && e.touches.length===1?[e.touches[0].clientX,e.touches[0].clientY]:null;
+      start=!e.target.closest?.('a,button,input,textarea,select,audio,video,iframe,.cartridge-stage,.retro-player,.ref-deck,[role=button],[contenteditable=true]') && e.touches.length===1?[e.touches[0].clientX,e.touches[0].clientY]:null;
     },{passive:true});
     doc.addEventListener('touchcancel',()=>{start=null;});
     doc.addEventListener('touchend',e=>{

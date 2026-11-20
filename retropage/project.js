@@ -51,6 +51,9 @@
   function page(doc, id) {
     return id === 'home' ? doc : doc.pages?.find((p) => p.page_id === id);
   }
+  function terminalPage(doc,id){
+    return page(doc,id)||RetroBbs.bulletinPages(pages(doc)).find(([key])=>key===id)?.[1];
+  }
   function linkOK(s) {
     if (typeof s !== 'string' || s.length > 2048 || /[\\\s\x00-\x1f\x7f]/.test(s)) return false;
     if (!s || /^page:(home|[0-9a-f]{32})$/.test(s) || /^\/(?!\/)/.test(s)) return true;
@@ -206,7 +209,7 @@
         );
         if ('widget' in n) {
           check(typeof n.widget === 'string' && Object.hasOwn(window.retroObjects.presets, n.widget), 'Unknown object preset.');
-          if ('fallbackText' in n || 'fallbackUrl' in n)Object.assign(n,RetroCraft.fallbackFields(n));
+          if (RetroCraft.hasFallback(n))Object.assign(n,RetroCraft.fallbackFields(n));
           if (RetroCraft.isCraft(n))Object.assign(n,RetroCraft.fields(n));
           if (RetroMedia.isPlayer(n)) RetroMedia.source(n.href,n.widget);
           if(RetroMedia.isFrame(n)){
@@ -243,6 +246,7 @@
           [o.href,o.otherHref||''].every(url=>!url.startsWith('page:') || seen.has(url.slice(5))),
           'A link points to a missing page.',
         );
+    RetroBbs.bulletinPages(pages(doc));
     RetroMedia.checkFrames(pages(doc));
     return doc;
   }
@@ -365,7 +369,7 @@
     return lines;
   }
   function terminal(doc, id, columns = 32) {
-    const p = page(doc, id),
+    const p = terminalPage(doc, id),
       links = [], resources = [],
       body = [];
     const ascii = (s) =>
@@ -429,6 +433,7 @@
     page,
     normalize,
     imageType,
+    terminalPage,
     appearance,
     lettering,
     terminal,

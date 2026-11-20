@@ -12,7 +12,7 @@
     <link rel="icon" href="./assets/paper-pencil.png" />
     <link rel="stylesheet" href="./app.css" />
     <link rel="stylesheet" href="./studio-drawer.css" />
-    <script defer src="topics.js"></script><script defer src="craft.js"></script><script defer src="media.js"></script>
+    <script defer src="topics.js"></script><script defer src="format.js"></script><script defer src="member-storage.js"></script><script defer src="craft.js"></script><script defer src="media.js"></script>
     <script defer src="./objects.js"></script>
     <script defer src="./palette.js"></script>
     <script defer src="./presets.js"></script>
@@ -125,7 +125,7 @@
             ><input id="prop-text" name="text" maxlength="8000" />
             <div class="prop-buttons">
               <button type="submit">Apply</button
-              ><button type="button" data-action="properties">Edit object…</button><button type="button" data-action="fallback" hidden>Classic / text fallback…</button>
+              ><button type="button" data-action="properties">Edit object…</button><button type="button" data-action="fallback" hidden>Compatibility…</button>
             </div>
           </form>
         </section>
@@ -186,7 +186,7 @@
           </div>
           <fieldset id="block-fields"><legend id="block-caption">Block properties</legend><label id="block-text-label">Contents <textarea id="block-text" maxlength="8000" rows="5" spellcheck="false"></textarea></label>
             <section id="bbs-painter" hidden aria-label="BBS Screen Painter"></section>
-            <label id="block-key-label" hidden>Menu hotkey <input id="block-key" maxlength="3" placeholder="Automatic"></label>
+            <label id="block-bulletin-label" hidden>Bulletin body <textarea id="block-bulletin-body" maxlength="8000" rows="6"></textarea></label><label id="block-key-label" hidden>Menu hotkey <input id="block-key" maxlength="3" placeholder="Automatic"></label>
             <label id="block-ink-label" hidden>Text color <select id="block-ink"></select></label>
             <label id="block-attachment-label" hidden>File to download (up to 48 KiB) <input id="block-attachment" type="file"><span id="block-filename"></span><button type="button" id="block-detach">Remove attachment</button></label>
             <label id="block-link-label">Destination <select id="block-link"></select></label><label id="block-url-label" hidden>Web or file address <input id="block-url" type="url" placeholder="https://"></label></fieldset>

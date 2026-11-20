@@ -26,6 +26,11 @@ const RetroBbs = (() => {
       ensure(typeof p.cells==='string' && p.cells.length===n && [...p.cells].every(c=>alphabets[p.mode].includes(c)||c.charCodeAt(0)>=32 && c.charCodeAt(0)<=126) && typeof p.colors==='string' && p.colors.length===n*2 && /^[0-9a-f]+$/i.test(p.colors),'The painting contains invalid characters or colors.');
       b.paint={mode:p.mode,width:p.width,height:p.height,cells:p.cells,colors:p.colors.toLowerCase()};
     }
+    if(block.bulletin){
+      const {id,body}=block.bulletin;
+      ensure(widget==='bbs-menu'&&!href&&/^[0-9a-f]{32}$/.test(id)&&typeof body==='string'&&body.trim()&&body.length<=8000,'Give the bulletin a readable message of up to 8,000 characters.');
+      b.bulletin={id,body};
+    }
     if(block.attachment){
       const {name,data}=block.attachment;
       ensure(widget==='bbs-files' && /^[a-z\d][a-z\d._-]{0,63}$/i.test(name) && typeof data==='string' && data.length>0 && data.length<=65536 && data.length%4===0 && /^(?:[A-Za-z0-9+/]+={0,2})$/.test(data),'Use a file up to 48 KiB with a simple filename.');
@@ -50,6 +55,7 @@ const RetroBbs = (() => {
       do{key=resource?'F'+(++file):String(++menu);}while(claimed.has(key));return key;
     }
     blocks.forEach((o,index)=>{
+      if(o.bulletin)o={...o,href:'page:'+o.bulletin.id};
       if(o.paint){
         const p=o.paint;
         for(let y=0;y<p.height;y++){
@@ -83,6 +89,22 @@ const RetroBbs = (() => {
       add('');
     });
     return {lines,rich,links,linkKeys,commands,resources};
+  }
+  function bulletinPages(pages){
+    const children=[],used=new Set(pages.map(([id])=>id));
+    for(const [parent,p] of pages){
+      for(const block of p.bbsScreen||[]){
+        if(!block.bulletin)continue;
+        const {id,body}=block.bulletin;
+        ensure(!used.has(id),'Each BBS bulletin needs a unique screen ID.');used.add(id);
+        children.push([id,{title:block.text,items:[],bbsScreen:[
+          {widget:'bbs-welcome',text:block.text,href:''},
+          {widget:'bbs-bulletin',text:body,href:''},
+          {widget:'bbs-menu',text:'Return to '+p.title,href:'page:'+parent,hotkey:'0'}
+        ]}]);
+      }
+    }
+    return children;
   }
   function toHTML(screen){
     if(!screen.rich)return esc(screen.lines.join('\n'));
@@ -136,5 +158,5 @@ const RetroBbs = (() => {
     const url=URL.createObjectURL(new Blob([bytesOf(r.attachment)],{type:'application/octet-stream'}));
     const a=document.createElement('a');a.href=url;a.download=r.attachment.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
   }
-  return {palette,alphabets,modes,fresh,normalize,checkKeys,authored,toHTML,bytes,command,bytesOf,openResource};
+  return {bulletinPages,palette,alphabets,modes,fresh,normalize,checkKeys,authored,toHTML,bytes,command,bytesOf,openResource};
 })();

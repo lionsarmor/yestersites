@@ -628,7 +628,7 @@
     for (const c of $('properties').querySelectorAll('button')) c.disabled = !o;
   }
   function renderBbs() {
-    if (!M.page(doc, pageBbs)) pageBbs = active;
+    if (!M.terminalPage(doc, pageBbs)) pageBbs = active;
     $('bbs-width').value = String(bbsWidth);
     $('terminal').style.setProperty('--phosphor', phosphors[bbsColor]);
     $('bbs-lines').innerHTML = bbsHelp
@@ -948,7 +948,100 @@
     }
     return RetroMedia.source(raw,widget).url;
   }
-  function playerDialog(o) {
+  let editionPanel=null;
+  function richDialog(o,open){
+    open();
+    const form=$('dialog-fields'),section=node('section','compatibility'),settings=node('details'),fields=node('div','compat-controls');
+    for(const input of form.querySelectorAll('[name=fallbackText],[name=fallbackUrl]'))input.parentElement.remove();
+    const matrix=node('dl','compat-matrix');
+    section.append(node('h3',null,'Compatibility'),matrix);
+    function row(edition,label){
+      const output=node('dd',null,label);
+      matrix.append(node('dt',null,edition),output);return output;
+    }
+    row('Desktop & phone',RetroMedia.isFrame(o)?'Embedded page and navigation':o.widget==='html-block'?'Styled HTML in its own frame':o.widget==='game-cartridge'?'Plays in the arcade cabinet':o.widget.startsWith('flash-')?'Plays in the Flash projector':'Plays in your selected player');
+    const classicState=row('Classic HTML',''),textState=row('Text browser','');
+    row('8-bit terminal','Uses your BBS screen');
+    function control(label,name,element='input',maxLength=0,value=''){
+      const group=node('label',null,label),input=node(element);
+      input.name=name;input.value=value;if(maxLength)input.maxLength=maxLength;
+      group.append(input);fields.append(group);return input;
+    }
+    const caption=control('Classic caption','fallbackText','textarea',500,o.fallbackText);
+    const url=control('Classic link (optional)','fallbackUrl','input',2048,o.fallbackUrl);
+    const transcript=control('Text description or transcript','fallbackTranscript','textarea',8000,o.fallbackTranscript);
+    const transcriptUrl=control('Transcript link (optional)','transcriptUrl','input',2048,o.transcriptUrl);
+    const upload=control('Poster still · GIF, JPEG or PNG up to 96 KiB','posterFile');
+    upload.type='file';upload.accept='image/gif,image/jpeg,image/png';
+    const remove=node('button',null,'Clear still');remove.type='button';fields.append(remove);
+    const preview=node('div','compat-samples'),classic=node('div'),textView=node('div'),note=node('output');
+    preview.append(node('strong',null,'Classic HTML'),classic,node('strong',null,'Text browser'),textView);
+    preview.onclick=e=>{if(e.target.closest('a'))e.preventDefault();};
+    note.setAttribute('role','status');
+    settings.append(node('summary',null,'Edit older editions'),fields,preview,note);
+    section.append(settings);
+    const bbs=node('details','compat-bbs'),draft=node('button',null,'Draft a BBS bulletin'),editor=node('div'),title=node('input'),body=node('textarea'),discard=node('button',null,'Discard draft');
+    const label=(name,input)=>{const l=node('label',null,name);l.append(input);return l;};
+    title.maxLength=120;body.maxLength=8000;body.rows=5;
+    draft.type=discard.type='button';editor.hidden=true;
+    bbs.append(node('summary',null,'BBS bulletin'),draft,editor);
+    editor.append(label('Numbered menu entry',title),label('Bulletin text',body),node('small',null,'Applying the object adds this entry to the current BBS screen.'),discard);
+    draft.onclick=()=>{
+      editor.hidden=false;draft.hidden=true;
+      const text=form.querySelector('[name=text],[name=firstLabel]')?.value||o.text;
+      title.value=('Read about '+text).slice(0,120);
+      body.value=transcript.value||caption.value||text;body.focus();
+    };
+    discard.onclick=()=>{editor.hidden=true;draft.hidden=false;};
+    section.append(bbs);form.append(section);
+    let poster=o.fallbackPoster||'',tick=0,busy=false,problem='';
+    function values(){return {fallbackText:caption.value,fallbackUrl:url.value,fallbackTranscript:transcript.value,transcriptUrl:transcriptUrl.value,fallbackPoster:poster};}
+    function refresh(){
+      const draft={...o,...values(),text:form.querySelector('[name=text],[name=firstLabel]')?.value||o.text};
+      remove.disabled=!poster&&!busy&&!problem;
+      const defaults=o.widget==='html-block'?['Basic HTML','Text from HTML']:o.widget==='flash-book'?['Scene text','Scene text']:RetroMedia.isFrame(o)?['Navigation links','Navigation links']:RetroMedia.isPlayer(o)?['Source link','Source link']:o.widget==='game-cartridge'?['Description and player link','Description and player link']:['Description','Description'];
+      classicState.textContent=poster?'Shows a picture and caption':!RetroCraft.hasFallback(draft,'classic')?defaults[0]:url.value?'Caption and link':'Caption';
+      textState.textContent=!RetroCraft.hasFallback(draft,'text')?defaults[1]:transcriptUrl.value||url.value?'Text and link':'Text';
+      function sample(mode){
+        if(RetroCraft.hasFallback(draft,mode))return RetroCraft.fallback(draft,mode,poster);
+        if(RetroMedia.isPlayer(o))return RetroMedia.render(draft,mode);
+        if(RetroMedia.isFrame(o))return RetroMedia.panel(draft,mode,key=>M.page(doc,key)?.title||key);
+        return RetroCraft.render(draft,mode);
+      }
+      try{
+        RetroCraft.fallbackFields(values());
+        classic.innerHTML=sample('classic');textView.innerHTML=sample('text');
+        note.textContent=busy?'Preparing still…':problem;
+      }catch(error){classic.replaceChildren();textView.replaceChildren();note.textContent=error.message;}
+    }
+    upload.onchange=async()=>{
+      const f=upload.files[0],request=++tick;
+      busy=!!f;problem='';refresh();
+      if(!f)return;
+      try{
+        const image=await RetroExport.posterStill(await M.readImage(f));
+        if(request===tick)poster=image;
+      }catch(error){if(request===tick)problem=error.message;}
+      finally{if(request===tick){busy=false;refresh();}}
+    };
+    remove.onclick=()=>{tick++;busy=false;problem='';poster='';upload.value='';refresh();};
+    section.addEventListener('input',refresh);
+    editionPanel={o,section,read(){
+      if(busy||problem)throw Error(problem||'Wait for the poster still to finish.');
+      const fields=RetroCraft.fallbackFields(values());
+      let screen;
+      if(!editor.hidden){
+        if(!title.value.trim()||!body.value.trim())throw Error('Enter a menu entry and bulletin text, or discard the BBS draft.');
+        screen=bbsEditor.withBulletin(title.value.trim(),body.value.trim());
+      }
+      return {fields,screen};
+    }};
+    refresh();
+  }
+  function playerDialog(o){richDialog(o,()=>playerSettings(o));}
+  function frameSettings(o,isNew){richDialog(o,()=>frameSettings(o,isNew));}
+  function craftDialog(o,isNew=false){richDialog(o,()=>craftSettings(o,isNew));}
+  function playerSettings(o) {
     const key=mediaKey(o),m=mediaLibrary[key],pageAtOpen=page();
     const options={
       'audio-music':['Cassette label','Side A · music file','Tape deck','Play on arrival','Repeat this side'],
@@ -1039,19 +1132,55 @@
     }
     root.append(list,controls,preview);draw();$('dialog').addEventListener('close',()=>preview.replaceChildren(),{once:true});
   }
-  function craftDialog(o,insertOnApply=false){
+  function craftSettings(o,insertOnApply=false){
     if(o.widget==='flash-book')return sceneDialog(o);
     if(o.widget==='game-cartridge'){
-      dialog('Game cartridge properties',[
+      const samples={'Lantern Run · NES':RetroCraft.arcade+'lantern-run.nes','Pond Post · Game Boy':RetroCraft.arcade+'pond-post.gb'};
+      let uploaded=o.romData||'',sequence=0,reading=false;
+      function cartridge(v){
+        if(v.cartSource==='file' && (reading || !uploaded))throw Error(reading?'Wait for the cartridge to finish loading.':'Drop a cartridge or choose a file first.');
+        return RetroCraft.fields({widget:o.widget,romData:v.cartSource==='file'?uploaded:'',romUrl:v.cartSource==='sample'?v.sample:v.romUrl});
+      }
+      dialog('Add or edit game',[
         {name:'text',label:'Game title',value:o.text,required:true,maxLength:120},
-        {name:'romUrl',label:'ROM file URL',value:o.romUrl,required:true,maxLength:2048},
-        {note:'Lantern Run is ready to play. Keep it or paste a direct HTTPS .nes link from a host that allows cross-origin downloads. Use touch, keyboard or a standard gamepad.'},
+        {name:'cartSource',label:'Game source',type:'select',options:[['sample','Use a sample'],['file','Drop a game file'],['link','Paste a game URL']],value:uploaded?'file':Object.values(samples).includes(o.romUrl)?'sample':'link'},
+        {name:'sample',label:'Sample cartridge',type:'select',options:Object.entries(samples).map(([name,url])=>[url,name]),value:Object.values(samples).includes(o.romUrl)?o.romUrl:Object.values(samples)[0]},
+        {name:'romUrl',label:'Direct HTTPS cartridge URL',value:o.romUrl||'',maxLength:2048},
         {name:'fallbackText',label:'Classic / text description',value:o.fallbackText||'',maxLength:500},
         {name:'fallbackUrl',label:'Classic / text link (optional)',value:o.fallbackUrl||'',maxLength:2048}
-      ],v=>applyObject(o,{text:v.text,...RetroCraft.fields({...o,romUrl:v.romUrl}),...RetroCraft.fallbackFields(v)}),'Apply');
-      const pane=node('div','craft-preview'),test=node('button',null,'Test this cartridge');test.type='button';
-      test.onclick=()=>{const form=$('dialog-fields');try{pane.innerHTML=RetroCraft.render({...o,romUrl:form.querySelector('[name=romUrl]').value},'modern');}catch(error){pane.textContent=error.message;}};
-      $('dialog-fields').append(test,pane);$('dialog').addEventListener('close',()=>pane.replaceChildren(),{once:true});return;
+      ],v=>applyObject(o,{text:v.text,...cartridge(v),...RetroCraft.fallbackFields(v)}),'Apply');
+      const form=$('dialog-fields'),mode=form.querySelector('[name=cartSource]'),sample=form.querySelector('[name=sample]'),url=form.querySelector('[name=romUrl]'),title=form.querySelector('[name=text]');
+      const drop=node('label','cartridge-drop','Drop a NES or Game Boy cartridge here, or choose a file (512 KiB maximum).');
+      const file=node('input'),info=node('output'),pane=node('div','craft-preview'),test=node('button',null,'Test game');
+      file.type='file';file.accept='.nes,.gb,.gbc';test.type='button';info.setAttribute('aria-live','polite');drop.append(file);
+      form.append(drop,info,test,pane);
+      function refresh(){
+        sample.parentElement.hidden=mode.value!=='sample';url.parentElement.hidden=mode.value!=='link';drop.hidden=mode.value!=='file';
+        pane.replaceChildren();
+        if(mode.value==='sample')info.textContent=sample.selectedOptions[0].textContent;
+        else if(mode.value==='link')info.textContent='Test the direct link before publishing. If the host blocks downloads, choose Drop a game file.';
+        else if(uploaded){const cart=CartridgeFormat.inspect(Uint8Array.from(atob(uploaded),c=>c.charCodeAt(0)));info.textContent=(cart.system==='gb'?'Game Boy':'NES')+' · '+(cart.title||title.value);}
+        else info.textContent='Choose a cartridge to identify it.';
+      }
+      async function acceptFile(f){
+        if(!f)return;
+        const ticket=++sequence;reading=true;uploaded='';pane.replaceChildren();
+        try{
+          if(f.size>524288)throw Error('This cartridge exceeds the 512 KiB upload limit.');
+          const bytes=new Uint8Array(await f.arrayBuffer());if(ticket!==sequence || !form.contains(file))return;
+          const cart=CartridgeFormat.inspect(bytes);let parts=[];
+          for(let n=0;n<bytes.length;n+=8192)parts.push(String.fromCharCode(...bytes.subarray(n,n+8192)));
+          uploaded=btoa(parts.join(''));title.value=(cart.title||f.name.replace(/\.[^.]+$/,'')).slice(0,120);
+          mode.value='file';refresh();
+        }catch(error){if(ticket===sequence)info.textContent=error.message;}
+        finally{if(ticket===sequence)reading=false;}
+      }
+      mode.onchange=()=>{sequence++;reading=false;refresh();};sample.onchange=()=>{title.value=sample.selectedOptions[0].textContent.split(' · ')[0];refresh();};
+      file.onchange=()=>acceptFile(file.files[0]);
+      form.ondragover=event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();};
+      form.ondrop=event=>{if(event.target.closest('.compatibility') || !event.dataTransfer.files.length)return;event.preventDefault();mode.value='file';refresh();acceptFile(event.dataTransfer.files[0]);};
+      test.onclick=()=>{try{pane.innerHTML=RetroCraft.render({...o,...cartridge({cartSource:mode.value,sample:sample.value,romUrl:url.value})},'modern');RetroMedia.mount(pane);}catch(error){info.textContent=error.message;}};
+      refresh();$('dialog').addEventListener('close',()=>{sequence++;form.ondrop=form.ondragover=null;pane.replaceChildren();},{once:true});return;
     }
     const isFlash=o.widget==='flash-movie',label=widgets[o.widget].label;
     const fields=[{name:'text',label:isFlash?'Movie title and classic-browser description':'Block title',value:o.text,required:true,maxLength:120}];
@@ -1067,12 +1196,7 @@
       const values=isFlash?{swf,text:v.text,stageFit:v.stageFit,stageColor:v.stageColor,stageControls:v.transport==='on'}:{text:v.text,markup:v.markup,styles:v.styles};
       RetroCraft.fields({...o,...values});
       if(insertOnApply){
-        const p=page(), item={...o,...values};
-        const candidate={...p,items:[...p.items,item]};
-        M.normalize(p===doc?candidate:{...doc,pages:doc.pages.map(child=>child===p?candidate:child)});
-        p.items.push(item);
-        selected=item.id;
-        record('Added HTML / CSS block.');
+        applyObject(o,values,true);
       }else applyObject(o,values);
     },insertOnApply?'Insert on page':'Apply');
     const root=$('dialog-fields'),preview=node('div','craft-preview'),feedback=node('small');
@@ -1108,7 +1232,7 @@
     root.append(feedback,preview);refresh();
     $('dialog').addEventListener('close',()=>{preview.replaceChildren();},{once:true});
   }
-  function frameDialog(o,isNew){
+  function frameSettings(o,isNew){
     const p=page(),split=o.widget==='split-frame';
     const fields=(prefix,label,href)=>[
       {name:prefix+'Label',label:'Link label',section:label,value:prefix==='first'?o.text:o.otherLabel||'More',required:true},
@@ -1118,10 +1242,7 @@
       const url=prefix=>RetroMedia.frameURL(v[prefix+'target']?'page:'+v[prefix+'target']:M.webAddress(v[prefix+'href']));
       const values={text:v.firstLabel,href:url('first'),...(split?{otherLabel:v.nextLabel,otherHref:url('next')}:{})};
       if(!isNew)return applyObject(o,values);
-      if(p.items.length>=64)throw Error('This page supports up to 64 objects.');
-      const candidate={...o,...values};
-      RetroMedia.checkFrames(M.pages(doc).map(([key,page])=>[key,page===p?{...p,items:[...p.items,candidate]}:page]));
-      p.items.push(candidate);selected=o.id;record('Placed '+widgets[o.widget].label+'.');
+      applyObject(o,values,true);
     },isNew?'Insert':'Apply');
   }
   function insertWidget(key,x,y,values={}) {
@@ -1315,19 +1436,16 @@
       'Apply',
     );
   }
-  function applyObject(o, values) {
+  function applyObject(o, values, insert=false) {
+    const p=page(),compat=editionPanel?.o===o&&editionPanel.section.isConnected&&$('dialog').open?editionPanel.read():null;
+    if(compat)values={...values,...compat.fields};
     if(o.widget==='counter' && 'text' in values) values={...values,src:counterSource(values.text)};
-    const candidate = { ...o, ...values };
-    const p = page();
-    const test = {
-      ...doc,
-      pages: (doc.pages || []).map((child) =>
-        child === p ? { ...child, items: child.items.map((i) => (i === o ? candidate : i)) } : child,
-      ),
-    };
-    if (p === doc) test.items = doc.items.map((i) => (i === o ? candidate : i));
-    M.normalize(test);
-    Object.assign(o, values);
+    const candidate={...o,...values},changed={...p,items:insert?[...p.items,candidate]:p.items.map(item=>item===o?candidate:item)};
+    if(compat?.screen)changed.bbsScreen=compat.screen;
+    M.normalize(p===doc?changed:{...doc,pages:doc.pages.map(child=>child===p?changed:child)});
+    Object.assign(o,values);
+    if(insert){p.items.push(o);selected=o.id;}
+    if(compat?.screen)p.bbsScreen=compat.screen;
     record('Applied object properties.');
   }
   $('properties').onsubmit = (e) => {
@@ -1433,7 +1551,10 @@
       p = M.copy({ ...original, pages: undefined });
     delete p.pages;
     p.page_id = M.uid();
-    for (const block of p.bbsScreen || []) if (block.href === 'page:'+active) block.href='page:'+p.page_id;
+    for (const block of p.bbsScreen || []){
+      if (block.href === 'page:'+active)block.href='page:'+p.page_id;
+      if(block.bulletin)block.bulletin.id=M.uid();
+    }
     for (const o of p.items) {
       o.id = M.uid();
       if (o.href === 'page:' + active) o.href = 'page:' + p.page_id;
@@ -1803,36 +1924,9 @@
         craftDialog(object());break;
       }
       case 'fallback':{
-        if(!o)break;
-        const target=page(),id=active;
-        dialog('Classic / text fallback',[
-          {name:'fallbackText',label:'Description or link label',value:o.fallbackText||'',maxLength:500},
-          {name:'fallbackUrl',label:'Link for older browsers (optional)',value:o.fallbackUrl||'',maxLength:2048},
-          {note:'Leave both fields empty to use the automatic fallback.'}
-        ],values=>applyObject(o,RetroCraft.fallbackFields(values)),'Save fallback');
-        const form=$('dialog-fields'),samples=node('div','edition-samples'),feedback=node('p');
-        feedback.setAttribute('role','status');
-        const previews=['modern','phone','classic','text'].map(mode=>{
-          const box=node('div'),frame=node('iframe');frame.setAttribute('sandbox','');
-          frame.title=mode+' edition';box.append(node('strong',null,mode),frame);samples.append(box);
-          return [mode,frame];
-        });
-        form.append(feedback,samples);
-        let version=0,timer;
-        async function refresh(){
-          const current=++version;
-          try{
-            const fields=RetroCraft.fallbackFields(Object.fromEntries([...form.querySelectorAll('input')].map(input=>[input.name,input.value])));
-            const edited={...target,items:target.items.map(item=>item===o?{...item,...fields}:item)};
-            const draft=target===doc?edited:{...doc,pages:doc.pages.map(p=>p===target?edited:p)};
-            const pages=await Promise.all(previews.map(([mode])=>RetroExport.source(draft,id,mode)));
-            if(current!==version || !samples.isConnected)return;
-            previews.forEach(([,frame],i)=>{frame.srcdoc=pages[i];});feedback.textContent='';
-          }catch(error){if(current===version)feedback.textContent=error.message;}
-        }
-        const schedule=()=>{clearTimeout(timer);timer=setTimeout(refresh,300);};
-        form.addEventListener('input',schedule);refresh();
-        $('dialog').addEventListener('close',()=>{version++;clearTimeout(timer);form.removeEventListener('input',schedule);samples.remove();},{once:true});
+        properties();
+        const details=$('dialog-fields').querySelector('.compatibility details');
+        if(details){details.open=true;details.scrollIntoView({block:'nearest'});}
         break;
       }
       case 'source':{

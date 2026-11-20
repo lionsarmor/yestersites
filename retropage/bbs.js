@@ -26,11 +26,11 @@ window.makeBbsEditor=function(app){
     return entries;
   }
   function preview(){
-    if(!M.page(app.project(),displayPage))displayPage=app.active();
+    if(!M.terminalPage(app.project(),displayPage))displayPage=app.active();
     const {width,color}=app.options(),out=$('screen-output');
     const screen=M.terminal(app.project(),displayPage,width);
     out.innerHTML=RetroBbs.toHTML(screen);out.style.color=colors[color];out.style.width=width+'ch';
-    $('monitor-title').textContent=M.page(app.project(),displayPage).title;
+    $('monitor-title').textContent=M.terminalPage(app.project(),displayPage).title;
     $('monitor-size').textContent=width+' COL · '+screen.lines.length+' LINES';
     return screen;
   }
@@ -47,7 +47,7 @@ window.makeBbsEditor=function(app){
       if(!additions.length)return app.status('Add a second screen to build a linked menu.');
     }else{
       const next=M.pages(app.project()).find(([id])=>id!==app.active());
-      const href=key==='bbs-lobby'?'page:home':key==='bbs-sysop-page'?'':widget==='bbs-menu' && key!=='bbs-lobby'?(next?'page:'+next[0]:''):(spec.parts[0].href||'');
+      const href=key==='bbs-lobby'?'page:home':key==='bbs-sysop-page'?'':['bbs-menu','bbs-door'].includes(widget)?(next?'page:'+next[0]:''):(spec.parts[0].href||'');
       additions=[{widget,text,href,...(widget==='bbs-paint'?{paint:RetroBbs.fresh()}:{})}];
     }
     if(items.length+additions.length>64)return app.status('A screen supports 64 blocks.');
@@ -84,13 +84,15 @@ window.makeBbsEditor=function(app){
     $('block-fields').disabled=!b;$('block-caption').textContent=b?presets[b.widget]?.label||'Block properties':'Block properties';
     $('block-text').value=b?.text||'';$('block-text-label').hidden=b?.widget==='bbs-paint';
     painter.set(b?.widget==='bbs-paint'?b:null);
+    $('block-bulletin-label').hidden=!b?.bulletin;
+    $('block-bulletin-body').value=b?.bulletin?.body||'';
     $('block-key-label').hidden=!linked;$('block-key').value=b?.hotkey||'';
     $('block-ink-label').hidden=!linked;$('block-ink').value=b?.ink||'';
     $('block-attachment-label').hidden=b?.widget!=='bbs-files';
     $('block-filename').textContent=b?.attachment?.name||'';$('block-detach').hidden=!b?.attachment;
     $('block-attachment').value='';
 
-    $('block-link-label').hidden=!linked;$('block-url-label').hidden=!external;
+    $('block-link-label').hidden=!linked||!!b?.bulletin;$('block-url-label').hidden=!external;
     $('block-link').replaceChildren(new Option('No link',''),...pages.map(([id,p])=>new Option(p.title,'page:'+id)),new Option('Web or file address…','external'));
     $('block-link').value=external?'external':b?.href||'';$('block-url').value=external?b.href:'';
     $('block-up').disabled=!b||index===0;$('block-down').disabled=!b||index===shown.length-1;
@@ -107,7 +109,10 @@ window.makeBbsEditor=function(app){
     const items=blocks(),[b]=items.splice(index,1);index+=step;items.splice(index,0,b);editMonitor();app.record('Moved block.');
   };
   $('block-remove').onclick=()=>{blocks().splice(index,1);editMonitor();app.record('Removed block.');};
-  $('block-copy').onclick=()=>{blocks().splice(index+1,0,structuredClone(selected()));index++;editMonitor();app.record('Copied block.');};
+  $('block-copy').onclick=()=>{
+    const copy=structuredClone(selected());delete copy.hotkey;if(copy.bulletin)copy.bulletin.id=M.uid();
+    blocks().splice(++index,0,copy);editMonitor();app.record('Copied block.');
+  };
   $('block-key').onchange=e=>{
     const b=selected(),key=e.target.value.trim().toUpperCase(),candidate={...b,hotkey:key};
     try{
@@ -126,6 +131,11 @@ window.makeBbsEditor=function(app){
     }catch{app.status('Could not read the selected file.');}
   };
   $('block-detach').onclick=()=>{delete selected().attachment;editMonitor();app.record('Removed file attachment.');};
+  $('block-bulletin-body').onchange=e=>{
+    const b=selected(),body=e.target.value.trim();
+    if(!body){e.target.value=b.bulletin.body;return app.status('Enter bulletin text before saving.');}
+    b.bulletin.body=body;editMonitor();app.record('Edited the BBS bulletin.');
+  };
   $('block-text').oninput=e=>{selected().text=e.target.value;editMonitor();app.saveDraft();};
   $('block-text').onchange=()=>app.record('Edited block.');
   $('block-link').onchange=e=>{
@@ -142,6 +152,15 @@ window.makeBbsEditor=function(app){
     if(cmd!=='B' && target!==displayPage)back.push(displayPage);
     displayPage=target;preview();input.focus();
   };
-  return {open(){panel.hidden=false;document.body.classList.add('bbs-mode');editingPage='';refresh();$('screen-page').focus();},
+  function withBulletin(title,body){
+    const items=blocks()||automaticBlocks();
+    if(items.length>=64)throw Error('This BBS screen is full. Remove a block in Edit BBS first.');
+    const rendered=M.terminal(app.project(),app.active(),app.options().width);
+    const used=new Set([...rendered.linkKeys||rendered.links.map((_,i)=>String(i+1)),...rendered.resources.map(r=>r.key),...items.map(b=>b.hotkey)]);
+    let num=1;while(used.has(String(num)))num++;
+    const entry=RetroBbs.normalize({widget:'bbs-menu',text:title,href:'',hotkey:String(num),bulletin:{id:M.uid(),body}},()=>true);
+    return [...items,entry];
+  }
+  return {withBulletin,open(){panel.hidden=false;document.body.classList.add('bbs-mode');editingPage='';refresh();$('screen-page').focus();},
     close(){panel.hidden=true;document.body.classList.remove('bbs-mode');document.querySelector('#toolbar [data-action=author-bbs]').focus();},isOpen:()=>!panel.hidden,refresh};
 };

@@ -16,11 +16,13 @@
   }
   // A fixed 216-colour cube leaves one independent transparent palette entry.
   // Frequent clear codes keep the LZW stream at nine bits throughout.
-  async function classicGif(src) {
+  async function classicGif(src, maxWidth=Infinity, maxHeight=Infinity) {
     const photo = new Image(); photo.src=src; await photo.decode();
     const canvas=document.createElement('canvas');
-    canvas.width=photo.naturalWidth; canvas.height=photo.naturalHeight;
-    const ctx=canvas.getContext('2d'); ctx.drawImage(photo,0,0);
+    const scale=Math.min(1,maxWidth/photo.naturalWidth,maxHeight/photo.naturalHeight);
+    canvas.width=Math.max(1,Math.round(photo.naturalWidth*scale));
+    canvas.height=Math.max(1,Math.round(photo.naturalHeight*scale));
+    const ctx=canvas.getContext('2d'); ctx.drawImage(photo,0,0,canvas.width,canvas.height);
     const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
     const records=[...encoder.encode('GIF89a'),canvas.width&255,canvas.width>>8,canvas.height&255,canvas.height>>8,247,0,0];
     for(let i=0;i<256;i++) records.push((Math.floor(i/36)%6)*51,(Math.floor(i/6)%6)*51,(i%6)*51);
@@ -40,7 +42,18 @@
     for(const [id,page] of M.pages(doc)) {
       const objects=new Map(); paths.set(id,objects);
       for(const obj of page.items) {
-        const src=M.appearance(obj); if(!src)continue;
+        const src=M.appearance(obj),poster=obj.fallbackPoster;
+        let posterPath='';
+        if(poster){
+          if(!bySource.has(poster)){
+            const name='pictures/img'+(bySource.size+1)+'.gif';
+            if(!inline)files.push({name,data:rawBytes(poster)});
+            bySource.set(poster,[inline?poster:name,inline?poster:name]);
+          }
+          posterPath=bySource.get(poster)[1];
+          objects.set(obj.id,['','',posterPath]);
+        }
+        if(!src)continue;
         if(!bySource.has(src)) {
           const n=bySource.size+1, format=src.slice(11,src.indexOf(';')),ext=format==='jpeg'?'jpg':format;
           const path='pictures/img'+n+'.'+ext;
@@ -53,7 +66,7 @@
           }
           bySource.set(src,[inline?src:path,classic]);
         }
-        objects.set(obj.id,bySource.get(src));
+        objects.set(obj.id,[...bySource.get(src),posterPath]);
       }
     }
     return {files,paths};
@@ -100,8 +113,8 @@
       for(const row of rows(page,backdrop)){
         const parts=[];
         for(const o of row){
-          if((layout==='text'||layout==='classic') && (o.fallbackText || o.fallbackUrl)){
-            parts.push([o,RetroCraft.fallback(o)]);continue;
+          if((layout==='text'||layout==='classic') && RetroCraft.hasFallback(o,layout)){
+            parts.push([o,RetroCraft.fallback(o,layout,media.get(o.id)?.[2])]);continue;
           }
           if(RetroCraft.isCraft(o)){parts.push([o,RetroCraft.render(o,layout)]);continue;}
           if (RetroMedia.isPanel(o)){const html=drawPanel(o,layout);if(html)parts.push([o,html]);continue;}
@@ -156,7 +169,7 @@
     const pictures=new Map(),files=bundle.files.filter(f=>/\.(gif|jpg)$/.test(f.name));
     files.forEach((f,i)=>{const short='I'+String(i+1).padStart(7,'0')+f.name.slice(-4).toUpperCase();pictures.set(f.name,short);bundle.files.push({name:'DOS/'+short,data:f.data});});
     for(const [id,page] of M.pages(doc)){
-      const media=new Map([...bundle.paths.get(id)].map(([key,p])=>[key,[pictures.get(p[1]),pictures.get(p[1])]]));
+      const media=new Map([...bundle.paths.get(id)].map(([key,p])=>[key,[pictures.get(p[1]),pictures.get(p[1]),pictures.get(p[2])]]));
       for(const ed of ['classic','text']){
         const source=render(page,id,ed,media,name).replace(/[^\x00-\x7F]/gu,ch=>'&#'+ch.codePointAt(0)+';');
         bundle.files.push({name:'DOS/'+name(id,ed),data:encoder.encode(source)});
@@ -168,7 +181,7 @@
     for(const [id,page] of M.pages(doc))for(const ed of ['',...editions])bundle.files.push({name:file(id,ed),data:encoder.encode(render(page,id,ed,bundle.paths.get(id)))});
     if (M.pages(doc).some(([,p]) => p.bbsScreen || p.items.some(o => o.widget?.startsWith('bbs-')))) {
       const screens = {};
-      for (const [id] of M.pages(doc)) {
+      for (const [id] of [...M.pages(doc),...RetroBbs.bulletinPages(M.pages(doc))]) {
         const base = id === 'home' ? 'terminal' : 'page-'+id+'-terminal';
         for (const width of [32,40,80]) {
           const screen = M.terminal(doc,id,width);
@@ -202,7 +215,7 @@
     for(const [key,p] of M.pages(doc))pages.add(new Option(p.title||'Untitled',key));
     for(const [key,settings] of Object.entries(modes))choose.add(new Option(settings[0],key));
     pages.value=id;choose.value=modes[initial]?initial:'modern';
-    const history=[];let help=false;
+    const history=[];let help=false,bulletin='';
     const paths=new Map();
     for(const [key] of M.pages(doc))for(const ed of ['',...editions])paths.set(file(key,ed),[key,ed]);
     function resize(){
@@ -233,7 +246,7 @@
       return '<!doctype html>'+parsed.documentElement.outerHTML;
     }
     function display(){
-      const key=pages.value,p=M.page(doc,key),ed=modes[choose.value][1],bbs=ed==='bbs';
+      const ed=modes[choose.value][1],bbs=ed==='bbs',key=bbs&&bulletin?bulletin:pages.value;
       foot.hidden=bbs;term.hidden=!bbs;
       dlg.querySelectorAll('[data-option="bbs"]').forEach(el=>el.hidden=!bbs);
       find('[data-option="fit"]').hidden=bbs;
@@ -260,21 +273,29 @@
     });
     term.querySelector('form').onsubmit=event=>{
       event.preventDefault();const input=term.querySelector('input'),cmd=input.value.trim().toLowerCase();input.value='';
-      const current=pages.value,screen=M.terminal(doc,current,Number(control('columns').value)),list=screen.links;
+      const current=bulletin||pages.value,screen=M.terminal(doc,current,Number(control('columns').value)),list=screen.links;
       const dest=RetroBbs.command(screen,cmd.toUpperCase());
       if(dest?.resource){RetroBbs.openResource(dest.resource);return;}
       if(cmd==='?')help=true;
-      else if(cmd==='b'){if(help)help=false;else if(history.length)pages.value=history.pop();}
+      else if(cmd==='b'){if(help)help=false;else if(history.length)setTerminalPage(history.pop());}
       else if(cmd==='h'||dest?.page){
-        const key=cmd==='h'?'home':dest.page;if(current!==key)history.push(current);pages.value=key;help=false;
+        const key=cmd==='h'?'home':dest.page;if(current!==key)history.push(current);setTerminalPage(key);help=false;
       }else{term.querySelector('[role=status]').textContent='Enter a listed number or ? for help.';return;}
       display();input.focus();
     };
-    choose.onchange=pages.onchange=()=>{history.length=0;help=false;display();};
+    function setTerminalPage(key){
+      bulletin=M.page(doc,key)?'':key;
+      if(!bulletin)pages.value=key;
+    }
+    choose.onchange=pages.onchange=()=>{bulletin='';history.length=0;help=false;display();};
     control('columns').onchange=control('color').onchange=display;control('scale').onchange=resize;
     const observer=new ResizeObserver(resize);
     dlg.addEventListener('close',()=>{observer.disconnect();for(const url of previewURLs.values())URL.revokeObjectURL(url);dlg.remove();},{once:true});
     document.body.append(dlg);dlg.showModal();observer.observe(stage);display();
   }
-  window.RetroExport={source,download,openPreview};
+  async function posterStill(src){
+    M.imageType(src);await M.dimensions(src);
+    return dataUri(await classicGif(src,320,240),'gif');
+  }
+  window.RetroExport={source,download,openPreview,posterStill};
 })();
