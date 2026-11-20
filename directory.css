@@ -22,6 +22,8 @@ header .maker-button img, .maker-button img { width: 88px; height: 31px; max-wid
   .software-ad img { width: 68px; height: 30px; }
 }
 @media (max-width: 440px) {
-  .software-ad { justify-content: flex-start; flex-wrap: wrap; }
-  .software-ad .get { margin-left: 75px; }
+  .software-ad { display: grid; grid-template-columns: 68px minmax(0,1fr); column-gap: 8px; row-gap: 4px; padding: 6px; }
+  .software-ad picture { grid-row: 1 / span 2; }
+  .software-ad .get { grid-column: 2; justify-self: start; }
+  .software-ad small { line-height: 1.25; }
 }
