@@ -1,4 +1,4 @@
-"""Free-placement page canvas for the YesterSites desktop editor.
+"""Free-placement page canvas for the Retro Pages desktop editor.
 
 Object coordinates are CSS pixels measured from the page's top-left corner.
 Objects are shared with the document model. Their list order is the paint order.

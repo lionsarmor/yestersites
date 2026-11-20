@@ -1,4 +1,4 @@
-"""YesterSites desktop project files, portable HTML, and separate image assets."""
+"""Retro Pages project files, portable HTML, and separate image assets."""
 
 import base64
 import binascii
@@ -204,7 +204,7 @@ def _link(value):
 def validate_project(doc, *, publishing=False):
     """Return normalized project data. Drafts may be empty and have no site address."""
     if not isinstance(doc, dict):
-        raise ValueError("Expected a YesterSites desktop project.")
+        raise ValueError("Expected a Retro Pages project.")
     d = new_project()
     for key, limit in (("title", 80), ("slug", 40), ("byline", 48)):
         d[key] = _text(

@@ -1,4 +1,4 @@
-"""YesterSites Studio — native, offline-first desktop page compositor."""
+"""Retro Pages — native, offline-first desktop page compositor."""
 
 import base64
 from copy import deepcopy
@@ -26,7 +26,8 @@ from project import (
 
 BASE = Path(__file__).resolve().parent
 ASSETS = BASE / "assets"
-NAME = "YesterSites Studio"
+NAME = "Retro Pages"
+VERSION = "0.1.1"
 PROFILE_NAMES = {
     "classic": "1990s graphical",
     "millennium": "Early 2000s",
@@ -49,7 +50,7 @@ ART = [
     ("neighborhood.jpg", "The neighborhood"),
 ]
 PUBLISH = "https://yestersites.com/desktop/publish/"
-PROJECT_TYPES = [("YesterSites projects", "*.yst"), ("All files", "*")]
+PROJECT_TYPES = [("Retro Pages projects", "*.yst"), ("All files", "*")]
 
 
 def make_sample():
@@ -152,7 +153,7 @@ class Studio:
         self.root = root
         self.root.geometry("1100x745")
         self.root.minsize(760, 520)
-        self.tmp = TemporaryDirectory(prefix="yestersites-studio-")
+        self.tmp = TemporaryDirectory(prefix="retro-pages-")
         self.path = None
         self.doc = make_sample()
         self.snapshots = [deepcopy(self.doc)]
@@ -338,6 +339,7 @@ class Studio:
                 for z in [0.5, 0.75, 1, 1.5, 2]
             ],
         )
+        menu("Help", [("About Retro Pages", self.about, "")])
         self.root.configure(menu=bar)
         for key, fn in [
             ("n", self.new),
@@ -364,6 +366,13 @@ class Studio:
             self.root.bind("<Control-" + key + ">", shortcut)
         self.canvas.canvas.bind("<Delete>", lambda e: self.delete())
         self.root.bind("<F5>", lambda e: self.preview())
+
+    def about(self):
+        messagebox.showinfo(
+            NAME,
+            f"{NAME} {VERSION}\nBuild a homepage on your desktop and publish it to YesterSites.",
+            parent=self.root,
+        )
 
     def palette(self, widget, kind, path=None):
         def release(e):
@@ -886,7 +895,7 @@ class Studio:
 
 
 def main():
-    root = tk.Tk(className="YesterSitesStudio")
+    root = tk.Tk(className="RetroPages")
     Studio(root, sys.argv[1] if len(sys.argv) > 1 else None)
     root.mainloop()
 
