@@ -205,7 +205,7 @@
     const doc=M.normalize(raw),bundle=await mediaFor(doc,false);
     return render(M.page(doc,id),id,ed,bundle.paths.get(id));
   }
-  async function openPreview(raw,id,initial='modern') {
+  async function openPreview(raw,id,initial='modern',review=null) {
     const doc=M.normalize(raw),bundle=await mediaFor(doc,true);
     const modes={modern:['Modern desktop','modern',0,0],phone:['Phone · 390 × 844','phone',390,844],authored:['Authored size','modern',0,0],classic640:['Classic · 640 × 480','classic',640,480],classic800:['Classic · 800 × 600','classic',800,600],text:['Text browser','text',0,0],bbs:['BBS terminal','bbs',0,0]};
     const dlg=document.createElement('dialog');dlg.className='site-preview';dlg.setAttribute('aria-label','Website preview');
@@ -214,6 +214,43 @@
     const choose=control('mode'),pages=control('page'),frame=find('iframe'),stage=find('.preview-stage'),foot=find('.preview-footprint'),term=find('.preview-terminal');
     for(const [key,p] of M.pages(doc))pages.add(new Option(p.title||'Untitled',key));
     for(const [key,settings] of Object.entries(modes))choose.add(new Option(settings[0],key));
+    const checks=document.createElement('div'),editionButtons=new Map();
+    if(review){
+      dlg.setAttribute('aria-label','What visitors will see');
+      find('form strong').textContent='What visitors will see';
+      const next=document.createElement('button');next.type='button';next.textContent='Continue to publish';
+      next.onclick=()=>{dlg.close();review.publish();};
+      find('form').append(next);
+      const strip=document.createElement('div');strip.className='edition-strip';strip.setAttribute('role','group');strip.setAttribute('aria-label','Visitor edition');
+      for(const [value,label] of [['phone','Phone'],['classic640','Classic HTML'],['text','Text'],['bbs','BBS']]){
+        const button=document.createElement('button');button.type='button';button.textContent=label;
+        button.onclick=()=>{choose.value=value;choose.onchange();};editionButtons.set(value,button);strip.append(button);
+      }
+      choose.parentNode.hidden=true;
+      find('.preview-controls').before(strip);
+      checks.className='edition-checks';find('.preview-stage').before(checks);
+    }
+    function showChecks(){
+      if(!review)return;
+      for(const [key,button] of editionButtons)button.setAttribute('aria-pressed',String(choose.value===key));
+      if(checks.dataset.built)return;
+      checks.dataset.built='yes';
+      for(const [key,p] of M.pages(doc)){
+        for(const obj of p.items){
+          const missing=obj.widget==='video-player' && !obj.fallbackPoster?'Movie has no classic still':
+            obj.widget==='game-cartridge' && !obj.fallbackText?.trim()?'Game has no classic description':'';
+          if(!missing)continue;
+          const row=document.createElement('div'),caption=document.createElement('span'),edit=document.createElement('button');
+          caption.textContent=p.title+' · '+(obj.text||obj.widget)+' — '+missing;
+          edit.type='button';edit.textContent='Edit';edit.setAttribute('aria-label','Edit '+(obj.text||obj.widget)+' on '+p.title);
+          edit.onclick=()=>{dlg.close();review.edit(key,obj.id);};
+          const view=document.createElement('button');view.type='button';view.textContent='View fallback';
+          view.onclick=()=>{pages.value=key;choose.value='classic640';choose.onchange();};
+          row.append(caption,view,edit);checks.append(row);
+        }
+      }
+      checks.hidden=!checks.childElementCount;
+    }
     pages.value=id;choose.value=modes[initial]?initial:'modern';
     const history=[];let help=false,bulletin='';
     const paths=new Map();
@@ -247,7 +284,7 @@
     }
     function display(){
       const ed=modes[choose.value][1],bbs=ed==='bbs',key=bbs&&bulletin?bulletin:pages.value;
-      foot.hidden=bbs;term.hidden=!bbs;
+      showChecks();foot.hidden=bbs;term.hidden=!bbs;
       dlg.querySelectorAll('[data-option="bbs"]').forEach(el=>el.hidden=!bbs);
       find('[data-option="fit"]').hidden=bbs;
       if(bbs){
@@ -255,7 +292,7 @@
         const cols=Number(control('columns').value);
         term.style.color={Green:'#69ed45',Amber:'#ffc05b',White:'#f3f1e7'}[control('color').value];
         find('pre').innerHTML=help?'TERMINAL HELP\n\n1, 2 ... Open a link\nH        Home\nB        Back\n?        Help':RetroBbs.toHTML(M.terminal(doc,key,cols));
-        term.style.setProperty('--columns',cols+'ch');find('output').textContent=cols+' columns';
+        term.style.setProperty('--columns',cols+'ch');find('output').textContent=cols+' columns'+(review?(bulletin || M.page(doc,key)?.bbsScreen || M.page(doc,key)?.items.some(o=>o.widget?.startsWith('bbs-'))?' · Authored screen':' · Generated from page text'):'');
         term.querySelector('[role=status]').textContent='';
       }else{frame.srcdoc=previewPage(key,ed);resize();}
     }

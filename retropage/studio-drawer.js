@@ -3,7 +3,7 @@ window.RetroStudioDrawer = (() => {
   const make=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
   const button=(text)=>{const el=make('button',text);el.type='button';return el;};
   const starters=[
-    ['blank','Start blank'],['pocket-bog','Pocket Bog · Flash pet club'],['moon-relay','2001 Anime Shrine'],['player-two','Nintendo Repair Club'],
+    ['blank','Start blank'],['free-play','Make an arcade'],['pocket-bog','Pocket Bog · Flash pet club'],['moon-relay','2001 Anime Shrine'],['player-two','Nintendo Repair Club'],
     ['fan-club','1995 Fan Club'],['radio-shack','1999 Radio Shack'],['personal-blog','2002 Personal Blog'],
     ['dial-up','Dial-up BBS'],['late-night','Late Night Signal']
   ];
@@ -13,6 +13,11 @@ window.RetroStudioDrawer = (() => {
     heading.id='starter-heading';chooser.setAttribute('aria-labelledby',heading.id);
     const close=button('×');close.setAttribute('aria-label','Close starter chooser');close.onclick=()=>chooser.close();
     header.append(heading,close);const grid=make('div');grid.className='starter-grid';
+    const arcade=make('fieldset');arcade.className='starter-arcade';arcade.hidden=true;
+    const name=make('input');name.type='text';name.maxLength=48;name.value='Token Alley Arcade';
+    const cart=make('select');cart.add(new Option('Lantern Run · NES','lantern-run'));cart.add(new Option('Pond Post · Game Boy','pond-post'));
+    function field(label,control){const group=make('label',label);group.append(control);return group;}
+    arcade.append(make('legend','Your arcade'),field('Arcade name',name),field('Opening cartridge',cart));
     let choice;const cards=[];
     for(const [key,label] of starters){
       const tile=button('');tile.className='starter-card';tile.dataset.starter=key;
@@ -22,7 +27,7 @@ window.RetroStudioDrawer = (() => {
         const image=make('img');image.src='assets/starters/'+key+'.webp';image.alt='';tile.append(image);
       }
       tile.append(make('strong',label));cards.push(tile);grid.append(tile);
-      tile.onclick=()=>{choice=key;cards.forEach(card=>card.setAttribute('aria-pressed',String(card===tile)));};
+      tile.onclick=()=>{choice=key;arcade.hidden=key!=='free-play';cards.forEach(card=>card.setAttribute('aria-pressed',String(card===tile)));};
     }
     const foot=make('footer'),message=make('output',first?'': 'Creating a site replaces this working draft. Save a copy to keep it.');
     message.setAttribute('aria-live','polite');const create=button('Create site');create.className='starter-create';
@@ -31,14 +36,20 @@ window.RetroStudioDrawer = (() => {
       try{
         let doc;
         if(key==='blank')doc=RetroModel.blank();
+        else if(key==='free-play'){
+          if(!name.value.trim()){name.focus();throw Error('Enter an arcade name.');}
+          const response=await fetch('assets/starters/free-play.json');
+          if(!response.ok)throw Error('The arcade artwork and cartridges could not load. Try again.');
+          doc=window.makeArcadeStarter(name.value,cart.value,await response.json());
+        }
         else if(key==='late-night')doc=RetroModel.copy(window.retroPresets.sample);
         else if(Object.hasOwn(window.RetroTemplates,label))doc=RetroModel.copy(window.RetroTemplates[label]);
         else{const response=await fetch('assets/starters/'+key+'.json');if(!response.ok)throw Error('Could not open the starter. Try again.');doc=await response.json();}
         if(!chooser.open)return;
-        open({...doc,slug:'',listed:true},'Opened '+label+'.');chooser.close();
+        open({...doc,slug:'',listed:true},key==='free-play'?'Opened '+doc.title+'.':'Opened '+label+'.');chooser.close();
       }catch(error){message.textContent=error.message;}finally{create.disabled=false;}
     };
-    foot.append(message,create);chooser.append(header,grid,foot);
+    foot.append(message,create);chooser.append(header,grid,arcade,foot);
     chooser.addEventListener('close',()=>chooser.remove(),{once:true});document.body.append(chooser);
     cards[0].click();chooser.showModal();
   }

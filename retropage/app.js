@@ -1640,8 +1640,25 @@
     const categories=[values.subject0,values.subject1,values.subject2].filter(Boolean);
     return RetroTopics.read(categories,values.topicTags.split(',').map(s=>s.trim()).filter(Boolean),required);
   }
-  function publish() {
+  let openingReview=false;
+  async function publish(){
+    if(openingReview)return;
+    openingReview=true;
     finishInline(true);
+    try{
+      await RetroExport.openPreview(doc,active,'phone',{
+        publish:publishDetails,
+        edit(key,id){
+          switchPage(key);select(id);properties();
+          const fields=$('dialog-fields').querySelector('.compatibility details');
+          if(fields){fields.open=true;fields.scrollIntoView({block:'nearest'});}
+          $('dialog').addEventListener('close',()=>publish(),{once:true});
+        }
+      });
+    }catch(error){status('Could not open the visitor preview. '+error.message);}
+    finally{openingReview=false;}
+  }
+  function publishDetails() {
     const service='https://yestersites-webring.jamesmweeksjr.chatgpt.site';
     const suggested=doc.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,40).replace(/^-|-$/g,'');
     dialog('Publish to YesterSites',[

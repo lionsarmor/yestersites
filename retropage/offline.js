@@ -2,12 +2,12 @@
 const base = new URL('./', self.location.href);
 const entry = new URL('index.html',base).href;
 const prefix = 'roddy-retro-page:' + base.pathname + ':';
-const version = prefix + '0.13.0-preview';
+const version = prefix + '0.14.0-arcades';
 const resources = [
   './assets/member-nav.js','./assets/member-nav.css','./assets/member-key.png',
   './studio-drawer.js','./studio-drawer.css',
   ...['dial-up','fan-club','late-night','moon-relay','personal-blog','player-two','radio-shack'].map(name=>'./assets/starters/'+name+'.webp'),
-  './topics.js','./assets/instruments/cartridge.png','./assets/starters/pocket-bog.webp','./assets/starters/pocket-bog.json','./assets/starters/moon-relay.json','./assets/starters/player-two.json',
+  './topics.js','./assets/instruments/cartridge.png','./assets/starters/free-play.webp','./assets/starters/free-play.json','./assets/starters/pocket-bog.webp','./assets/starters/pocket-bog.json','./assets/starters/moon-relay.json','./assets/starters/player-two.json',
   './index.html', './format.js','./member-storage.js','./craft.js','./assets/instruments/flash-still.gif',
   ...['bbs','html','film','archive','youtube','rumble','music','radio','clip','audio','menu','art','files','welcome','bulletin'].flatMap(name=>['','-still'].map(suffix=>'./assets/instruments/'+name+suffix+'.gif')),
   './app.css',

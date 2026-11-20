@@ -974,3 +974,7 @@ dialog.site-preview[open]{display:flex;flex-direction:column}
 @media(max-width:480px){.compat-comparison{grid-template-columns:minmax(0,1fr)}}
 
 .craft-preview.cartridge-test{height:clamp(290px,58vh,465px)}.cartridge-test:empty{display:none}
+
+.edition-strip{display:flex;gap:4px;flex-wrap:wrap;padding:6px;background:#d5d0c4}.edition-strip button[aria-pressed=true]{color:white;background:#344b45;border-style:inset}.edition-checks{max-height:18vh;overflow:auto;background:#fff2cc;border-block:1px solid #857659}.edition-checks>div{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 8px}.site-preview>form strong{margin-right:auto}
+
+.edition-checks span{flex:1;min-width:0;overflow-wrap:anywhere}.edition-checks button{flex:none}
