@@ -7,10 +7,12 @@
   if(location.pathname==='/account/connected/'){
     const params=new URLSearchParams(location.hash.slice(1));
     history.replaceState(null,'',location.pathname);
-    if(window!==top || document.referrer!==service+'/')return;
+    if(window!==top)return;
     const badge=params.get('badge');
     if(badge!=='' && !/^[a-f0-9]{64}$/.test(badge||''))return;
-    try{localStorage.setItem(key,JSON.stringify({badge,checked:Date.now()}));}catch{}
+    if(document.referrer===service+'/'){
+      try{localStorage.setItem(key,JSON.stringify({badge,checked:Date.now()}));}catch{}
+    }
     let url;
     try{url=new URL(params.get('next'));}catch{return;}
     if(url.username||url.password||url.hash)return;
