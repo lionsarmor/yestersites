@@ -36,22 +36,37 @@ window.makeBbsEditor=function(app){
   $('block-group').replaceChildren(...['All blocks',...new Set(Object.entries(presets).map(([key,s])=>group(key,s)))].map(k=>new Option(k)));
   function add(key){
     const items=blocks()||automaticBlocks();
-    if(items.length>=64)return app.status('A screen supports 64 blocks.');
     const spec=presets[key],widget=spec.saveAs||key,text=spec.parts.map(p=>p.text).filter(Boolean).join('\n');
-    page().bbsScreen=items;items.push({widget,text,href:spec.parts[0].href||''});
-    index=items.length-1;displayPage=app.active();back=[];app.record('Added '+spec.label+'.');$('block-text').focus();
+    let additions;
+    if(key==='bbs-menu-board'){
+      additions=M.pages(app.project()).filter(([id])=>id!==app.active()).map(([id,p])=>({widget:'bbs-menu',text:p.title,href:'page:'+id}));
+      if(!additions.length)return app.status('Add a second screen to build a linked menu.');
+    }else{
+      const next=M.pages(app.project()).find(([id])=>id!==app.active());
+      const href=key==='bbs-sysop-page'?'':widget==='bbs-menu' && key!=='bbs-lobby'?(next?'page:'+next[0]:''):(spec.parts[0].href||'');
+      additions=[{widget,text,href}];
+    }
+    if(items.length+additions.length>64)return app.status('A screen supports 64 blocks.');
+    page().bbsScreen=items;index=items.length;items.push(...additions);
+    displayPage=app.active();back=[];app.record('Added '+spec.label+'.');
+    if(['bbs-file-card','bbs-qwk','bbs-sysop-page'].includes(key)){
+      $('block-link').value='external';$('block-url-label').hidden=false;$('block-url').focus();
+    }else $('block-text').focus();
   }
   function library(){
     const root=$('bbs-stamps');root.replaceChildren();
+    const query=$('block-search').value.toLowerCase().trim();
     for(const [key,spec] of Object.entries(presets)){
+      if(query && !(spec.label+' '+key.slice(4)+' '+group(key,spec)).toLowerCase().includes(query))continue;
       if($('block-group').value!=='All blocks' && $('block-group').value!==group(key,spec))continue;
       const button=document.createElement('button'),icon=document.createElement('img');
       button.type='button';button.dataset.bbsBlock=key;icon.width=36;icon.height=32;icon.alt='';
       icon.src=spec.preview||'assets/instruments/'+(types[kind(key,spec)]?.[1]||'bbs')+'-still.gif';
       button.append(icon,document.createTextNode(spec.label));button.onclick=()=>add(key);root.append(button);
     }
+    if(!root.children.length)root.textContent='No matching blocks.';
   }
-  $('block-group').onchange=library;library();
+  $('block-group').onchange=library;$('block-search').oninput=library;library();
   function refresh(){
     if(panel.hidden)return;
     if(editingPage!==app.active()){editingPage=displayPage=app.active();back=[];index=0;}
@@ -92,6 +107,8 @@ window.makeBbsEditor=function(app){
   for(const id of ['screen-width','screen-color'])$(id).onchange=()=>{app.setOptions(Number($('screen-width').value),$('screen-color').value);preview();};
   $('monitor-command').onsubmit=e=>{
     e.preventDefault();const screen=preview(),input=$('monitor-input'),cmd=input.value.trim().toUpperCase();input.value='';
+    const file=/^F([1-9]\d*)$/.exec(cmd);
+    if(file && screen.resources[file[1]-1]){window.open(screen.resources[file[1]-1].href,'_blank','noopener,noreferrer');return;}
     const target=cmd==='H'?'home':cmd==='B'?back.pop():/^[1-9]\d*$/.test(cmd)?screen.links[Number(cmd)-1]:null;
     if(!target){app.status('Enter a listed menu number, H for home or B to go back.');return;}
     if(cmd!=='B' && target!==displayPage)back.push(displayPage);

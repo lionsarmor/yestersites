@@ -3,13 +3,13 @@
   "slug": "screening-room",
   "byline": "YesterSites Film Society",
   "profile": "classic",
-  "listed": false,
+  "listed": true,
   "width": 640,
   "height": 520,
   "background": "#101b24",
   "items": [
     {
-      "id": "54d0bea576b9059a59b7dd0dc4fd86c4",
+      "id": "3268cda864f357ffdd15cd3ab7f547fc",
       "kind": "box",
       "x": 16,
       "y": 14,
@@ -27,7 +27,7 @@
       "align": "center"
     },
     {
-      "id": "151ce757dc499f30151f5b40351e3bfa",
+      "id": "ef3a63e9216e999f498553e7ceb68ff9",
       "kind": "text",
       "x": 26,
       "y": 52,
@@ -45,13 +45,13 @@
       "align": "left"
     },
     {
-      "id": "e1c2e99114213534e0305480f018000a",
+      "id": "a20160e2b7fe8b6c244fd798833cecfc",
       "kind": "text",
       "x": 28,
       "y": 102,
       "w": 570,
       "h": 68,
-      "text": "Six booths are open. Pick a channel to try the real player, or take the projection booth home as an editable Retro Page project.",
+      "text": "Pick a picture, tune a radio, or flip a cassette. Pick a channel to try the real player, or take the projection booth home as an editable Retro Page project.",
       "href": "",
       "src": "",
       "color": "#e6dab3",
@@ -63,7 +63,7 @@
       "align": "left"
     },
     {
-      "id": "0ce52c0d1031becc82d59915c4f2647e",
+      "id": "41d37274d728e545817eccf64a99901d",
       "kind": "link",
       "x": 28,
       "y": 172,
@@ -81,7 +81,7 @@
       "align": "left"
     },
     {
-      "id": "ef166c6e6eae0365e399346be5fd0031",
+      "id": "eb97992c02771e60ee1bf79389d8f084",
       "kind": "link",
       "x": 28,
       "y": 214,
@@ -99,7 +99,7 @@
       "align": "left"
     },
     {
-      "id": "6aeec8d931656114e0587e593bae037c",
+      "id": "ae8880ba0b24cbcf551427045ad5404a",
       "kind": "link",
       "x": 28,
       "y": 256,
@@ -117,7 +117,7 @@
       "align": "left"
     },
     {
-      "id": "d41e7aadb378138a04145cfcf5052705",
+      "id": "029e2fefe3ddd5d7846d967faea02312",
       "kind": "link",
       "x": 28,
       "y": 298,
@@ -135,7 +135,7 @@
       "align": "left"
     },
     {
-      "id": "7860941210a902ca9c1d43dbed79afc3",
+      "id": "af69083a85e8332e2ca7342cd9e3a3b1",
       "kind": "link",
       "x": 28,
       "y": 340,
@@ -153,13 +153,13 @@
       "align": "left"
     },
     {
-      "id": "ed704677b47e1775c90a7e743a74abaa",
+      "id": "631eb63b988afdf99cd8fd9b378add13",
       "kind": "link",
       "x": 28,
       "y": 382,
       "w": 580,
       "h": 37,
-      "text": "06   Music   /   Busy Signal · hold music",
+      "text": "06   Music   /   Parking Lot Waltz",
       "href": "page:00000000000000000000000000000006",
       "src": "",
       "color": "#98f5cf",
@@ -171,7 +171,7 @@
       "align": "left"
     },
     {
-      "id": "9721519d402f1784ffc87a20f6796ee0",
+      "id": "c67ed494dcca5582d60bf9d59169dddd",
       "kind": "link",
       "x": 28,
       "y": 424,
@@ -189,10 +189,28 @@
       "align": "left"
     },
     {
-      "id": "5165db2da1ad29801e202d55ebfbe86e",
+      "id": "c87eeb64e3eb0af0a29f7f5f1d1b365a",
       "kind": "link",
       "x": 28,
-      "y": 465,
+      "y": 453,
+      "w": 580,
+      "h": 30,
+      "text": "08   Sound clip / Station ID",
+      "href": "page:00000000000000000000000000000008",
+      "src": "",
+      "color": "#98f5cf",
+      "fill": "",
+      "font_family": "Courier New",
+      "font_size": 16,
+      "bold": false,
+      "italic": false,
+      "align": "left"
+    },
+    {
+      "id": "18f28698d9c06cee8c7460c36c2e0f23",
+      "kind": "link",
+      "x": 28,
+      "y": 485,
       "w": 540,
       "h": 29,
       "text": "Download the editable .yst project",
@@ -213,13 +231,13 @@
       "slug": "",
       "byline": "",
       "profile": "classic",
-      "listed": false,
+      "listed": true,
       "width": 640,
       "height": 520,
       "background": "#101b24",
       "items": [
         {
-          "id": "5a45461f9af9fc449f5785569634872a",
+          "id": "df8b639017c8880fdb2d5f9089920001",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -237,7 +255,7 @@
           "align": "center"
         },
         {
-          "id": "3ab8fe9369a8cb50226a9ea1688943c9",
+          "id": "78bc6c4fc7c98774568dc2fd2ea82392",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -255,7 +273,7 @@
           "align": "left"
         },
         {
-          "id": "b744f19d25e3f3be06e6480b06765c2f",
+          "id": "3c86519734683a19a5b4590489f54fdb",
           "kind": "box",
           "x": 28,
           "y": 100,
@@ -274,11 +292,12 @@
           "widget": "video-player",
           "playerSkin": "deck",
           "alternateSrc": "",
+          "secondSrc": "",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "07b3c207783b34a6f2e9688706cb37b5",
+          "id": "cea17115b7954d0aa8056008350d4ff3",
           "kind": "text",
           "x": 28,
           "y": 392,
@@ -296,7 +315,7 @@
           "align": "left"
         },
         {
-          "id": "a6c405270bfa9d3a46182344a6737c50",
+          "id": "634ece3593447be8e0d8c72de78a9bb1",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -321,13 +340,13 @@
       "slug": "",
       "byline": "",
       "profile": "classic",
-      "listed": false,
+      "listed": true,
       "width": 640,
       "height": 520,
       "background": "#101b24",
       "items": [
         {
-          "id": "dc187a42e5e8561d1e5229175ebf03ee",
+          "id": "38ac61bc5ac56f696e87b45bc7030ad5",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -345,7 +364,7 @@
           "align": "center"
         },
         {
-          "id": "91414b62a00e829d9adbc00b5d83d42b",
+          "id": "5da18bf6e93b3b0dee4df18412a7f395",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -363,7 +382,7 @@
           "align": "left"
         },
         {
-          "id": "7efef3762566bc277d1ac05864bfd63e",
+          "id": "4c75a5759f55a1d56e0f7756d0a0136d",
           "kind": "box",
           "x": 28,
           "y": 100,
@@ -382,11 +401,12 @@
           "widget": "video-player",
           "playerSkin": "real",
           "alternateSrc": "",
+          "secondSrc": "",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "c3d9f678c8b8efb6c8bf1f26ba4e78d5",
+          "id": "31ac3a1ebd4de74a7f5b84ce17ed5d4c",
           "kind": "text",
           "x": 28,
           "y": 392,
@@ -404,7 +424,7 @@
           "align": "left"
         },
         {
-          "id": "bc7826590fb35333a281b20ae1d281f5",
+          "id": "6650dd4d410b94af4417e884f3d34c34",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -429,13 +449,13 @@
       "slug": "",
       "byline": "",
       "profile": "classic",
-      "listed": false,
+      "listed": true,
       "width": 640,
       "height": 520,
       "background": "#101b24",
       "items": [
         {
-          "id": "f362d93064b51c489c265806a097feba",
+          "id": "7557aa841541ce03220d8f8c0ca9455d",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -453,7 +473,7 @@
           "align": "center"
         },
         {
-          "id": "8451dc7da966efe18ca65f2af8474d83",
+          "id": "fcd16fc3a89b8b22f6e12a8d66ef1644",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -471,7 +491,7 @@
           "align": "left"
         },
         {
-          "id": "cec9a9478b970cf56aeaef254801478f",
+          "id": "d520a0bfa1a08e36727730584e915969",
           "kind": "box",
           "x": 28,
           "y": 100,
@@ -490,11 +510,12 @@
           "widget": "video-player",
           "playerSkin": "win31",
           "alternateSrc": "https://yestersites.com/assets/screening/market-street.mp4",
+          "secondSrc": "",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "115357be0297b0b1b99b5a1c1e07f1d4",
+          "id": "08d28318f1c85137dc38aa94980294c3",
           "kind": "link",
           "x": 28,
           "y": 366,
@@ -512,7 +533,7 @@
           "align": "left"
         },
         {
-          "id": "02a78196e45e0d17d306e406b7504928",
+          "id": "70bdf36de40aee6677ec0392c671ac19",
           "kind": "text",
           "x": 28,
           "y": 392,
@@ -530,7 +551,7 @@
           "align": "left"
         },
         {
-          "id": "efb4894e6ef1b5912333b554a40e1aa4",
+          "id": "84f0448e72aeaba31c7d1283af009b02",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -555,13 +576,13 @@
       "slug": "",
       "byline": "",
       "profile": "classic",
-      "listed": false,
+      "listed": true,
       "width": 640,
       "height": 520,
       "background": "#101b24",
       "items": [
         {
-          "id": "6165062c06c65c20fd7b87b65235d6ac",
+          "id": "2e2be51849973c84e2b2eeab9e4a359c",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -579,7 +600,7 @@
           "align": "center"
         },
         {
-          "id": "0ca802a0867edeb699b68c9d3a74fb20",
+          "id": "7ac4b3a20952ef6d89d1b7d65bc17230",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -597,7 +618,7 @@
           "align": "left"
         },
         {
-          "id": "26664e9b6418bcd28539feac48d70f5c",
+          "id": "94e46a49f9681608b115548f3d83d657",
           "kind": "box",
           "x": 28,
           "y": 100,
@@ -614,13 +635,14 @@
           "italic": false,
           "align": "left",
           "widget": "video-player",
-          "playerSkin": "real",
+          "playerSkin": "hardware",
           "alternateSrc": "https://yestersites.com/assets/screening/market-street.webm",
+          "secondSrc": "",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "7e26accc83ba3c2262d6c9b72e6125e3",
+          "id": "881b90c35f8ac4b8bab281f01c5188c5",
           "kind": "link",
           "x": 28,
           "y": 366,
@@ -638,7 +660,7 @@
           "align": "left"
         },
         {
-          "id": "a08b8e84ae76698b3492b3c4c63c76e9",
+          "id": "f1341018f9acfc05b671dede0b9a7763",
           "kind": "text",
           "x": 28,
           "y": 392,
@@ -656,7 +678,7 @@
           "align": "left"
         },
         {
-          "id": "32fa89c94f36f4970a946800c3d31a8b",
+          "id": "cbd01c0bc4e2fe708817792c0fdc6c44",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -681,13 +703,13 @@
       "slug": "",
       "byline": "",
       "profile": "classic",
-      "listed": false,
+      "listed": true,
       "width": 640,
       "height": 520,
       "background": "#101b24",
       "items": [
         {
-          "id": "d2a154f4c98e2953614d92a08486a791",
+          "id": "fa4daf4fb51ab3349ebf629faf3a2393",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -705,7 +727,7 @@
           "align": "center"
         },
         {
-          "id": "de9a34cabb66faaec05b5b2ffced22d5",
+          "id": "d05926f065e0dc7dd99d62750f9652dd",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -723,12 +745,12 @@
           "align": "left"
         },
         {
-          "id": "900b1d78ff905700eb9e3f78bcd60ac7",
+          "id": "cdc41c3669f2a9db46c560bef315bcb3",
           "kind": "box",
           "x": 28,
           "y": 100,
           "w": 560,
-          "h": 115,
+          "h": 145,
           "text": "Dead Air 730 · station ID",
           "href": "https://yestersites.com/assets/screening/station-id.mp3",
           "src": "",
@@ -740,14 +762,15 @@
           "italic": false,
           "align": "left",
           "widget": "audio-player",
-          "playerSkin": "win31",
+          "playerSkin": "hardware",
           "audioMode": "radio",
           "alternateSrc": "https://yestersites.com/members/nightshift/station-id.wav",
+          "secondSrc": "",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "1e5ef8fc8a9afe59c37e48d961fd06eb",
+          "id": "6ff3c84dd52c1ad5ad59550f9295430e",
           "kind": "text",
           "x": 28,
           "y": 392,
@@ -765,7 +788,7 @@
           "align": "left"
         },
         {
-          "id": "6ab2c1a5cd79e7f430be3d62ba189eac",
+          "id": "ea64e1c01503b6e79286c0157949d0ca",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -786,17 +809,17 @@
       "page_id": "00000000000000000000000000000005"
     },
     {
-      "title": "Busy Signal · hold music",
+      "title": "Parking Lot Waltz",
       "slug": "",
       "byline": "",
       "profile": "classic",
-      "listed": false,
+      "listed": true,
       "width": 640,
       "height": 520,
       "background": "#101b24",
       "items": [
         {
-          "id": "3e81cae0c9331471e41a4596677e6fdf",
+          "id": "f6b7b7774f40a3b1e5394f8cbc4d15f6",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -814,7 +837,7 @@
           "align": "center"
         },
         {
-          "id": "521dd1900d8a82d90a400d00d7db150a",
+          "id": "808548df2c6d76b1d8701826bdf1be10",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -832,14 +855,14 @@
           "align": "left"
         },
         {
-          "id": "a1eaeb5bd337f8f58bec1d16ecc16660",
+          "id": "e9ded618ef60e85f3ecc34faa617a037",
           "kind": "box",
           "x": 28,
           "y": 100,
           "w": 560,
-          "h": 115,
-          "text": "Busy Signal · hold music",
-          "href": "https://yestersites.com/members/modem/art/hold-music.wav",
+          "h": 145,
+          "text": "Parking Lot Waltz",
+          "href": "https://yestersites.com/assets/screening/parking-lot-waltz.wav",
           "src": "",
           "color": "#e6dab3",
           "fill": "#c3c0db",
@@ -849,20 +872,21 @@
           "italic": false,
           "align": "left",
           "widget": "audio-player",
-          "playerSkin": "real",
+          "playerSkin": "hardware",
           "audioMode": "music",
           "alternateSrc": "",
+          "secondSrc": "https://yestersites.com/members/modem/art/hold-music.wav",
           "autoplay": false,
           "loop": false
         },
         {
-          "id": "34fa8978b6d1a569005e206c936bfe47",
+          "id": "da3b322b83ab4711457c92a4bae2159e",
           "kind": "text",
           "x": 28,
           "y": 392,
           "w": 554,
           "h": 50,
-          "text": "Music from the Busy Signal switchboard.",
+          "text": "An original three-beat tune for Side A. Flip the tape for the Busy Signal switchboard on Side B.",
           "href": "",
           "src": "",
           "color": "#e6dab3",
@@ -874,7 +898,7 @@
           "align": "left"
         },
         {
-          "id": "65bcb2f8670ef72ec7b80832121f0198",
+          "id": "cf020c1740bb5cb62e2363d0162d19e6",
           "kind": "link",
           "x": 28,
           "y": 453,
@@ -899,13 +923,13 @@
       "slug": "",
       "byline": "",
       "profile": "classic",
-      "listed": false,
+      "listed": true,
       "width": 640,
       "height": 520,
       "background": "#101b24",
       "items": [
         {
-          "id": "5dfea619131ab248fa5091db71f5218a",
+          "id": "b9afd20b59bd46378643202364b9e57a",
           "kind": "box",
           "x": 16,
           "y": 14,
@@ -923,7 +947,7 @@
           "align": "center"
         },
         {
-          "id": "755d03003181df78dbbe46d033342b8d",
+          "id": "da734ecf540547c41f3702c9b08ed6ca",
           "kind": "text",
           "x": 26,
           "y": 52,
@@ -941,7 +965,7 @@
           "align": "left"
         },
         {
-          "id": "9c4cf68d977dd6762d07ce7c6658724a",
+          "id": "4a4a8908a8979acb241b706bedd0f754",
           "kind": "box",
           "x": 22,
           "y": 103,
@@ -962,7 +986,7 @@
           "otherHref": "page:00000000000000000000000000000005"
         },
         {
-          "id": "58f610892a702634db8842b94007386b",
+          "id": "47857c14b7bdaf7aac07c7edd4d21f72",
           "kind": "link",
           "x": 24,
           "y": 455,
@@ -981,6 +1005,94 @@
         }
       ],
       "page_id": "00000000000000000000000000000007"
+    },
+    {
+      "title": "Station ID sound clip",
+      "slug": "",
+      "byline": "",
+      "profile": "classic",
+      "listed": true,
+      "width": 640,
+      "height": 520,
+      "background": "#101b24",
+      "items": [
+        {
+          "id": "e190ddde301522da7f226bad0f768085",
+          "kind": "box",
+          "x": 16,
+          "y": 14,
+          "w": 608,
+          "h": 28,
+          "text": "Y S   /   F I L M   S O C I E T Y",
+          "href": "",
+          "src": "",
+          "color": "#162e30",
+          "fill": "#acaf92",
+          "font_family": "Courier New",
+          "font_size": 16,
+          "bold": true,
+          "italic": false,
+          "align": "center"
+        },
+        {
+          "id": "ba83e45adbc5a2fd93fe1610da064547",
+          "kind": "text",
+          "x": 26,
+          "y": 52,
+          "w": 570,
+          "h": 42,
+          "text": "Sound clip / Station ID",
+          "href": "",
+          "src": "",
+          "color": "#f6c663",
+          "fill": "",
+          "font_family": "Georgia",
+          "font_size": 30,
+          "bold": true,
+          "italic": false,
+          "align": "left"
+        },
+        {
+          "id": "19ce3774fdb8ad38e979ac82f12c14b1",
+          "kind": "box",
+          "x": 28,
+          "y": 104,
+          "w": 470,
+          "h": 132,
+          "text": "Station ID",
+          "href": "https://yestersites.com/assets/screening/station-id.mp3",
+          "src": "",
+          "color": "#e6dab3",
+          "fill": "#c3c0db",
+          "font_family": "Courier New",
+          "font_size": 16,
+          "bold": false,
+          "italic": false,
+          "align": "left",
+          "widget": "audio-player",
+          "audioMode": "clip",
+          "playerSkin": "hardware"
+        },
+        {
+          "id": "44a67c6f86dc7c761b83aa4111c91bb5",
+          "kind": "link",
+          "x": 28,
+          "y": 285,
+          "w": 500,
+          "h": 26,
+          "text": "◂ Film schedule",
+          "href": "page:home",
+          "src": "",
+          "color": "#98f5cf",
+          "fill": "",
+          "font_family": "Courier New",
+          "font_size": 16,
+          "bold": false,
+          "italic": false,
+          "align": "left"
+        }
+      ],
+      "page_id": "00000000000000000000000000000008"
     }
   ]
 }

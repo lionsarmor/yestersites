@@ -926,3 +926,13 @@ dialog.site-preview[open]{display:flex;flex-direction:column}
 .redo-icon{transform:scaleX(-1)}#monitor-command button{color:#181820}.bbs-tools button:disabled .toolicon{filter:grayscale(1);opacity:.55}
 
 .member-nav{margin-left:auto;white-space:nowrap;font:13px Tahoma,sans-serif}.member-nav a{color:inherit}.member-nav .download-app{margin-left:8px}#window-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+#block-search{width:100%;min-width:0;box-sizing:border-box}
+
+.media-shelf-link{display:flex;align-items:center;gap:5px;margin:5px auto;cursor:pointer}.media-shelf-link img{width:23px;height:20px;image-rendering:pixelated}
+.instrument-poster{display:block;width:100%;height:100%;pointer-events:none;font:12px Arial;text-align:left;overflow:hidden}
+.instrument-preview{width:min(100%,350px);height:124px;pointer-events:auto;margin:0 auto 5px;color:#171619}
+.instrument-preview:has(.video){height:156px}.instrument-preview:has(>button){height:auto}
+#dialog-fields:has(.instrument-preview) fieldset{display:grid;grid-template-columns:1fr;min-width:0}
+#dialog-fields:has(.instrument-preview) fieldset input:not([type=checkbox]){width:100%;box-sizing:border-box}
+.object-grid:has([data-widget=audio-music]) .object-art{width:40px;height:35px}

@@ -139,7 +139,7 @@
     if(!old && page.items.some(RetroMedia.isPanel))css+=RetroMedia.panelCss;
     if(!old && hasPlayers)css+=RetroMedia.css;
     if(layout==='auto' && hasPlayers)css+='@media(max-width:600px){.board{display:flex;flex-direction:column;gap:8px;padding:8px;box-sizing:border-box}.board>div:first-child{display:none}.board>.object{position:static;width:100%!important;height:auto!important;font-size:16px!important}.board .retro-player.video :is(video,iframe){min-height:220px}.board .object img{width:auto;max-width:100%;height:auto}}';
-    const controls=!old && page.items.some(o=>o.widget==='audio-player' && o.playerSkin && o.playerSkin!=='deck')?'<script>'+RetroMedia.script+'</script>':'';
+    const controls=!old && page.items.some(o=>RetroMedia.isPlayer(o) && (o.playerSkin==='hardware' || o.widget==='audio-player' && o.playerSkin && o.playerSkin!=='deck'))?'<script>'+RetroMedia.script+'</script>':'';
     const body=layout==='auto'?(hasPlayers?board():board()+flow('phone')):layout==='modern'?board():flow(layout);
     return '<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+escape(page.title)+'</title>'+(css?'<style>'+css+'</style>':'')+'</head><body'+attrs+'>'+body+sound+footer+controls+'</body></html>';
   }
@@ -166,7 +166,7 @@
         for (const width of [32,40,80]) {
           const screen = M.terminal(doc,id,width);
           bundle.files.push({name:base+(width===32?'':'-'+width)+'.txt',data:encoder.encode(screen.lines.join('\r\n')+'\r\n')});
-          screens[id] = {file:base+'.txt',links:screen.links};
+          screens[id] = {file:base+'.txt',links:screen.links,resources:screen.resources};
         }
       }
       bundle.files.push({name:'bbs-menu.json',data:encoder.encode(JSON.stringify(screens,null,2))});
@@ -248,7 +248,9 @@
     });
     term.querySelector('form').onsubmit=event=>{
       event.preventDefault();const input=term.querySelector('input'),cmd=input.value.trim().toLowerCase();input.value='';
-      const current=pages.value,list=M.terminal(doc,current,Number(control('columns').value)).links;
+      const current=pages.value,screen=M.terminal(doc,current,Number(control('columns').value)),list=screen.links;
+      const file=/^f([1-9]\d*)$/.exec(cmd);
+      if(file && screen.resources[file[1]-1]){window.open(screen.resources[file[1]-1].href,'_blank','noopener,noreferrer');return;}
       if(cmd==='?')help=true;
       else if(cmd==='b'){if(help)help=false;else if(history.length)pages.value=history.pop();}
       else if(cmd==='h'||(/^[1-9]\d*$/.test(cmd)&&Number(cmd)<=list.length)){

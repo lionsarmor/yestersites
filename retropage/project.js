@@ -213,6 +213,7 @@
             RetroMedia.frameURL(n.href);
             if(n.widget==='split-frame'){RetroMedia.frameURL(n.otherHref);check(string(n.otherLabel,120),'Add a short menu label.');}
           }
+          if(RetroMedia.isPlayer(n) && n.secondSrc)RetroMedia.source(n.secondSrc,'audio-player');
           if(RetroMedia.isPlayer(n) && n.alternateSrc)RetroMedia.source(n.alternateSrc,n.widget);
           if (n.widget === 'counter') check(/^[0-9]{1,12}$/.test(n.text), 'Enter 1–12 counter digits.');
         }
@@ -363,7 +364,7 @@
   }
   function terminal(doc, id, columns = 32) {
     const p = page(doc, id),
-      links = [],
+      links = [], resources = [],
       body = [];
     const ascii = (s) =>
       s
@@ -380,7 +381,10 @@
         if (['bbs-menu','bbs-files'].includes(o.widget) && o.href.startsWith('page:')) {
           links.push(o.href.slice(5));
           label = links.length + '  ' + (label || page(doc, links.at(-1)).title);
-        } else if (['bbs-menu','bbs-files'].includes(o.widget) && o.href) label += '\n' + ascii(o.href);
+        } else if (['bbs-menu','bbs-files'].includes(o.widget) && o.href) {
+          resources.push({text:label.split('\n')[0]||'Open resource',href:o.href});
+          label='F'+resources.length+'  '+label+'\n'+ascii(o.href);
+        }
         for (const line of label.split('\n')) {
           if (o.widget === 'bbs-art' || o.widget === 'bbs-files') {
             if (!line.length) lines.push('');
@@ -389,7 +393,7 @@
         }
         lines.push('');
       }
-      return {lines,links};
+      return {lines,links,resources};
     }
     const lines = [...wrap(ascii(p.title.toUpperCase()), columns), ''];
     for (const o of ordered) {
@@ -408,7 +412,7 @@
         body.push(...wrap(o.kind === 'image' ? '[' + t + ']' : t, columns), '');
       }
     }
-    return { lines: [...lines, '', ...body], links };
+    return { lines: [...lines, '', ...body], links,resources };
   }
   const readImage = (file) =>
     new Promise((resolve, reject) => {

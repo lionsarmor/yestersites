@@ -342,11 +342,27 @@
   let artGroup = artGroups[0], artPage = 0;
   let objectGroup = 'Basic shapes', artPanel, artScroll = 0;
   const palette = window.retroPalette;
-  const videoPresets=Object.fromEntries(['YouTube','Rumble','Internet Archive'].map(label=>[
-    'media-'+label.toLowerCase().replace(' ','-'),{...window.retroObjects.presets['video-player'],label:label+' video',saveAs:'video-player'}]));
-  for(const [mode,label] of Object.entries(RetroMedia.voices))videoPresets['audio-'+mode]={...window.retroObjects.presets['audio-player'],label,saveAs:'audio-player'};
-  const mediaIcons={'video-player':'film','audio-player':'audio','audio-clip':'clip','audio-music':'music','audio-radio':'radio','media-youtube':'youtube','media-rumble':'rumble','media-internet-archive':'archive'};
-  const widgets = {...videoPresets, ...window.retroObjects.presets, ...palette.shapes, ...palette.web, ...palette.bbs};
+  const studioMedia='https://yestersites.com/assets/screening/';
+  const mediaLibrary={
+    'audio-music':{label:'Cassette deck',icon:'music',voice:'music',title:'Parking Lot Waltz',url:studioMedia+'parking-lot-waltz.wav'},
+    'audio-radio':{label:'Radio tuner',icon:'radio',voice:'radio',title:'Dead Air 730',url:studioMedia+'station-id.mp3'},
+    'audio-clip':{label:'Sound clip',icon:'clip',voice:'clip',title:'Station ID',url:studioMedia+'station-id.mp3'},
+    'video-player':{label:'Movie player',icon:'film',title:'Market Street, 1906',url:studioMedia+'market-street.mp4'},
+    'media-youtube':{label:'YouTube video',icon:'youtube',title:'YouTube screening',url:'https://www.youtube.com/watch?v=M7lc1UVf-VE'},
+    'media-rumble':{label:'Rumble video',icon:'rumble',title:'Rumble screening',url:'https://rumble.com/embed/v17zczn/'},
+    'media-internet-archive':{label:'Archive movie',icon:'archive',title:'A Trip Down Market Street',url:'https://archive.org/details/TripDown1905'}
+  };
+  function mediaKey(o){
+    if(o.widget==='audio-player')return 'audio-'+(Object.hasOwn(RetroMedia.voices,o.audioMode)?o.audioMode:'clip');
+    const ref=RetroMedia.source(o.href,o.widget);
+    return ref.id?'media-youtube':ref.provider==='Rumble'?'media-rumble':ref.provider==='Internet Archive'?'media-internet-archive':'video-player';
+  }
+  const mediaPresets=Object.fromEntries(Object.entries(mediaLibrary).map(([key,m])=>{
+    const widget=m.voice?'audio-player':'video-player';
+    return [key,{label:m.label,saveAs:widget,parts:[{kind:'box',w:368,h:m.voice?134:274,text:m.title,href:m.url,fill:'transparent',playerSkin:'hardware',...(m.voice?{audioMode:m.voice}:{})}]}];
+  }));
+  const widgets={...window.retroObjects.presets,...mediaPresets,...palette.shapes,...palette.web,...palette.bbs};
+  const cabinetStyle=document.createElement('style');cabinetStyle.textContent=RetroMedia.css;document.head.append(cabinetStyle);
   function renderDrawer() {
     if (!$('drawer-content')) return;
     $('drawer-title').textContent = drawer === 'GIFs' ? 'GIF Stamps' : drawer;
@@ -382,15 +398,16 @@
           choices.append(b);
         }
       }
-      const builtin=Object.entries({...videoPresets,...window.retroObjects.presets}).filter(([key])=>{
-        if(objectGroup==='Media players')return Object.hasOwn(mediaIcons,key);
+      const builtin=Object.entries({...window.retroObjects.presets,...mediaPresets}).filter(([key])=>{
+        if(objectGroup==='Media players')return Object.hasOwn(mediaLibrary,key);
+        if(Object.hasOwn(mediaLibrary,key) || key==='audio-player')return false;
         if(RetroMedia.isPanel({widget:key}))return objectGroup==='Basic shapes';
         return objectGroup==='Web objects' && !key.startsWith('bbs-');
       });
       const extra=objectGroup==='Basic shapes'?palette.shapes:objectGroup==='Web objects'?palette.web:{};
       for (const [key,spec] of [...builtin, ...Object.entries(extra)]) {
         const b=node('button','object-choice');
-        const part=spec.parts[0], src=mediaIcons[key]?'assets/instruments/'+mediaIcons[key]+(matchMedia('(prefers-reduced-motion: reduce)').matches?'-still':'')+'.gif':spec.preview || (key==='counter'?counterSource(part.text):part.src);
+        const part=spec.parts[0], src=mediaLibrary[key]?'assets/instruments/'+mediaLibrary[key].icon+(matchMedia('(prefers-reduced-motion: reduce)').matches?'-still':'')+'.gif':spec.preview || (key==='counter'?counterSource(part.text):part.src);
         let icon=glyph(part.kind);
         if(src){
           icon=node('img','object-art');
@@ -398,6 +415,12 @@
         }
         b.append(icon,document.createTextNode(spec.label));
         b.draggable=true; b.dataset.widget=key; choices.append(b);
+      }
+      if(objectGroup==='Basic shapes'){
+        const shelf=node('button','media-shelf-link');shelf.type='button';
+        const icon=node('img');icon.src='assets/instruments/music-still.gif';icon.alt='';
+        shelf.append(icon,document.createTextNode('Music, sound & video ▸'));
+        shelf.onclick=()=>{objectGroup='Media players';renderDrawer();};root.append(shelf);
       }
     } else {
       if (artPanel) { root.append(artPanel); root.scrollTop=artScroll; return; }
@@ -514,7 +537,8 @@
       eye.title = off ? 'Show on canvas' : 'Hide on canvas';
       eye.append(glyph(off ? 'closed' : 'eye'));
       name.dataset.layer = o.id;
-      const src = o.kind === 'image' ? o.src : '';
+      const media=RetroMedia.isPlayer(o)?mediaLibrary[mediaKey(o)]:null;
+      const src=media?'assets/instruments/'+media.icon+'-still.gif':o.kind==='image'?o.src:'';
       if (src) {
         const thumb = node('img');
         thumb.src = src;
@@ -522,7 +546,7 @@
         name.append(thumb);
       } else name.append(glyph(o.kind));
       const text = o.text.trim().replace(/\s+/g, ' ');
-      name.append(node('span', null, M.kinds[o.kind] + (text ? ': ' + text : '')));
+      name.append(node('span', null, (media?.label||M.kinds[o.kind]) + (text ? ': ' + text : '')));
       row.append(eye, name);
       root.append(row);
     }
@@ -530,13 +554,15 @@
   }
   function renderProperties() {
     const o = object();
-    $('properties-title').textContent = o ? M.kinds[o.kind] + ' Properties' : 'Properties';
+    const media=RetroMedia.isPlayer(o)?mediaLibrary[mediaKey(o)]:null;
+    $('properties-title').textContent=o?(media?.label||M.kinds[o.kind])+' Properties':'Properties';
+    $('properties').querySelector('[data-action=properties]').textContent=media?'Edit '+media.label.toLowerCase()+'…':'Edit object…';
     for (const k of ['x', 'y', 'w', 'h', 'text']) {
       const c = $('prop-' + k);
       c.value = o ? o[k] : '';
       c.disabled = !o || (k === 'text' && o.kind === 'rule');
     }
-    $('prop-caption').textContent = o?.widget === 'counter' ? 'Counter digits' : o?.kind === 'image' ? 'Alt text' : 'Text';
+    $('prop-caption').textContent = media?'Player title':o?.widget === 'counter' ? 'Counter digits' : o?.kind === 'image' ? 'Alt text' : 'Text';
     for (const c of $('properties').querySelectorAll('button')) c.disabled = !o;
   }
   function renderBbs() {
@@ -582,9 +608,13 @@
         if(o.widget==='split-frame'){const rail=node('div','editor-frame-menu');rail.append(node('strong',null,'INDEX'),node('span',null,o.text),node('span',null,o.otherLabel));pane.append(rail);}
         pane.append(node('span','editor-frame-content',o.text+'  ▧'));el.append(pane);
       } else if (RetroMedia.isPlayer(o)) {
+        if(o.playerSkin==='hardware'){
+          const face=node('div','instrument-poster');face.inert=true;face.innerHTML=RetroMedia.poster(o);el.append(face);
+        }else{
         const deck=node('div','player-face');
         deck.dataset.skin=o.playerSkin||'deck';deck.append(node('strong',null,(o.widget==='audio-player'?RetroMedia.voices[o.audioMode]||'Wave Deck':RetroMedia.skins[o.playerSkin]||'Vision Deck')+' · '+o.text),node('span',null,o.widget==='audio-player'?'▂ ▄ ▆ ▃ ▇ ▅ ▂':'▶'),node('small',null,'▶   ▪   ━━━━━━'));
         el.append(deck);
+        }
       } else if (src) {
         const im = node('img');
         im.src = src;
@@ -848,44 +878,52 @@
     }
     return RetroMedia.source(raw,widget).url;
   }
-  function playerDialog(o,isNew,preset=o.widget) {
-    const p=page();
-    const hints={
-      'media-youtube':'Paste a YouTube watch, Shorts or share URL.',
-      'media-rumble':'On Rumble, open Share → Embed and copy the iframe or its URL.',
-      'media-internet-archive':'Paste the Archive movie item URL for its original player, or a direct MP4 download for Vision Deck.',
-    };
-    const formTitle=widgets[preset].label;
-    const action=async v=>{
-
+  function playerDialog(o) {
+    const key=mediaKey(o),m=mediaLibrary[key],pageAtOpen=page();
+    const options={
+      'audio-music':['Cassette label','Side A · music file','Tape deck','Play on arrival','Repeat this side'],
+      'audio-radio':['Station name','Station 1 · stream address','Receiver','Tune in on arrival'],
+      'audio-clip':['Clip name','Sound file','Sound recorder','Play when the page opens','Loop sound effect'],
+      'video-player':['Movie title','Movie file','Projection booth','Start movie on arrival','Loop movie'],
+      'media-youtube':['Video title','YouTube watch or share URL','YouTube player','Start video on arrival','Loop video'],
+      'media-rumble':['Video title','Rumble video or Share / Embed address','Rumble player'],
+      'media-internet-archive':['Item title','Archive.org movie item or embed address','Archive projectionist']
+    }[key];
+    const [name,sourceLabel,section,arrival,loopLabel]=options;
+    const fields=[
+      {name:'text',label:name,value:o.text,required:true,maxLength:120,section},
+      {name:'media',label:sourceLabel,value:o.href,required:true,maxLength:2048,section}
+    ];
+    if(key==='audio-music' || key==='audio-radio')fields.push({name:'secondSrc',label:key==='audio-music'?'Side B · second track (optional)':'Station 2 · second stream (optional)',value:o.secondSrc||'',maxLength:2048,section});
+    if(key==='audio-music' || key==='audio-radio')fields.push({name:'secondTitle',label:key==='audio-music'?'Side B label':'Station 2 name',value:o.secondTitle||'',maxLength:120,section});
+    if(key==='video-player' || m.voice)fields.push({name:'alternateSrc',label:key==='video-player'?'Alternate movie encoding (optional)':'Backup audio source (optional)',value:o.alternateSrc||'',maxLength:2048,section});
+    if(arrival)fields.push({name:'autoplay',label:arrival,type:'checkbox',value:o.autoplay,section:'Playback'});
+    if(loopLabel)fields.push({name:'loop',label:loopLabel,type:'checkbox',value:o.loop,section:'Playback'});
+    fields.push({name:'playerSkin',label:'Window style',type:'select',options:Object.entries(RetroMedia.skins),value:o.playerSkin||'deck',section:'Appearance'});
+    const apply=async v=>{
       const href=await mediaLink(v.media,o.widget);
-      if (!$('dialog').open || dialogAccept!==action || p!==page()) return;
-      const hosted=!!RetroMedia.source(href,o.widget).embed;
-      const values={text:v.text,href,alternateSrc:v.alternateSrc?RetroMedia.source(v.alternateSrc,o.widget).url:'',playerSkin:v.playerSkin,audioMode:v.audioMode||'clip',autoplay:!hosted && !!v.autoplay,loop:!hosted && !!v.loop};
-      if (!isNew) return applyObject(o,values);
-      const candidate={...o,...values}, trial={...p,items:[...p.items,candidate]};
-      M.normalize(p===doc?trial:{...doc,pages:doc.pages.map(child=>child===p?trial:child)});
-      p.items.push(candidate);selected=candidate.id;record('Placed '+widgets[o.widget].label+'.');
+      if(!$('dialog').open || dialogAccept!==apply || pageAtOpen!==page())return;
+      if(mediaKey({...o,href})!==key)throw Error('Use the '+m.label+' source shown above. Other players are in the Media players drawer.');
+      applyObject(o,{text:v.text,href,playerSkin:v.playerSkin,alternateSrc:v.alternateSrc?RetroMedia.source(v.alternateSrc,o.widget).url:'',
+        secondTitle:v.secondTitle||'',secondSrc:v.secondSrc?RetroMedia.source(v.secondSrc,'audio-player').url:'',autoplay:!!v.autoplay,loop:!!v.loop});
     };
-    dialog(formTitle,[
-      ...(hints[preset]?[{note:hints[preset]}]:[]),
-      {name:'text',label:'Player title',value:o.text,required:true,maxLength:120},
-      {name:'media',label:o.widget==='video-player'?'YouTube, Rumble, Archive movie or HTTPS video file':'HTTPS audio file or live stream',value:o.href,required:true,maxLength:2048},
-      {name:'playerSkin',label:'Player frame',type:'select',options:Object.entries(RetroMedia.skins),value:o.playerSkin||(isNew?'win31':'deck')},
-      ...(o.widget==='audio-player'?[{name:'audioMode',label:'Audio panel',type:'select',options:Object.entries(RetroMedia.voices),value:o.audioMode||(Object.hasOwn(RetroMedia.voices,preset.slice(6))?preset.slice(6):'clip')}]:[]),
-      {name:'alternateSrc',label:'Fallback media file (optional)',value:o.alternateSrc||'',maxLength:2048},
-      {name:'autoplay',label:'Start on arrival',type:'checkbox',value:o.autoplay},
-      {name:'loop',label:'Repeat clip',type:'checkbox',value:o.loop},
-      {url:'https://yestersites.com/members/screening-room/',label:'Try the Screening Room examples'},
-    ],action,isNew?'Insert':'Apply');
-    const field=$('dialog-fields').querySelector('[name=media]');
-    const options=['autoplay','loop'].map(name=>$('dialog-fields').querySelector('[name='+name+']'));
-    const adjust=()=>{
-      const provider=/(?:https:\/\/(?:www\.)?rumble\.com\/|https:\/\/(?:www\.)?archive\.org\/(?:details|embed)\/)/i.test(field.value) ||
-        (!field.value && ['media-rumble','media-internet-archive'].includes(preset));
-      for (const opt of options)opt.disabled=provider;
-    };
-    field.oninput=adjust;adjust();
+    dialog(m.label+' properties',fields,apply,'Apply');
+    const pane=node('div','instrument-preview'),form=$('dialog-fields');
+    form.prepend(pane);
+    const provider=key.startsWith('media-');
+    function audition(){
+      const draft={...o,href:form.querySelector('[name=media]').value,text:form.querySelector('[name=text]').value,playerSkin:form.querySelector('[name=playerSkin]').value,
+        alternateSrc:form.querySelector('[name=alternateSrc]')?.value||'',secondTitle:form.querySelector('[name=secondTitle]')?.value||'',secondSrc:form.querySelector('[name=secondSrc]')?.value||'',autoplay:false,loop:!!form.querySelector('[name=loop]')?.checked};
+      try{
+        pane.innerHTML=RetroMedia.render(draft,'modern');RetroMedia.mount(pane);
+      }catch{pane.textContent='Enter a playable source to preview it here.';}
+    }
+    function refreshPreview(){
+      if(!provider){audition();return;}
+      const load=node('button',null,'Preview '+m.label);load.type='button';load.onclick=audition;pane.replaceChildren(load);
+    }
+    form.addEventListener('change',refreshPreview);refreshPreview();
+    $('dialog').addEventListener('close',()=>{form.removeEventListener('change',refreshPreview);pane.replaceChildren();},{once:true});
   }
   function frameDialog(o,isNew){
     const p=page(),split=o.widget==='split-frame';
@@ -921,7 +959,12 @@
       return o;
     });
     if(RetroMedia.isFrame(objects[0]))return frameDialog(objects[0],true);
-    if(RetroMedia.isPlayer(objects[0]))return playerDialog(objects[0],true,key);
+    if(RetroMedia.isPlayer(objects[0])){
+      const candidate={...p,items:[...p.items,...objects]};
+      M.normalize(p===doc?candidate:{...doc,pages:doc.pages.map(child=>child===p?candidate:child)});
+      p.items.push(...objects);selected=objects[0].id;
+      record('Placed '+spec.label+'. Double-click it to edit.');return;
+    }
     const prior=p.items[0],replace=key==='wallpaper'&&prior?.kind==='image'&&!prior.text.trim()&&!prior.href&&prior.x===0&&prior.y===0&&prior.w===p.width&&prior.h===p.height;
     if (p.items.length + objects.length - Number(!!replace)>64) throw Error('This page supports up to 64 objects.');
     if (key==='wallpaper') p.items.splice(0,replace?1:0,...objects);
@@ -1006,7 +1049,7 @@
     const o = object();
     if (!o) return status('Select an object on the page.');
     if (RetroMedia.isFrame(o)) return frameDialog(o,false);
-    if (RetroMedia.isPlayer(o)) return playerDialog(o,false);
+    if (RetroMedia.isPlayer(o)) return playerDialog(o);
     const fields =
       o.kind === 'rule'
         ? []
@@ -1320,7 +1363,9 @@
       pageBbs = 'home';
       bbsHelp = false;
     } else {
-      const target = M.terminal(doc, pageBbs, bbsWidth).links[Number(c) - 1];
+      const screen=M.terminal(doc,pageBbs,bbsWidth),file=/^F([1-9]\d*)$/.exec(c);
+      if(file && screen.resources[file[1]-1]){window.open(screen.resources[file[1]-1].href,'_blank','noopener,noreferrer');return;}
+      const target=screen.links[Number(c)-1];
       if (!/^\d+$/.test(c) || !target)
         return status('Enter a link number, H for Home, B for Back, or ? for help.');
       bbsBack.push(pageBbs);
@@ -1630,7 +1675,12 @@
       return;
     }
     const widget=e.target.closest('[data-widget]');
-    if(widget){const key=widget.dataset.widget;place({widget:key,label:widgets[key].label});return;}
+    if(widget){const key=widget.dataset.widget;
+      if(mediaLibrary[key]){
+        armed=null;const offset=18*(page().items.filter(RetroMedia.isPlayer).length%4);
+        try{insertWidget(key,24+offset,48+offset);}catch(error){status(error.message);}return;
+      }
+      place({widget:key,label:widgets[key].label});return;}
     const st = e.target.closest('[data-stamp]');
     if (st) {
       place({ kind: 'image', ...stamps[Number(st.dataset.stamp)] });
