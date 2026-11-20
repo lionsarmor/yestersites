@@ -42,13 +42,19 @@
     return match?'https://'+match[1]+'.yestersites.com/'+match[2]+u.search+u.hash:url;
   }
   function site(url){return [...catalog.values()].find(r=>url?.startsWith(r.base));}
-  function setBar(show){$('bar').hidden=!show;$('restore').hidden=show;$('hide').setAttribute('aria-expanded',String(show));$('hide').textContent=show?'Hide bar':'Show bar';}
+  function tool(id,icon,label,title){
+    const el=$(id);
+    el.querySelector('.glyph').className='glyph g-'+icon;
+    el.querySelector('span').textContent=label;
+    el.title=title;el.setAttribute('aria-label',title);
+  }
+  function setBar(show){$('bar').hidden=!show;$('restore').hidden=show;$('hide').setAttribute('aria-expanded',String(show));if(!show && $('bar').contains(document.activeElement))$('restore').focus();}
   function update(){
     const url=current(), row=site(url),marked=saved.some(b=>clean(b.url)===url);
     $('address').value=publicLink(url);$('caption').textContent=row?.title||'Member site';$('prev').disabled=index<1;
-    $('mark').textContent=marked?'★ Saved':'☆ Bookmark';$('mark').setAttribute('aria-pressed',String(marked));
-    $('stop').textContent=loading?'Stop':'Reload';
-    $('sound').textContent=soundEnabled?'Mute':'Sound on';$('sound').setAttribute('aria-pressed',String(soundEnabled));
+    tool('mark',marked?'saved':'flag',marked?'Saved':'Save',marked?'Remove bookmark':'Bookmark this page');$('mark').setAttribute('aria-pressed',String(marked));
+    tool('stop',loading?'stop':'reload',loading?'Stop':'Reload',loading?'Stop loading':'Reload this page');
+    tool('sound',soundEnabled?'sound':'mute','Sound',soundEnabled?'Mute site sound':'Turn site sound on');$('sound').setAttribute('aria-pressed',String(soundEnabled));
     history.replaceState(null,'',location.pathname+'?url='+encodeURIComponent(publicLink(url)));
   }
   window.addEventListener('member-domains-ready',update);
@@ -207,7 +213,7 @@
     catch(error){if(error.name==='AbortError')return;$('share-url').value=url;$('share-box').showModal();$('share-url').select();}
   };
   swipe($('bar'));window.addEventListener('pagehide',()=>radio.pause());
-  window.addEventListener('keydown',e=>{if(e.target.matches('input,textarea')||document.querySelector('dialog[open]'))return;
+  window.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,select,button,summary,a,details,[contenteditable]')||document.querySelector('dialog[open]'))return;
     if(e.key==='ArrowRight')forward();else if(e.key==='ArrowLeft')back();});
   navigate(clean(new URLSearchParams(location.search).get('url')||'')||another());
   (async()=>{
