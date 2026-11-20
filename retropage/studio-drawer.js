@@ -27,7 +27,12 @@ window.RetroStudioDrawer = (() => {
         const image=make('img');image.src='assets/starters/'+key+'.webp';image.alt='';tile.append(image);
       }
       tile.append(make('strong',label));cards.push(tile);grid.append(tile);
-      tile.onclick=()=>{choice=key;arcade.hidden=key!=='free-play';cards.forEach(card=>card.setAttribute('aria-pressed',String(card===tile)));};
+      tile.onclick=()=>{
+        choice=key;arcade.hidden=key!=='free-play';
+        create.textContent=arcade.hidden?'Create site':'Create arcade';
+        cards.forEach(card=>card.setAttribute('aria-pressed',String(card===tile)));
+        if(!arcade.hidden)arcade.scrollIntoView({block:'nearest'});
+      };
     }
     const foot=make('footer'),message=make('output',first?'': 'Creating a site replaces this working draft. Save a copy to keep it.');
     message.setAttribute('aria-live','polite');const create=button('Create site');create.className='starter-create';
@@ -45,7 +50,7 @@ window.RetroStudioDrawer = (() => {
         else if(key==='late-night')doc=RetroModel.copy(window.retroPresets.sample);
         else if(Object.hasOwn(window.RetroTemplates,label))doc=RetroModel.copy(window.RetroTemplates[label]);
         else{const response=await fetch('assets/starters/'+key+'.json');if(!response.ok)throw Error('Could not open the starter. Try again.');doc=await response.json();}
-        if(!chooser.open)return;
+        if(!chooser.open||choice!==key)return;
         open({...doc,slug:'',listed:true},key==='free-play'?'Opened '+doc.title+'.':'Opened '+label+'.');chooser.close();
       }catch(error){message.textContent=error.message;}finally{create.disabled=false;}
     };

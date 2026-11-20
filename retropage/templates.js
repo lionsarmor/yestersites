@@ -63,7 +63,7 @@ window.makeArcadeStarter = function(name,cart,assets){
   const welcome=(text)=>({widget:'bbs-welcome',text,href:''});
   const menu=(text,dest,hotkey)=>({widget:'bbs-menu',text,href:'page:'+dest,hotkey});
   home.bbsScreen=[welcome(arcadeName.toUpperCase()),
-    {widget:'bbs-art',href:'',ink:'e0',text:'   .------------------------.\n   |  T O K E N  A L L E Y   |\n   \'------------------------\''},
+    {widget:'bbs-art',href:'',ink:'e0',text:'   .------------------------.\n   |  T O K E N  A L L E Y  |\n   \'------------------------\''},
     {widget:'bbs-bulletin',text:'Tonight at the counter: '+game.title+' for '+game.system+'.',href:''},
     menu('Visit the game room',roomId,'1')];
   room.bbsScreen=[welcome('GAME ROOM / '+game.title.toUpperCase()),
