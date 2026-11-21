@@ -16,3 +16,14 @@ button:active,button[aria-pressed=true]{box-shadow:inset 1px 1px var(--shade),in
 dialog{color:#202027;background:var(--face);border:2px outset var(--light);padding:3px;min-width:min(335px,90vw);max-width:94vw;max-height:73dvh}dialog form{justify-content:space-between}dialog label{display:block;margin:10px}dialog input{width:100%}#saved-list{padding:0 6px;list-style:none}#saved-list li{display:flex;gap:4px;margin:4px 0}#saved-list li button:first-child{flex:1;text-align:left}#empty{margin:12px}
 @media(max-width:720px){.controls{gap:3px}.toolset{flex:3;gap:1px}.toolset.actions{flex:4;padding-left:4px}.toolset button{flex:1;min-width:0;min-height:46px;flex-direction:column;gap:0;padding:2px 0;font-size:12px}#hide{min-width:22px;padding:0}.surfer-title #caption{font-size:12px}.url-well input{font-size:16px}#bar{padding-inline:2px}}
 @media(max-width:400px){body{padding:1px}.surfer-title{gap:4px}.surfer-title #caption{padding-left:4px}.surfer-title strong{font-size:16px}#address-form label{font-size:12px}.toolset button{font-size:11px}.status{font-size:11px}}
+
+#view{overflow:hidden}
+#page-grip{align-self:stretch;flex:none;display:flex;align-items:center;justify-content:center;gap:10px;min-height:36px;background:var(--face);font:bold 12px/1.2 "Courier New",monospace;touch-action:none;user-select:none;cursor:ew-resize}
+#page-grip[hidden]{display:none}
+.turn-scale{position:relative;width:80px;height:11px;background:var(--paper);border:1px inset var(--shade)}
+.turn-scale::before{content:"";position:absolute;inset:3px 2px;border-inline:2px solid var(--line);border-bottom:1px solid var(--shade)}
+.turn-scale i{position:absolute;left:calc(50% - 2px);top:1px;width:4px;height:7px;background:var(--title);transform:translateX(var(--travel,0px))}
+.page-peek{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--paper);color:#202027;pointer-events:none;border-inline:2px ridge var(--light)}
+.page-peek b,.page-peek small{padding:3px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.page-peek b{background:var(--title);color:white}
+.page-peek iframe{width:100%;flex:1;min-height:0;border:0}
