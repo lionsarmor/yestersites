@@ -25,7 +25,7 @@
     try {
       const u=new URL(raw,location.origin);
       const sub=/^([a-z0-9-]{1,40})\.yestersites\.com$/.exec(u.hostname);
-      if(sub && u.protocol==='https:' && !u.username && !u.password && !u.port && !['www','retropage','mail','smtp','pop','imap','ftp','api','admin','accounts','studio','assets','ns1','ns2'].includes(sub[1])){
+      if(sub && u.protocol==='https:' && !u.username && !u.password && !u.port && !['www','android','retropage','mail','smtp','pop','imap','ftp','api','admin','accounts','studio','assets','ns1','ns2'].includes(sub[1])){
         return clean('/members/'+sub[1]+u.pathname+u.search+u.hash);
       }
       u.searchParams.delete('surfer');
