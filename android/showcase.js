@@ -45,7 +45,7 @@
   function choose(frame, scroll = false) {
     selected = frame;
     skin(phone, frame);
-    byId('frame-name').textContent = frame.name;
+    byId('frame-picker').value = frame.id;
     document.querySelectorAll('.specimen').forEach(b => b.setAttribute('aria-pressed', b.dataset.frame === frame.id));
     controls();
     if (scroll) {
@@ -56,13 +56,20 @@
   frames.forEach(frame => {
     const b = document.createElement('button');
     b.className = 'specimen'; b.dataset.frame = frame.id;
-    b.innerHTML = '<span class="sample" aria-hidden="true"><i class="mini-url"></i><span class="mini-keys"><i></i><i></i><i></i><i></i></span></span><span></span>';
-    b.lastElementChild.textContent = frame.name;
+    const photo = document.createElement('img');
+    photo.src = 'art/specimens/' + frame.id + '.webp';
+    photo.alt = '';
+    const label = document.createElement('span');
+    label.textContent = frame.name;
+    b.append(photo, label);
+    byId('frame-picker').add(new Option(frame.name, frame.id));
     b.setAttribute('aria-label', 'Preview ' + frame.name);
-    skin(b, frame);
-    b.querySelectorAll('.mini-keys i').forEach((key, i) => key.style.setProperty('--key', cssURL(frame,'key'+i)));
     b.onclick = () => choose(frame, true);
     byId('frames').append(b);
+  });
+  byId('frame-picker').addEventListener('change', event => {
+    const frame = frames.find(item => item.id === event.target.value);
+    if (frame) choose(frame);
   });
   const homeHTML = page.innerHTML;
   const pages = {

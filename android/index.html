@@ -2,24 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f1eddf">
+<meta name="theme-color" content="#101060">
 <meta name="description" content="Explore handmade sites in YESTER, the Android browser by RODDY. Try the browser frames and take a trip through the neighborhood.">
 <title>YESTER for Android · RODDY</title>
-<link rel="icon" href="art/yester.png"><link rel="stylesheet" href="showcase.css">
-<script defer src="frame-manifest.js"></script><script defer src="showcase.js"></script>
+<link rel="icon" href="art/frames/deskset/badge.png"><link rel="stylesheet" href="showcase.css?v=deskset">
+<script defer src="frame-manifest.js"></script><script defer src="showcase.js?v=deskset"></script>
 </head>
 <body>
-<header class="mast"><div class="wrap"><a class="wordmark" href="#top"><img src="art/yester.png" width="31" height="31" alt=""><strong>YESTER</strong></a><nav aria-label="Main menu"><a href="#cabinet">Frame cabinet</a><a href="https://yestersites.com/">YesterSites ↗</a></nav></div></header>
+<header class="mast"><div class="wrap"><a class="wordmark" href="#top"><img src="art/frames/deskset/badge.png" width="28" height="28" alt=""><strong>YESTER <small>for Android</small></strong></a><nav aria-label="Main menu"><a href="#cabinet">Frame cabinet</a><a href="https://yestersites.com/">YesterSites ↗</a></nav></div></header>
 <main id="top">
 <section class="showcase wrap" aria-labelledby="headline">
-<div class="copy"><span class="release"><i></i> Android preview · Download coming later</span>
+<div class="copy">
 <h1 id="headline">A phone browser for the <em>handmade web.</em></h1>
 <p class="lede">Wander into a midnight arcade. Read a radio operator’s log. Follow a link out, find your way back, or swipe on to the next handmade homepage.</p>
-<div class="hero-actions"><a class="primary" href="https://yestersites.com/browse/">Browse YesterSites <span>↗</span></a><a class="secondary" href="#cabinet">Explore the frames <span>↓</span></a></div>
-<div class="maker">A product of <a href="https://roddy.world/"><img src="art/roddy.svg" alt="RODDY"></a></div>
+<div class="hero-actions"><a class="primary" href="https://yestersites.com/browse/"><img src="art/frames/deskset/next.png" alt=""> Browse YesterSites</a><a class="secondary" href="#cabinet"><img src="art/frames/deskset/tools.png" alt=""> Frame cabinet</a></div>
+<p class="release">Android preview · Download coming later</p>
 </div>
 <div class="preview-stage" id="preview">
-<div class="stage-head"><b>YESTER</b><span>Interactive browser preview</span></div>
+<div class="stage-head"><img src="art/frames/deskset/badge.png" alt=""><b>YESTER</b><span>Interactive preview</span></div>
 <div class="phone" aria-label="Interactive YESTER preview">
 <div class="content" id="page" tabindex="-1"><div class="site arcade"><small>TOKEN ALLEY / OPEN ALL NIGHT</small><h2>Quarter Moon Arcade</h2><img class="site-hero" src="art/quarter-moon.gif" alt="A glowing arcade entrance at dusk"><p>Our cabinet is open. Pond Post is on the floor tonight.</p><button data-go="room" class="web-link">[ Enter the game room ]</button></div></div>
 <div class="dock" id="dock"><button class="grip-control" id="grip" aria-label="Swipe up to discover another site, or tap for the next site"><span></span></button>
@@ -27,13 +27,13 @@
 <div class="keys"><button id="back" disabled><img alt=""><span>Back</span></button><button id="next"><img alt=""><span>Next</span></button><button id="reload"><img alt=""><span>Reload</span></button><button id="tools" aria-expanded="false" aria-controls="toolbox"><img alt=""><span>Tools</span></button></div></div>
 <div id="toolbox" class="toolbox" hidden><button id="close-tools" aria-label="Close tools">×</button><h3>Tools</h3><a href="#cabinet">Frame cabinet ↓</a><a id="visit" href="https://quarter-moon-arcade.yestersites.com/">Visit this live site ↗</a><button id="restart">Restart this preview</button></div>
 </div>
-<div class="stage-foot"><span class="status-dot"></span><strong id="frame-name">DeskSet 3.2</strong><a href="#cabinet">Change frame ↓</a></div>
+<div class="stage-foot"><label for="frame-picker">Browser frame</label><select id="frame-picker"></select></div>
 </div>
 </section>
-<section class="trip wrap" aria-labelledby="trip-title"><div><h2 id="trip-title">Take it for a spin.</h2><p>A short trip from an arcade to the neighborhood.</p></div>
-<ol id="tour"><li><button data-tour="0">Enter the game room</button></li><li><button data-tour="1">Follow an outside link</button></li><li><button data-tour="2">Go Back</button></li><li><button data-tour="3">Discover another site</button></li></ol>
+<section class="trip wrap" aria-labelledby="trip-title"><div><h2 id="trip-title">Try a browsing trip</h2></div>
+<ol id="tour"><li><button data-tour="0"><img src="art/frames/deskset/next.png" alt="">Enter the game room</button></li><li><button data-tour="1"><img src="art/frames/deskset/address-icon.png" alt="">Follow an outside link</button></li><li><button data-tour="2"><img src="art/frames/deskset/back.png" alt="">Go Back</button></li><li><button data-tour="3"><img src="art/frames/deskset/forward.png" alt="">Discover another site</button></li></ol>
 </section>
 <section id="cabinet" class="cabinet"><div class="wrap"><div class="cabinet-title"><div><h2>Frame cabinet</h2><p>Pick a frame to try it on the open page.</p></div><span>14 frames</span></div><div id="frames" class="frames" aria-label="Browser frames"></div><noscript>Turn on JavaScript to try the frame cabinet.</noscript></div></section>
 </main>
-<footer><div class="wrap"><strong>YESTER for Android</strong><a href="https://yestersites.com/">YesterSites ↗</a><a href="https://roddy.world/">roddy.world ↗</a></div></footer>
+<footer><div class="wrap"><strong>YESTER for Android</strong><a href="https://yestersites.com/">YesterSites ↗</a><a class="maker" href="https://roddy.world/">A product of <img src="art/roddy.svg" alt="RODDY" width="80"></a></div></footer>
 </body></html>
