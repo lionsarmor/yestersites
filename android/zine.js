@@ -19,6 +19,7 @@
         app.allow = "autoplay; fullscreen; gamepad; clipboard-write; web-share";
         app.allowFullscreen = true;
         stage.replaceChildren(app);
+        stage.closest(".sheet").classList.add("demo-open");
         document.querySelector(".arrow").hidden = true;
         document.querySelector(".full").hidden = false;
       }

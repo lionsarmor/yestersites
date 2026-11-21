@@ -29,15 +29,26 @@ footer p { font-size:15px; }
 footer small,.maker { font:12px/1.4 'Courier New',monospace; }
 .maker { display:flex; flex-wrap:wrap; align-items:center; gap:5px; color:#32261f; }
 [hidden] { display:none!important; }
-@media(max-width:660px) {
- .sheet { margin:4px; }
- .columns { grid-template-columns:minmax(0,1fr); }
- aside { display:flex; flex-direction:row-reverse; align-items:center; border:0; border-bottom:1px solid #9c8d79; padding:0 8px; }
- nav { flex:1; align-items:center; justify-content:space-evenly; gap:4px 9px; padding:0 1px; }
- nav a { display:inline-flex; align-items:center; min-height:44px; font-size:clamp(14px,3.5vw,16px); }
- .pigeon { width:43px; margin-right:4px; }
- #demo { padding:8px 6px 0; }
- footer { padding:9px; gap:8px; }
- #google-play { gap:7px; }
+
+@media(max-width:740px) {
+ html { background:#f9efe1 url(art/zine-paper.webp) repeat; }
+ .sheet { width:100%; min-height:100vh; min-height:100dvh; margin:0; border:0; box-shadow:none; display:flex; flex-direction:column; }
+ .columns { width:100%; flex:1; grid-template-columns:minmax(0,1fr); grid-template-rows:1fr auto; }
+ aside { display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1fr); align-items:center; gap:8px; padding:10px 6%; border:0; border-bottom:2px solid #39312c; }
+ nav { grid-column:2; grid-row:1; display:grid; justify-content:start; gap:0; padding:0; }
+ nav a { display:flex; align-items:center; min-height:44px; padding:4px; font-size:clamp(17px,5vw,25px); }
+ .pigeon { grid-column:1; grid-row:1; width:100%; max-height:clamp(145px,26dvh,260px); object-fit:contain; }
+ #demo { width:100%; padding:10px clamp(6px,2vw,14px) 0; align-self:stretch; }
+ .under-demo { min-height:40px; }
+ .demo-open .columns { grid-template-rows:auto 1fr; }
+ .demo-open aside { display:block; padding:0 5px; }
+ .demo-open .pigeon { display:none; }
+ .demo-open nav { display:flex; flex-wrap:wrap; justify-content:space-evenly; }
+ .demo-open nav a { font-size:16px; }
+ .demo-open #demo { display:flex; flex-direction:column; }
+ .demo-open .stage { flex:1; display:flex; }
+ .stage iframe { flex:1; min-width:0; min-height:370px; height:auto; }
+ footer { padding:10px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left)); gap:8px; }
+ #google-play { gap:8px; }
  #google-play img { width:68px; height:68px; }
 }

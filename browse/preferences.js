@@ -2,6 +2,7 @@
   'use strict';
   const get = id => document.getElementById(id);
   const frames = [
+    ['pigeon', 'Pigeon Press', 'The illustrated YESTER demo frame'],
     ['win31', 'DeskSet 3.2', 'Beveled desktop tools'],
     ['classic', 'County Dialer', 'Olive telephone exchange'],
     ['real', 'TapeDeck Live', 'Brushed stereo receiver'],

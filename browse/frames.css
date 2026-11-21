@@ -170,3 +170,23 @@ dialog::backdrop{background:#15172866}
 [data-theme=ledger],[data-skin=ledger]{--emblem:5;--frame-ink:#264536;--frame-surface:#cfe0c7;--sample-edge:#739178}
 [data-theme=ledger] #bar,[data-skin=ledger] .frame-sample{background:radial-gradient(circle,#666952 2px,transparent 3px) left top/13px 15px repeat-y,repeating-linear-gradient(#f5f1d6 0 12px,#dce8cd 12px 24px);padding-left:17px;color:#22352b;font-family:monospace}
 [data-theme=ledger] .toolset button{background:#f9f6dd;border:1px dashed #516b50;color:#263e25;font-family:monospace}
+
+body[data-theme="pigeon"],[data-skin="pigeon"] {
+  --face:#d9d5d1;--title:#162b78;--paper:#f8f1e5;--shade:#686265;
+  --frame-ink:#162b78;--frame-surface:#d9d5d1;--sample-edge:#5f5658;
+}
+[data-theme="pigeon"] .surfer-title,[data-theme="pigeon"] .window-head {
+  background:#162b78 url(pigeon/title.png) center/100% 100%;color:#fff;
+}
+[data-theme="pigeon"] #bar { background:#d9d5d1 url(pigeon/housing.png); }
+[data-theme="pigeon"] .frame-emblem,[data-skin="pigeon"] .frame-emblem {
+  background:url(pigeon/badge.png) center/contain no-repeat;
+}
+[data-skin="pigeon"] .frame-sample {background:linear-gradient(#162b78 0 35%,#d9d5d1 35% 100%);}
+[data-theme="pigeon"] .controls button {background:#d9d5d1 url(pigeon/key.png) center/100% 100%;border-radius:0;}
+[data-theme="pigeon"] .url-well img {content:url(pigeon/address-icon.png);}
+#settings .editor-entry {display:flex;align-items:center;gap:9px;margin:8px;padding:7px 10px;color:#17172b;background:#eeeae2;border:2px outset #fff;text-decoration:none;}
+.editor-entry img {image-rendering:pixelated;}
+.editor-entry b,.editor-entry small {display:block;}
+.editor-entry b {text-decoration:underline;}
+.editor-entry:focus-visible {outline:3px solid #865006;}
