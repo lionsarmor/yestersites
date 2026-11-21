@@ -1,5 +1,12 @@
 (() => {
   const stage = document.getElementById("stage");
+  const full = document.querySelector(".full");
+  full.addEventListener("click", event => {
+    const app = stage.querySelector("iframe");
+    if (!app?.requestFullscreen || !document.fullscreenEnabled || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    app.requestFullscreen().catch(() => location.assign(full.href));
+  });
   for (const link of document.querySelectorAll("[data-demo]")) {
     link.addEventListener("click", event => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
