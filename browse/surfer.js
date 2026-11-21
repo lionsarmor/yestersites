@@ -14,15 +14,15 @@
     location.assign(pool.value === 'playable' ? '?mode=playable' : location.pathname);
   });
   const playableSites=new Set();
-  const prefs=window.RingSurferPreferences;
+  const prefs=window.YesterPreferences;
   let manualMute=prefs.quiet;
   let visits=[],index=-1,bag=[],frame=null,loading=false,stopped=false,currentSound='',soundEnabled=false;
-  let recent=read('ring-surfer.travel-log',[]);
+  const read=window.readYesterSetting;
+  let recent=read('yester.travel-log',[]);
   recent=Array.isArray(recent)?recent.filter(entry=>entry && typeof entry.title==='string' && clean(entry.url)).slice(0,40):[];
   const msg=t=>{$('status').textContent=t;};
-  function read(key,otherwise){try{return JSON.parse(localStorage.getItem(key))??otherwise;}catch{return otherwise;}}
   function store(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}}
-  let saved=read('ring-surfer.bookmarks',[]);
+  let saved=read('yester.bookmarks',[]);
   if(!Array.isArray(saved))saved=[];
   saved=saved.filter(entry=>entry && typeof entry.title==='string' && clean(entry.url));
   const current=()=>visits[index];
@@ -226,12 +226,12 @@
   function remember(url){
     if(!url)return;
     const display=publicLink(url);
-    if(prefs.launch==='resume')store('ring-surfer.last-page',display);
+    if(prefs.launch==='resume')store('yester.last-page',display);
     if(!prefs.log)return;
     const title=pageName(url);
     if(recent[0]?.url===display && recent[0].title===title)return;
     recent=[{url:display,title},...recent.filter(entry=>entry.url!==display)].slice(0,40);
-    store('ring-surfer.travel-log',recent);
+    store('yester.travel-log',recent);
   }
   function showLibrary(section){
     librarySection=section;
@@ -254,7 +254,7 @@
         const remove=document.createElement('button');remove.textContent='Remove';
         remove.setAttribute('aria-label','Remove bookmark for '+entry.title);
         remove.onclick=()=>{
-          saved=saved.filter(b=>b!==entry);store('ring-surfer.bookmarks',saved);
+          saved=saved.filter(b=>b!==entry);store('yester.bookmarks',saved);
           showLibrary('saved');update();
           ($('saved-list').querySelector('button')||$('show-saved')).focus();
         };
@@ -265,18 +265,18 @@
   }
   $('show-saved').onclick=()=>showLibrary('saved');
   $('show-recent').onclick=()=>showLibrary('recent');
-  $('clear-recent').onclick=()=>{recent=[];store('ring-surfer.travel-log',recent);showLibrary('recent');$('show-recent').focus();};
+  $('clear-recent').onclick=()=>{recent=[];store('yester.travel-log',recent);showLibrary('recent');$('show-recent').focus();};
   $('mark').onclick=()=>{
     const url=current();
     if(saved.some(b=>clean(b.url)===url))saved=saved.filter(b=>clean(b.url)!==url);
     else saved.push({url:publicLink(url),title:pageName(url)});
-    if(!store('ring-surfer.bookmarks',saved))msg('Bookmarks only available during this visit.');
+    if(!store('yester.bookmarks',saved))msg('Bookmarks only available during this visit.');
     update();
   };
   $('bookmarks').onclick=()=>{showLibrary(librarySection);shelf.showModal();};
   $('share').onclick=async()=>{
     const url=publicLink(current());
-    try{if(navigator.share)return await navigator.share({url,title:site(current())?.title||'Ring Surfer'});
+    try{if(navigator.share)return await navigator.share({url,title:site(current())?.title||'YESTER'});
       await navigator.clipboard.writeText(url);msg('Page link copied.');}
     catch(error){if(error.name==='AbortError')return;$('share-url').value=url;$('share-box').showModal();$('share-url').select();}
   };
@@ -297,11 +297,11 @@
       if(manualMute){soundEnabled=false;radio.pause();}
       frameSound();update();
     }
-    if(e.detail==='launch' && prefs.launch==='resume' && current())store('ring-surfer.last-page',publicLink(current()));
+    if(e.detail==='launch' && prefs.launch==='resume' && current())store('yester.last-page',publicLink(current()));
     if(e.detail==='fold' && matchMedia('(max-width: 640px)').matches)setBar(!prefs.fold);
   });
   const explicit=clean(new URLSearchParams(location.search).get('url')||'');
-  const previous=prefs.launch==='resume' && clean(read('ring-surfer.last-page',''));
+  const previous=prefs.launch==='resume' && clean(read('yester.last-page',''));
   let releaseFirstPage,directoryFailed=false;
   const firstPage=new Promise(resolve=>{releaseFirstPage=resolve;});
   (async()=>{
@@ -323,7 +323,7 @@
     update();
   })().catch(()=>{directoryFailed=true;}).finally(releaseFirstPage);
   if(playableMode){
-    document.title='Sites with games · Ring Surfer';
+    document.title='Sites with games · YESTER';
     msg('Finding playable member sites…');
     firstPage.then(()=>{
       const start=explicit && playableSites.has(site(explicit)?.base)?explicit:another();

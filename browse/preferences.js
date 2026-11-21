@@ -15,10 +15,21 @@
     ['ledger', 'Dot Martix', 'Green-bar tractor-feed paper']
   ];
   const defaults = {launch:'random',edition:'original',gestures:true,fold:false,idle:true,quiet:false,log:true};
+  // Older releases saved bookmarks and preferences under a different prefix.
   function read(key, fallback) {
-    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+    try {
+      let value = localStorage.getItem(key);
+      if (value === null) {
+        value = localStorage.getItem(key.replace(/^yester\./, 'ring-surfer.'));
+        if (value !== null) {
+          try { localStorage.setItem(key, value); } catch { /* Read-only storage. */ }
+        }
+      }
+      return JSON.parse(value) ?? fallback;
+    } catch { return fallback; }
   }
-  const saved = read('ring-surfer.preferences', {});
+  window.readYesterSetting = read;
+  const saved = read('yester.preferences', {});
   const prefs = {...defaults};
   for (const [key, initial] of Object.entries(defaults)) {
     const value = saved?.[key];
@@ -32,11 +43,11 @@
     }
     input.addEventListener('change', () => {
       prefs[key] = input.type === 'checkbox' ? input.checked : input.value;
-      store('ring-surfer.preferences', prefs);
+      store('yester.preferences', prefs);
       window.dispatchEvent(new CustomEvent('ring-preference', {detail:key}));
     });
   }
-  window.RingSurferPreferences = prefs;
+  window.YesterPreferences = prefs;
   function store(key, value) {
     try { localStorage.setItem(key, JSON.stringify(value)); get('settings-result').textContent='Saved on this device'; }
     catch { get('settings-result').textContent='Changes last for this visit'; }
@@ -64,9 +75,9 @@
     if (!frames.some(row=>row[0]===key))key='win31';
     document.body.dataset.theme=key; select.value=key;
     for(const radio of picker.querySelectorAll('input'))radio.checked=radio.value===key;
-    if(save)store('ring-surfer.theme',key);
+    if(save)store('yester.theme',key);
   }
-  applyFrame(read('ring-surfer.theme','win31'),false);
+  applyFrame(read('yester.theme','win31'),false);
   select.addEventListener('change',()=>applyFrame(select.value,true));
   const panel=get('settings'),tabs=[get('frames-tab'),get('browsing-tab')];
   get('settings-open').onclick=()=>panel.showModal();

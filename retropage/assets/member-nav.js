@@ -40,7 +40,7 @@
       if(sessionStorage.getItem('ys-member-checked'))return;
       sessionStorage.setItem('ys-member-checked','1');
     }catch{return;}
-    // Ring Surfer may have selected its first page while the bridge was opening.
+    // YESTER may have selected its first page while the bridge was opening.
     const current=new URL(location.href);current.hash='';
     location.replace(service+'/api/member-badge/connect?to='+encodeURIComponent(current.href));
   });
