@@ -8,6 +8,11 @@
     catalog.set(base,{base,title:row.title,sound:tracks[row.slug]?base+tracks[row.slug]:''});
   }
   const playableMode=new URLSearchParams(location.search).get('mode')==='playable';
+  const pool = document.getElementById('discover-pool');
+  pool.value = playableMode ? 'playable' : 'all';
+  pool.addEventListener('change', () => {
+    location.assign(pool.value === 'playable' ? '?mode=playable' : location.pathname);
+  });
   const playableSites=new Set();
   const prefs=window.RingSurferPreferences;
   let manualMute=prefs.quiet;
@@ -318,7 +323,7 @@
     update();
   })().catch(()=>{directoryFailed=true;}).finally(releaseFirstPage);
   if(playableMode){
-    document.title='Play the neighborhood · Ring Surfer';
+    document.title='Sites with games · Ring Surfer';
     msg('Finding playable member sites…');
     firstPage.then(()=>{
       const start=explicit && playableSites.has(site(explicit)?.base)?explicit:another();
