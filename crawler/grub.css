@@ -8,3 +8,12 @@ body{margin:14px 10px 36px;background:transparent;color:#292c26;font:17px/1.45 '
 #gif-matches .art-pager { display:flex; gap:1em; align-items:center; margin-bottom:4px; }
 
 .card-topics{display:block;margin:5px 0;color:#684833;font:italic 14px Georgia,serif}
+
+.filters { min-width:0; padding:6px 10px 10px; margin:10px 0; border:2px groove #c9b68e; background:#eee4c4; text-align:left; }
+.filters legend { padding:0 6px; color:#594a39; font:bold 13px Georgia,serif; }
+.filter-row { display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:10px; }
+.filter-field { min-width:0; }
+.filter-field label { display:block; margin-bottom:2px; font:bold 13px/1.25 Georgia,serif; }
+.filters select { display:block; width:100%; min-width:0; min-height:32px; padding:3px; border:2px inset #ccbea2; background:#fffcf0; color:#25231c; font:14px Arial,sans-serif; }
+#gifcities { padding:4px 10px; border:2px outset #ece3c0; background:#e4dabb; color:#292620; cursor:pointer; }
+@media(max-width:540px) { .filter-row { grid-template-columns:1fr 1fr; gap:8px; } .filter-field:last-child { grid-column:1/-1; } .filters select { min-height:40px; } }
